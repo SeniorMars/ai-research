@@ -1,0 +1,116 @@
+\section{Running time and concluding remarks}\label{sec:v4i-conclusion}
+
+\subsection{Proof of Theorem~\ref{thm:main}}
+Embeddings are output combinatorially, as rotation systems together with
+the relative positions of the components of each colour. A pair of them is
+\emph{compatible} if it comes from a simultaneous embedding.
+
+Normalize in $O(N)$ time (Theorem~\ref{thm:v4-normalize}); the factors have
+total size $O(N)$. A factor whose common graph has no edges is handled
+directly, since any pair of planar rotation systems is compatible. For a
+factor of size $n$ with a common cycle, construct the compiled instance $I$
+in $O(n^2)$ time. It has size $O(n)$ (Theorem~\ref{thm:v4-compile}), so in
+Theorem~\ref{thm:eng4-main} the initial size $S_0$, the number $m_0$ of
+edges and the maximum pipe degree $D_0$ are $O(n)$, and the engine decides
+$I$ and constructs a witness in $O\bigl((m_0+1)(S_0+m_0D_0)\bigr)=O(n^3)$
+time. By Theorem~\ref{thm:v4-compile} the factor has a simultaneous
+embedding exactly when $I$ is feasible, and a witness of $I$ is decoded and
+repaired into a compatible pair for the factor in $O(n^2)$ time
+(Theorem~\ref{thm:v4-repair}). Since $\sum_t n_t^3\le(\sum_t n_t)^3$, all
+factors together take $O(N^3)$ time, and the normalization is inverted in
+$O(N)$ time (Theorem~\ref{thm:v4-normalize}). \qed
+
+\subsection{Common components that are cacti or biconnected}
+Call a component of $H$ that is $2$-connected with at least three vertices a
+\emph{$2$-component}.
+
+\begin{corollary}\label{cor:v4i-mixed}
+\sefe{} can be decided in $O(N^3)$ time for instances in which every
+connected component of the common graph is a cactus or $2$-connected. For a
+positive instance a simultaneous embedding is constructed in polynomial
+time.
+\end{corollary}
+
+\begin{proof}
+We apply the preprocessing of~\cite[Section~4]{BKR18} to the instance as
+given, before the normalization. Let $C_1,\dots,C_k$ be the
+$2$-components. In linear time it either finds that some $C_i$ has no
+admissible embedding, in which case we reject, or computes admissible
+embeddings of all $C_i$ and instances $I_1,\dots,I_m$ of total size $O(N)$,
+one for each union subbridge with respect to the $C_i$, such that the input
+has a simultaneous embedding if and only if every $I_j$ has
+one~\cite[Lemmas~7 and~9]{BKR18}. Lemma~9 there is stated for connected
+inputs, but its proof does not use connectivity. In $I_j$ every $C_i$ with
+an attachment in the subbridge is replaced by a cycle through these
+attachments in the order of the admissible embedding, with a fresh vertex
+inserted between any two consecutive attachments (two fresh vertices if
+there is only one attachment); a subbridge without attachments is a
+component of $U$ and is kept unchanged. The new cycle subdivides the cycle
+of~\cite{BKR18} (with a triangle at the attachment when there is only one,
+which can be drawn in a corner there), and subdividing common edges
+preserves the existence of a simultaneous embedding, as in the proof
+of~\cite[Lemma~9]{BKR18}. Every new edge has a fresh end, so the
+inputs stay simple. If an $I_j$ has a nonplanar colour we reject.
+
+Let $K$ be a component of $H$ other than the $C_i$. If an edge $e$ of $K$
+lies in a subbridge $S$, then for every $i$ both $S-V(C_i)$ and $K=K-V(C_i)$
+are connected and share the ends of $e$, so maximality of $S$ gives
+$K\subseteq S$; an isolated vertex of $H$ likewise lies in a single
+subbridge. No common edge joins $K$ to a $C_i$, and the replacement cycles
+use only vertices of the $C_i$ and fresh vertices. Hence the common graph of
+every $I_j$ is a disjoint union of components of $H$, which are cacti, and
+of cycles, so it is a cactus. Theorem~\ref{thm:main} decides each $I_j$ in
+$O(N_j^3)$ time, and $\sum_jN_j^3\le(\sum_jN_j)^3=O(N^3)$. For a positive
+instance, the admissible embeddings of the $C_i$ and the simultaneous
+embeddings of the $I_j$ are glued face by face as in the proofs
+of~\cite[Lemmas~7 and~9]{BKR18}.
+\end{proof}
+
+The reduction must precede the normalization of
+Theorem~\ref{thm:v4-normalize}, whose augmentation may attach common edges
+to a $2$-component.
+
+\subsection{Limits and open questions}
+The one feature of our engine without a counterpart in plain Synchronized
+Planarity is the observation of a gap at a P-vertex, a bit that is a
+function of an unrestricted cyclic order. Deleting a self-pipe while keeping
+only the equalities between observations turns an infeasible instance into
+a feasible one (Remark~\ref{rem:eng4-selfpipe}), and arbitrary families of
+gap observations at one vertex need not be describable by parity
+constraints (Remark~\ref{rem:eng4-anchors}). Neither example excludes other
+gadgets, and a reduction of the compiled instances to plain Synchronized
+Planarity remains open. Schaefer conjectured a strong Hanani--Tutte
+theorem for \sefe{}~\cite[Conjecture~6.20]{Sch13}, which would have given a
+parity-based decision algorithm; the conjecture is false, since Gutwenger,
+Mutzel and Schaefer~\cite{GMS14} turned the clustered-planarity
+counterexamples of Fulek, Kyn\v{c}l, Malinovi\'c and
+P\'alv\"olgyi~\cite[p.~6]{FKMP15} into counterexamples to it; see
+also~\cite[p.~137]{FPS17}.
+
+The complexity of \sefe{} itself remains open. Since \sefe{} is polynomial
+for connected common graphs~\cite{BFR21}, Corollary~\ref{cor:v4i-mixed}
+implies that, unless P${}={}$NP, an NP-hardness reduction must produce, for
+infinitely many inputs, disconnected common graphs with a component that
+contains a block that is neither an edge nor a cycle and shares a cutvertex
+with a further block. An
+extension of our method would have to handle such blocks: their parallel
+skeletons can display several common cycles, so the gap observations at
+one vertex refer to several anchor pairs, and the cycles through a vertex
+no longer form a flower.
+
+We have not tried to optimize the running time. The compiled instances and
+the terminal solver are linear, and Synchronized Planarity runs in quadratic
+time~\cite{BFR21}. Our cubic bound has two sources. First, we keep the
+leaves of the trees inserted by PropagatePQ as degree-two vertices, which
+the size bounds of~\cite[Lemma~10(ii),(iii) and Theorem~12]{BFR21} do not
+cover, so we bound all sizes by $O(S_0+m_0D_0)$ only. Second, every
+iteration recomputes the wheel graphs, planarity, blocks, SPQR trees and the
+scheduling data, and runs the conversion and the backward maps, on the
+whole instance. We expect that both can be removed. A fresh leaf carries no
+observation, pipe end or Q-cell variable before ConvertSmall, so it can be
+suppressed at that point, which restores the leaf convention
+of~\cite{BFR21}; and records kept per connected component, rebuilt only for
+the components an operation changes, together with append-only parity rows,
+should make every iteration cost $O(m_0)$. This would give $O(S_0+m_0^2)$
+for Theorem~\ref{thm:eng4-main} and $O(N^2)$ for Theorem~\ref{thm:main}; we
+have not carried out the details.

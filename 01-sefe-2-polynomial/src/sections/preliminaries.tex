@@ -1,0 +1,204 @@
+\section{Preliminaries and normalization}
+\label{sec:normalization}
+
+The constructions below operate on finite, simple, undirected input graphs.
+This entails no restriction on the theorem if the input convention permits
+loops or parallel edge identities. Replace each input edge by a path of
+length three with two fresh internal vertices. For a common edge use the
+same path in both colours; for a private edge give the new vertices
+isolated copies in the other colour. The resulting graphs are simple and
+have total size $O(N)$. A SEFE extends by choosing subdivision points away
+from all other drawing features. Conversely, suppress the path's internal
+vertices in its colour or colours and delete their isolated copies in the
+other colour. This restores the original edge curves and is an exact
+linear-size reduction. Empty graphs and union components with at most two
+vertices after this step are handled directly.
+
+Auxiliary SPQR skeletons and Synchronized Planarity instances may be loopless
+multigraphs; a digon is then a simple cycle. Drawings are considered on an
+oriented sphere. Selecting a point outside the finite drawing converts the
+result to the plane. A block is a maximal biconnected subgraph or a bridge.
+An isolated vertex belongs to no edge block.
+
+A rotation system specifies a cyclic order of incident darts at every
+vertex. It is planar if each connected component has Euler characteristic
+$|V|-|E|+f=2$, where faces are obtained by tracing the dart successor
+permutation, with $f=1$ for an isolated-vertex component. For a connected graph this determines its oriented spherical
+embedding. For a disconnected graph one must additionally record the face
+of each component containing every other component. These data can be
+represented by a component--region containment tree. Equal rotations alone
+are therefore insufficient in the disconnected case.
+
+We use the common-embedding criterion: a pair has a SEFE exactly when
+planar embeddings of its two colours induce the same embedding of $H$,
+including relative component positions \cite[Theorem~4]{junger}. To see the sufficiency,
+identify orientation-preserving regular neighbourhoods of corresponding
+embedded common components. Their matching face positions identify the
+remaining complementary regions. Extend the boundary identifications
+through these planar regions to an orientation-preserving homeomorphism.
+Applying it to one colour identifies the whole common drawing. Isolated
+common vertices are matched as marked points in the corresponding regions.
+The standard topological facts behind this sketch are stated at the end of
+Section~\ref{rep:global}.
+
+For a cyclic order $\sigma$ and distinct elements $a,d,b$, put
+\[
+ \orcyc_\sigma(a,d,b)=
+ \begin{cases}0,&d\text{ occurs between }a\text{ and }b\text{ going forward},\\
+ 1,&\text{otherwise}.
+ \end{cases}
+\]
+Reflection complements this bit. A directed cycle $C$ has left side $0$
+and right side $1$. With outgoing and incoming darts $c_{\rm out},c_{\rm in}$
+at $v$, the local gap of a noncycle dart $d$ is
+$\gap(C,v,d)=\orcyc_{\rho_v}(c_{\rm out},d,c_{\rm in})$.
+The connected component entered by $d$ after deleting $C$ is on that side.
+For three leaves in a plane tree, their frontier orientation equals the
+orientation of their three directions at their median. This follows by
+reading the three disjoint contour excursions from the median.
+
+\subsection{The published infrastructure used}
+
+We use the classical block-cut and SPQR decompositions and their exact
+embedding parameterization: R-skeleton reflections and P-skeleton cyclic
+orders, opposite at their two poles, determine all block embeddings.
+Substitution along twin virtual edges is the constructive inverse. We also
+use ordinary deterministic planarity testing. These established algorithms
+are sufficient at any polynomial running time; their linear bounds are
+used only to simplify the estimates.
+
+The other imported infrastructure is the ordinary Synchronized Planarity
+algorithm of Bl\"asius--Fink--Rutter (BFR) \cite{bfr}: its graph operations,
+their legal applicability, its reduction schedule and potential decrease.
+Section~\ref{cse:section} proves the additional marking and observer
+invariants, forward and backward, rather than assuming that the ordinary
+algorithm preserves those extra constraints. The ordinary target has
+Q-cells synchronizing fixed rotations up to reflection, and pipes requiring
+full reversed correspondences between P-vertex rotations. The pipes form
+a matching. No unrestricted simultaneous-ordering oracle is used.
+
+\subsection{Connecting the colours without changing old common blocks}
+
+First solve the connected components of $U=G_1\cup G_2$ independently.
+Their solutions can occupy disjoint disks, so this is an equivalence in
+both directions. In a connected union, if colour $i$ is disconnected,
+some private edge $v_1v_2$ of the other colour joins distinct components
+of $G_i$. The following fact is the connectivity normalization of
+Bl\"asius--Rutter \cite[Section~2, Lemma~1 and Theorem~1]{brdisconnect}; we
+give the nesting argument because it matters for arbitrary disconnected $H$.
+
+\begin{lemma}[Cofacial relocation]
+\label{norm:cofacial}
+If an instance has a SEFE and an opposite-colour private edge $v_1v_2$
+joins different components of $G_i$, it has a SEFE in which $v_1,v_2$
+are incident with a common face of $G_i$.
+\end{lemma}
+\begin{proof}
+In a SEFE the interior of the other-colour edge is in one face $f$ of
+$H$. Near its endpoints it lies in faces $g_1,g_2$ of $G_i$, both
+contained in $f$. If $g_1=g_2$, nothing is required. Otherwise let $Q_j$
+be the colour-$i$ component containing $v_j$, and let $b$ be the face of
+$Q_2$ containing $Q_1$. Let $\mathcal Y$ consist of $Q_2$ and all
+colour-$i$ components lying in the complement of $b$.
+
+Choose a small closed disk $\Delta'$ in $g_2$ near $v_2$, and a small
+closed disk $\Delta$ in $g_1$ near $v_1$. Choose an orientation-preserving
+sphere homeomorphism taking the complement of the interior of $\Delta'$
+onto $\Delta$. Apply it to exactly the components in $\mathcal Y$.
+They all fit in the empty disk $\Delta$, while all other colour-$i$
+components remain outside. This is a planar drawing with the same
+component rotations. The region outside $\Delta$ in $g_1$ and the image
+of $g_2\setminus\operatorname{int}\Delta'$ join across $\partial\Delta$;
+hence $v_1$ and the moved $v_2$ are cofacial.
+
+It remains to verify the common embedding. Consider common components
+$X$ outside $\mathcal Y$ and $X'$ inside. Before the move,
+the complement of $b$, together with a small neighbourhood at $v_2$,
+is connected, avoids $X$, contains $X'$, and meets the private edge
+in $f$. Thus $X'$ is in the face of $X$ containing $f$. Afterwards it
+lies in $\Delta\subset f$, so this position is unchanged.
+Conversely, either $b$ itself, if $X'\subseteq Q_2$, or
+$b\cup\Gamma_i(Q_2)$ otherwise, connects $X$ to $g_1$ while avoiding
+$X'$. Its position relative to $X'$ is consequently the face containing
+$f$. After the move, all unchanged components lie in the image of
+$\operatorname{int}\Delta'$, the same transported face. Pairs both inside
+or both outside retain their positions. The common rotations also
+remain unchanged. The common-embedding criterion completes the SEFE.
+\end{proof}
+
+Add a fresh vertex $z$, a common edge $v_1z$, and a private colour-$i$
+edge $zv_2$. This is an exact augmentation. For the forward direction use
+Lemma~\ref{norm:cofacial}, put $z$ near $v_1$ in the shared local sector,
+draw the small common segment $v_1z$ there, and complete the colour-$i$
+arc to $v_2$ in its cofacial region. The other colour only receives the
+small pendant common segment, adjacent to its existing edge $v_1v_2$.
+For the local-sector claim, choose a disk at $v_1$ disjoint from the moved
+components and from the relocation disk $\Delta$. The common drawing is
+unchanged there. The common-embedding homeomorphism can be chosen to be
+the identity on this disk: extend its complementary-region boundary maps
+relative to the additional fixed disk. Thus the old opposite-colour edge
+germ and its colour-$i$ sector $g_1$ are unchanged, and the two local
+sectors used for the new common segment agree.
+The backward direction deletes the new vertex and its edges.
+
+The number of colour-$i$ components decreases by one; that of the other
+colour does not increase. At most $2(|V|-1)$ steps suffice, so the total
+size remains $O(N)$. Each step adds only a common pendant bridge. Every
+old nontrivial common block, and hence its SPQR type, is unchanged.
+No bridge-to-triangle replacement is required.
+
+\subsection{Splitting the union and preserving all relative positions}
+
+Suppose both colours are connected and $w$ is a union cutvertex. For each
+$D\in\cc(U-w)$, restrict both colours to $D\cup\{w\}$. Each restriction
+is connected: a simple colour path from a vertex of $D$ to $w$ cannot
+leave $D$ before it reaches $w$. Restriction of a SEFE gives solutions
+of all these factors.
+
+Conversely, take compatible embeddings of all factors. At $w$, cut both
+rotations of a factor immediately after the same common dart, if one
+exists; otherwise cut each arbitrarily. Concatenate the cut rotations
+in the same order in both colours. Factor dart sets are intervals, so
+the resulting colour rotations are planar. Common rotations agree.
+
+Every common cycle $C$ lies in one factor. Vertices in another factor
+lie on the side of $w$ if $w\notin C$. If $w\in C$, they lie in the
+chosen corner after that factor's common dart; the side of this corner
+depends only on the common rotation and is the same in both colours.
+Within the cycle's own factor the sides already agree. Distinct faces
+of a connected common component are distinguished by the faces of its
+blocks containing them (Lemma~\ref{rep:lem:face-signatures}, which applies
+to every connected plane graph), and distinct faces of a biconnected block
+are distinguished by their sides with respect to a cycle basis of that
+block (Lemma~\ref{gen:basis}). Hence they are distinguished by the
+block-cycle side information. Therefore all relative common-component
+positions agree after gluing. This proves the converse for arbitrary
+$H$, not only for a cactus.
+
+Repeated splitting yields union-block factors of total linear size,
+counting repeated cutvertices. A common biconnected block lies wholly
+in one union block, so its SPQR structure is preserved. A union bridge
+must be common once both colours are connected; its factor is trivial.
+The remaining factors have biconnected union and connected colours.
+Thus this normalization is an exact, class-preserving reduction for
+Theorem~\ref{thm:main}.
+
+\subsection{NP membership of unrestricted SEFE-2}
+
+The same normalization works without the restriction on common blocks.
+For every resulting factor, a certificate consists of the two colour
+rotation systems. These have $O(N)$ darts and $O(N\log(N+1))$ encoded
+bits. Face tracing verifies colour planarity. Restricting the rotations
+checks equality of common orders.
+
+For each nontrivial common block $K$, search the components of $G_i-V(K)$.
+Their faces relative to $K$ can be read at an attachment: in the rotation
+at that vertex, the sector containing the attachment dart identifies a
+face walk of the restricted embedding of $K$. Connectedness and colour
+planarity place the whole searched component in that face. Compare the
+two colours' face labels for every vertex outside $K$. Bridges have one
+face. The argument in Section~\ref{rep:section} shows that equal common
+rotations and these block-face positions give the same full embedding
+of $H$, including isolated components. All these checks take polynomial
+time, for example $O(N^3)$ by direct searches. Hence unrestricted
+$\SEFE$ belongs to NP. This is a membership proof, not a hardness result.

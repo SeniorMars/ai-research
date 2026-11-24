@@ -1,0 +1,990 @@
+\section{The local-gap engine}\label{sec:eng4}
+
+\providecommand{\obs}{\operatorname{obs}}
+\newcommand{\anout}{c_{\mathrm{out}}}
+\newcommand{\anin}{c_{\mathrm{in}}}
+
+The input of this section is an instance $\mathcal I$
+(Definition~\ref{def:v4-instance}); the output is a rejection if $\mathcal I$
+is infeasible, and otherwise a system of binary rows whose solutions,
+restricted to $X$, are exactly $F(\mathcal I)$, with a witness for every
+solution (Theorem~\ref{thm:eng4-main}). Witnesses, the contract, relocation
+and the observers $\langle t\rangle$ are those of Section~\ref{sec:v4-lang}.
+We use Lemma~\ref{lem:v4-gaps}(a),(b); the proof of (b) uses only
+$\rho_{v'}=\rev\varphi(\rho_u)$ and that $\varphi$ maps the anchor pair at
+$u$ onto that at $v'$, so we apply it also to such bijections that are not
+pipes.
+
+The engine runs the Synchronized Planarity algorithm of Bl\"asius, Fink and
+Rutter~\cite{BFR21} (numbers refer to arXiv:2007.15362v2), with its graph
+operations unchanged up to subdividing the edges at the leaves of the trees
+inserted by PropagatePQ, and carries observations and rows along. Our pipe
+condition $\rho_v=\rev\varphi(\rho_u)$ is that of~\cite{BFR21}. The
+equivalence lemmas of~\cite{BFR21} concern feasibility of the bare instance,
+whereas the contract preserves the feasible assignments of all existing
+variables; so all statements about observations are proved here. We use
+unchanged: the operations of~\cite[Sections~3.1.1--3.4]{BFR21}; splits and
+joins along pipes~\cite[Section~2, Lemma~1]{BFR21}; the schedule in the
+proof of~\cite[Lemma~7]{BFR21}; the potential of~\cite[Section~3.6]{BFR21} with~\cite[Lemma~9, Lemma~10(i), Lemma~11]{BFR21};
+and that a wheel lies in one rigid skeleton~\cite[proof of Lemma~8]{BFR21}.
+The relation to the rotation variables and triple equations
+of~\cite[Chapter~8]{Pfr22} is discussed in the introduction.
+
+\subsection{Wheels, embedding trees and Q-intersections}\label{sec:eng4-wheels}
+
+The \emph{wheel graph} $G^W$ replaces every Q-vertex $q$ with $\deg q\ge3$
+by a wheel~\cite[Section~2]{BFR21}: each edge $e$ at $q$ is subdivided by a
+\emph{port} next to $q$ (twice if both ends are such Q-vertices), and the
+ports are joined by a \emph{rim} in the order $\psi(q)$; $q$ is the
+\emph{hub}. The neighbours of a hub are exactly its ports, pairwise distinct,
+and its rim is a simple cycle. Darts of $G$ correspond to darts of $G^W$ at
+the same vertex, and a marked cycle $C$ is \emph{lifted} to $C^W$ through the
+spokes and ports of the hubs it passes, with the same anchors at P-vertices.
+
+\begin{lemma}[wheels]\label{lem:eng4-wheel}
+(a) Every planar $\rho$ of $G$ with $\rho_q\in\{\psi(q),\rev\psi(q)\}$ for
+all hubs extends to a planar $\rho^W$ of $G^W$ with the same rotations at all
+vertices of $G$. (b) Deleting the rims of a planar $\rho^W$ and suppressing
+the ports gives a planar $\rho$ of $G$ with the same rotations at vertices of
+$G$ and $\rho_q\in\{\psi(q),\rev\psi(q)\}$ at every hub. (c) A P-vertex is a
+cutvertex of $G$ if and only if it is one of $G^W$. (d)
+$\gap_\rho(C,v,d)=\gap_{\rho^W}(C^W,v,d)$ for every observable triple.
+\end{lemma}
+
+\begin{proof}
+(a) Draw each rim on a small circle around its hub. (b) The wheel is $3$-connected, so the restriction of $\rho^W$ to it is one
+of its two mirror embeddings, and the rotation at the hub is the rim order
+$\psi(q)$ or its reverse. (c) Contracting the wheels of $G^W-w$ gives $G-w$. (d)
+The rotation and the anchors at $v$ are the same.
+\end{proof}
+
+\paragraph{SPQR trees and embedding trees.} For a block $B$ of $G^W$ that is
+neither an edge nor a cycle we use from Section~\ref{sec:v4-spqr}
+\ref{it:v4-T1}--\ref{it:v4-T4}, reflection bits $r_\mu$, displayed cycles,
+anchors and gaps $\gap_\mu$ of P skeletons (Lemma~\ref{lem:v4-display}),
+embedding trees $\Theta_B(v)$ with frontiers, local reads and their complete
+family (Lemmas~\ref{lem:v4-frontier}, \ref{lem:v4-trees}); and
+Lemmas~\ref{lem:v4-median} and~\ref{lem:v4-assembly}. The \emph{embedding tree} $T_v$
+of~\cite[Section~2]{BFR21} is $\Theta_B(v)$ with every P node of degree three
+read as a Q node; it is \emph{trivial} if it is a single P node.
+
+\begin{lemma}[Q-intersections]\label{lem:eng4-qint}
+Let $q$ be a hub of $G^W$ and $B$ its block.
+\begin{enumerate}[label=(\alph*),nosep]
+\item $q$ is not a cutvertex of $G^W$.
+\item $q$ is not a pole of a P node of $\mathcal T_B$.
+\item Both poles of a P node with at least four skeleton edges are
+  P-vertices of $G$.
+\item Distinct lifted marked cycles meet only at hubs. Hence no cutvertex of
+  $G^W$ lies on two lifted marked cycles, and at most one lifted marked cycle
+  passes through both poles of a P node.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) The rim connects all neighbours of $q$ in $G^W-q$. (b) Let $\mu$ have
+poles $q,w$. The ports other than $w$ are inner to expansions, and the rim
+minus $w$ is connected and avoids $q,w$; so they and their spokes lie in one
+expansion, and at most the spoke $qw$ lies in another. So at most two
+expansions contain darts at $q$, but $\mu$ has at least three skeleton
+edges. (c) A pole $a$ has at least four darts, so it is not a Q-vertex of
+degree at most two, nor a hub by (b). Let $a$ be a port of the hub $q$, with
+rim neighbours $p',p''$; by (b) the other pole $b$ is not $q$. If
+$b\notin\{p',p''\}$, the spoke and both rim edges at $a$ end in vertices
+joined in $G^W-\{a,b\}$ through $q$; if $b=p'$, the spoke and $ap''$ end at
+$q,p''$, joined by a spoke. Either way at most three expansions contain
+darts at $a$, a contradiction. (d) Two marked cycles share only Q-vertices
+and no edge; a Q-vertex of degree at most two or a port lies on at most one
+lift. So shared vertices of lifts are hubs, neither cutvertices (a) nor
+poles (b).
+\end{proof}
+
+\subsection{The operations}\label{sec:eng4-ops}
+
+Each lemma below states that a step satisfies the contract and that its output is an instance, in
+particular satisfies~\ref{it:v4-M1}--\ref{it:v4-M4}. Throughout,
+$(u,v,\varphi)$ is the pipe acted on, $D=\deg u$, and observers are created
+as $\langle t\rangle$. Old rows are kept, so it suffices to check planarity,
+\ref{it:v4-W1}--\ref{it:v4-W3} and the new rows. Rotations change only at
+the vertices acted on and, in SimplifyMatching, at the partner pole.
+
+
+
+\begin{lemma}[ConvertSmall]\label{lem:eng4-convert}
+Let $u$ be a P-vertex with $\deg u\le3$. Make $u$ a Q-vertex with any
+reference $\psi(u)$ and a fresh flip $g=f(u)$. If $u$ is matched by
+$(u,v,\varphi)$, delete the pipe and make $v$ a Q-vertex of the same Q-cell,
+$f(v)=g$, with $\psi(v)=\rev\varphi(\psi(u))$. Relocate every observer of
+$(C,z,d)$, $z\in\{u,v\}$, to $g\oplus\gap_{\psi(z)}(C,z,d)$. This step
+satisfies the contract with $\rho'=\rho$ and yields an instance.
+\end{lemma}
+
+\begin{proof}
+The invariant is clear. Observations at $z$ need $\deg z=3$. Forward: put
+$\alpha'(g)=1$ if and only if $\deg u=3$ and $\rho_u=\rev\psi(u)$; then
+$\rho_v=\rev\varphi(\rho_u)$ is $\psi(v)$ or $\rev\psi(v)$ accordingly,
+and Lemma~\ref{lem:v4-gaps}(a) gives the new rows. Backward: for $\deg u=3$,
+\ref{it:v4-W2} gives $(\rho_u,\rho_v)=(\psi(u),\rev\varphi\psi(u))$ or
+$(\rev\psi(u),\varphi\psi(u))$, so the pipe holds (trivially if $\deg u\le2$),
+and relocated observations hold by the same identity.
+\end{proof}
+
+\paragraph{Encapsulation.} Let $u$ be a P-vertex that is a cutvertex of its
+component $W$, and $Y_1,\dots,Y_k$ the components of $W-u$.
+As in~\cite[Section~3.2]{BFR21}, for $j=1,\dots,k$ split the component of
+$u$ along the cut $(V(Y_j),\text{rest})$, creating the \emph{residual cap}
+$u_j$ (contracted rest), the \emph{ray} $u'_j$ (contracted $Y_j$) and the cap
+pipe $(u_j,u'_j,\chi_j)$. An edge $e=uy$, $y\in Y_j$, becomes a \emph{star
+edge} $uu'_j$, which keeps the dart of $e$ at $u$, and a \emph{residual edge}
+$u_jy$, which keeps the dart at $y$; so old vertices keep their dart sets and
+rotations. The component of $u$ becomes the star $S_u$. If $u\in
+C\in\mathcal M$, the anchors of $u$ end in one $Y_{j_0}$; with $\hat
+u=u'_{j_0}$, $C$ is replaced by $C^{\mathrm{res}}$ through $u_{j_0}$ and
+the residual edges, and the \emph{star digon} $C^\star_u:u\to\hat u\to u$
+(out along the star edge of $\anout(C,u)$, back along that of $\anin(C,u)$)
+is added. Observations at $u$ now refer to $C^\star_u$, with the same dart;
+those at other vertices of $C$ to $C^{\mathrm{res}}$.
+
+\begin{lemma}[encapsulation]\label{lem:eng4-encap}
+The encapsulation satisfies the contract with rotations unchanged at all old
+vertices, and its result is an instance. A vertex $y\ne u$ of $W$ is a
+cutvertex of $W$ if and only if it is one of the piece $Y_j+u_j$
+containing it, and every residual cap is a block-vertex of its piece.
+\end{lemma}
+
+\begin{proof}
+Both shores of each cut are connected, so by~\cite[Lemma~1, Section~2]{BFR21}
+every planar rotation system splits into a planar one with the same old
+rotations satisfying the cap pipes, and conversely the joins along the cap
+pipes are planar and keep old rotations. Observations keep their values,
+as rotations and anchors are unchanged.
+\emph{Invariant.} $C^{\mathrm{res}}$ and $C^\star_u$ are simple, the new
+vertices on them lie on one marked cycle each, $u$ lies only on
+$C^\star_u$, and other marked cycles are unchanged. The cap pipe at $j_0$
+maps anchors to anchors, hence is aligned; a marked cycle through $u_j$ or
+$u'_j$, $j\ne j_0$, would cross the $j$-th cut, so the other cap pipes are
+off. \emph{Cutvertices.} The components of $W-y$ avoiding $u$ lie in $Y_j$
+and survive in $(Y_j+u_j)-y$, and $u_j$ lies in another one. Conversely, if
+$W-y$ is connected, every component of $Y_j-y$ is adjacent to $u$, hence to
+$u_j$. Finally $(Y_j+u_j)-u_j=Y_j$ is connected.
+\end{proof}
+
+\paragraph{Joining two stars.}
+Let $S_u,S_v$ be disjoint stars (parallel edges allowed) with centres $u,v$
+and ray sets $R_u,R_v$, and let $\varphi:A_u\to A_v$ be a bijection. For
+$d\in A_u$ let $r(d)\in R_u$ be the ray at the other end of $d$, and
+$r'(d')\in R_v$ likewise for $d'\in A_v$. The
+\emph{join}~\cite[Section~2]{BFR21} deletes $u$ and $v$ and adds, for every
+$d\in A_u$, an edge $\ell_d=r(d)\,r'(\varphi d)$ that takes over the ray
+darts of $d$ and $\varphi(d)$. The result is the bipartite \emph{ray graph}
+$K$; a rotation of a ray is read in $S_u\cup S_v$ and in $K$ alike, darts
+renamed.
+
+\begin{lemma}[stars]\label{lem:eng4-stars}
+\begin{enumerate}[label=(\alph*),nosep]
+\item A rotation system of two vertices joined by $k\ge1$ parallel edges is
+  planar if and only if the rotation of one vertex is the reverse of that of
+  the other, edges identified.
+\item Let $\sigma$ be a cyclic order of $A_u$ and $\rho'$ rotations of the
+  rays. If the rotation system of $S_u\cup S_v$ given by $\sigma$ at $u$,
+  $\rev\varphi(\sigma)$ at $v$ and $\rho'$ at the rays is planar, then so
+  is $\rho'$ on $K$.
+\item Conversely, if $\rho'$ is a planar rotation system of $K$ and $K_j$ is
+  a component of $K$, there is a cyclic order $\sigma_j$ of
+  $\{d:\ell_d\in K_j\}$ such that the stars $S^j_u,S^j_v$ spanned by these
+  darts and by their images, with centre orders $\sigma_j$,
+  $\rev\varphi(\sigma_j)$ and $\rho'$ at the rays, are planar; it is
+  computable in $O(|E(K_j)|)$ time.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) Read the rotations $\sigma,\pi$ as cyclic permutations of the $k$
+edges. A facial walk leaving the first vertex along $e$ leaves it next along
+$\sigma\pi(e)$, so facial walks correspond to cycles of $\sigma\pi$. By
+Euler's formula the system is planar if and only if there are $k$ of them,
+that is, $\sigma\pi=\mathrm{id}$, or $\pi=\rev\sigma$.
+
+(b), (c) The blocks of a star are the bonds between its centre and its rays.
+By (a) and Lemma~\ref{lem:v4-assembly}(a),(c), the rotation system of
+$S_u\cup S_v$ described in (b) is planar if and only if: every ray $x\in
+R_u$ has the rotation $\rev(\sigma|_x)$, where $\sigma|_x$ is the
+restriction of $\sigma$ to the darts ending at $x$; every ray $y\in R_v$ has
+the rotation $\rev\bigl(\rev\varphi(\sigma)|_y\bigr)$, which is $\sigma|_y$
+after identifying the dart of $\ell_d$ at $y$ with $d$; and the partitions
+of $A_u$ by $r$ and by $r'\circ\varphi$ are noncrossing in $\sigma$. Put
+$\omega=\rev\sigma$. The condition says that $\omega$ restricts to
+$\rho'_x$ at every $x\in R_u$ and to $\rev\rho'_y$ at every $y\in R_v$, and
+makes both partitions noncrossing. The multigraph of
+Lemma~\ref{lem:v4-partitions} for these partitions of $A_u$, with
+$\sigma_X=\rho'_x$ at the red blocks $x\in R_u$ and $\sigma_X=\rev\rho'_y$
+at the blue blocks $y\in R_v$, is $K$ with the rotation system $\rho'$. So
+Lemma~\ref{lem:v4-partitions} gives (b), and, applied to the darts of one
+component, (c).
+\end{proof}
+
+\paragraph{Gap labels.}
+Let $\rho$ be a planar rotation system of $S_u\cup S_v$ with
+$\rho_v=\rev\varphi(\rho_u)$, and $\rho'$ its rotations at the rays, which
+are planar on $K$ by Lemma~\ref{lem:eng4-stars}(b). Suppose that $a\ne b$
+are darts at $u$ with $r(a)=r(b)=:p$ and $r'(\varphi a)=r'(\varphi b)=:q$.
+Let $C_u:u\to p\to u$ be the digon that leaves $u$ along $a$ and returns
+along $b$, and let
+\[
+C^\ast:\ p\xrightarrow{\ \ell_b\ }q\xrightarrow{\ \ell_a\ }p .
+\]
+The \emph{label} of an edge $\ell_d$, $d\ne a,b$, is
+$h_d=\gap_\rho(C_u,u,d)$. A ray other than $p$ and $q$ is \emph{ordinary};
+all edges at an ordinary ray are labelled. Let $K_0$ be the component of $K$
+containing $C^\ast$. For a dart $d\ne a,b$ at $u$ with $\ell_d\in K_0$ define
+the \emph{target} $t(d)$: it is $(C^\ast,p,\ell_d)$ if $r(d)=p$; otherwise
+$(C^\ast,q,\ell_d)$ if $r'(\varphi d)=q$; otherwise fix a path of $K_0$ from
+$r(d)$ that meets $\{p,q\}$ only in its last vertex $z$, let $g$ be its last
+edge, and put $t(d)=(C^\ast,z,g)$.
+
+\begin{lemma}[gap labels]\label{lem:eng4-labels}
+In this situation:
+\begin{enumerate}[label=(\alph*),nosep]
+\item the edges at an ordinary ray have one label, as have the edges of a
+  component $T\ne K_0$;
+\item $\gap_{\rho'}(C^\ast,z,\ell_d)=h_d$ for $z\in\{p,q\}$ and every edge
+  $\ell_d\ne\ell_a,\ell_b$ at $z$;
+\item every target is an observable triple of $C^\ast$, and
+  $\gap_{\rho'}(t(d))=h_d$ for every $d\ne a,b$ with $\ell_d\in K_0$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) Let $x\in R_u\setminus\{p\}$. The blocks of $S_u$ are the bonds between
+$u$ and its rays, so by Lemma~\ref{lem:v4-assembly}(a) the darts at $u$ of
+$x$ do not interleave with $a,b$, which belong to $p$. Hence they all lie in
+$(a,b)_{\rho_u}$ or all in $(b,a)_{\rho_u}$, and their labels agree. For
+$x\in R_v\setminus\{q\}$, likewise the darts at $v$ of $x$ lie all in
+$(\varphi a,\varphi b)_{\rho_v}=\varphi((b,a)_{\rho_u})$ or all in
+$(\varphi b,\varphi a)_{\rho_v}=\varphi((a,b)_{\rho_u})$, as
+$\rho_v=\rev\varphi(\rho_u)$, and the labels agree. A component $T\ne K_0$ avoids
+$p$ and $q$, so all its vertices are ordinary, and by connectivity all its
+edges have one label.
+
+(b) By Lemma~\ref{lem:eng4-stars}(a), applied to the bond between $u$ and
+$p$, the rotation of $p$ is the reverse of the restriction $\sigma$ of
+$\rho_u$ to the darts ending at $p$. Now $C^\ast$ leaves $p$ along $\ell_b$
+and enters it along $\ell_a$, so for $\ell_d$ at $p$, $d\ne a,b$:
+$\ell_d\in(\ell_b,\ell_a)_{\rho'_p}$ if and only if
+$d\in(b,a)_{\rev\sigma}=(a,b)_\sigma$, if and only if $d\in(a,b)_{\rho_u}$.
+Thus $\gap_{\rho'}(C^\ast,p,\ell_d)=h_d$. At $q$, where $C^\ast$ enters along
+$\ell_b$ and leaves along $\ell_a$, symmetrically
+$\ell_d\in(\ell_a,\ell_b)_{\rho'_q}$ if and only if $\varphi
+d\in(\varphi b,\varphi a)_{\rho_v}=\varphi((a,b)_{\rho_u})$.
+
+(c) If $r(d)=p$ or $r'(\varphi d)=q$, the claim is (b) (and $\ell_d\ne
+\ell_a,\ell_b$). Otherwise $r(d)$ is ordinary, the path defining $t(d)$
+exists as $K_0$ is connected, and all its vertices except $z$ are ordinary.
+Its last edge $g$ has an ordinary end, so $g\ne\ell_a,\ell_b$ and $t(d)$ is
+observable. By (a), $\ell_d$ and the first edge of the path have the same
+label, and so have any two consecutive edges of the path; so $g$ has label
+$h_d$, and (b) gives $\gap_{\rho'}(C^\ast,z,g)=h_d$.
+\end{proof}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  uv/.style={circle,fill=black,inner sep=1.4pt},
+  vv/.style={circle,draw=black,fill=white,inner sep=1.4pt},
+  ctr/.style={circle,draw=black,fill=black!15,inner sep=1.8pt},
+  >={Stealth[length=2.2mm]}]
+\begin{scope}
+\node[ctr,label=below:$u$] (u) at (0,0) {};
+\node[uv,label=above:$p$] (p) at (-0.6,2.2) {};
+\node[uv,label={[label distance=-1pt]left:$t$}] (t) at (-0.25,1.0) {};
+\node[uv,label=left:$x$] (x) at (-1.6,-1.1) {};
+\draw[->,thick] (u) to[out=60,in=-40] node[pos=0.45,right]{$a$} (p);
+\draw[->,thick] (p) to[out=250,in=135] node[pos=0.3,left=-1pt]{$b$} (u);
+\draw (u) to[out=170,in=200] node[pos=0.5,left]{\scriptsize$d_1$} (p);
+\draw (u) -- node[pos=0.45,right=-1pt]{\scriptsize$d_3$} (t);
+\draw (u) to[bend right=15] node[pos=0.5,above left=-2pt]{\scriptsize$d_2$} (x);
+\draw (u) to[bend left=15] node[pos=0.5,below right=-2pt]{\scriptsize$d_4$} (x);
+\node[ctr,label=below:$v$] (v) at (3.4,0) {};
+\node[vv,label=above:$q$] (q) at (4.2,2.2) {};
+\node[vv,label={[label distance=-1pt]right:$y$}] (y) at (3.55,1.1) {};
+\node[vv,label=right:$t'$] (tt) at (2.9,-1.3) {};
+\draw[thick] (v) to[out=15,in=-10] (q);
+\draw (v) to[out=50,in=-80] (q);
+\draw[thick] (v) to[out=125,in=170] (q);
+\draw (v) to[bend right=22] (y);
+\draw (v) to[bend left=22] (y);
+\draw (v) -- (tt);
+\draw[dashed] (u) -- node[below]{$\varphi$} (v);
+\node at (1.7,-1.9) {(a) stars $S_u$, $S_v$ and the pipe};
+\end{scope}
+\begin{scope}[xshift=7.6cm]
+\node[uv,label=left:$p$] (P) at (0,0.2) {};
+\node[vv,label=right:$q$] (Q) at (3,0.2) {};
+\node[vv,label=above:$y$] (Y) at (0.8,1.7) {};
+\node[uv,label=above:$x$] (X) at (2.2,1.7) {};
+\draw[->,thick] (P) to[bend right=25] node[pos=0.5,below,inner sep=1pt]{$\ell_b$} (Q);
+\draw[->,thick] (Q) to[bend right=25] node[pos=0.5,above,inner sep=1pt]{$\ell_a$} (P);
+\draw (P) -- node[left,inner sep=1pt]{$\ell_{d_1}$} (Y);
+\draw (Y) -- node[above,inner sep=1pt]{$\ell_{d_2}$} (X);
+\draw (X) -- node[right,inner sep=1pt]{$\ell_{d_4}$} (Q);
+\node at (1.5,0.2) {$C^\ast$};
+\node[uv,label=left:$t$] (T1) at (1.0,-1.1) {};
+\node[vv,label=right:$t'$] (T2) at (2.0,-1.1) {};
+\draw (T1) -- node[below,inner sep=1pt]{$\ell_{d_3}$} (T2);
+\node at (1.5,-1.9) {(b) the ray graph $K$};
+\end{scope}
+\end{tikzpicture}
+\caption{The join of two stars; filled rays belong to $u$, hollow rays to
+$v$, and the drawings realize the rotations. Counter-clockwise around $u$
+the darts are $a,d_3,b,d_1,d_2,d_4$. The anchor edges $\ell_a,\ell_b$ form
+the digon $C^\ast$. The component $K_0$ contains the bridge of $C^\ast$
+through $y$ and $x$, whose edges all have label $1$; this is the local gap
+of $\ell_{d_1}$ at $p$ and of $\ell_{d_4}$ at $q$. The detached component
+$T=\{tt'\}$ receives the latent bit $h_T=h_{d_3}=0$.}
+\label{fig:eng4-join}
+\end{figure}
+
+\begin{definition}[EncapsulateAndJoin]\label{def:eng4-ej}
+Let $(u,v,\varphi)$ be a pipe whose ends are cutvertices of $G$ (possibly in
+one component, possibly adjacent). Encapsulate $u$, then $v$; call the
+result $\mathcal I^\ast$, with stars $S_u,S_v$. \emph{Join}
+$S_u$ and $S_v$ along the pipe~\cite[Section~3.2]{BFR21}: delete $u$, $v$,
+their edges and the pipe, and add the ray graph $K$; the rays keep their cap
+pipes. If $K$ is not planar, reject. If the pipe is aligned ($u\in C_u$,
+$v\in C_v$), let $a=\anout(C_u,u)$, $b=\anin(C_u,u)$, $p=\hat u$, $q=\hat v$;
+replace $C^\star_u$ and $C^\star_v$ by the marked digon $C^\ast:
+p\xrightarrow{\ell_b}q\xrightarrow{\ell_a}p$, add a fresh \emph{latent bit}
+$h_T$ for every component $T\ne K_0$ of $K$, and relocate every observer of
+$(C^\star_u,u,d)$ to $\langle t(d)\rangle\oplus0$ if $\ell_d\in K_0$ and to
+$h_T\oplus0$ if $\ell_d\in T$, and every observer of
+$(C^\star_v,v,\varphi(d))$ in the same way with offset
+$\varepsilon(\varphi)$ in place of $0$.
+\end{definition}
+
+\begin{lemma}[EncapsulateAndJoin]\label{lem:eng4-join}
+EncapsulateAndJoin satisfies the contract, yields an
+instance, and rejects only if $K$ is not planar. It adds $O(D)$ vertices,
+edges, pipe incidences, variables and rows.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:eng4-encap} it suffices to treat $\mathcal
+I^\ast\to\mathcal I'$; before the second encapsulation $v$ is still a
+cutvertex (of its piece), in the aligned case on the image of $C_v$ with
+the same anchors. In
+$\mathcal I^\ast$ every observation in the stars is at $u$ or $v$, and in the
+aligned case $r(a)=r(b)=p$ and $r'(\varphi a)=r'(\varphi b)=q$, so
+Lemma~\ref{lem:eng4-labels} applies with $C_u=C^\star_u$.
+\emph{Off pipe.} No observation lies at $u$ or $v$, no marked cycle meets
+the stars, and the step is the join of~\cite{BFR21}. Its inverse is the
+backward construction below with any component as $K_0$ and any dart $a$ of
+it, all other components inserted after $a$; both keep rotations and
+anchors at observed vertices. From now on the pipe is aligned.
+\emph{Invariant.} $K$ is bipartite and loopless, rays keep their degrees,
+$C^\ast$ is a digon on new edges, no other marked cycle meets a ray, the cap
+pipes at $p,q$ stay aligned and the others off; targets are observable
+(Lemma~\ref{lem:eng4-labels}(c)).
+\emph{Forward.} Given a witness $(\rho,\alpha)$ of $\mathcal I^\ast$, let
+$\rho'$ consist of its rotations at the rays and $\rho$ elsewhere; it is
+planar by Lemma~\ref{lem:eng4-stars}(b), and the cap pipes hold. Give new
+observers their gaps and $h_T$ the common label of $T$
+(Lemma~\ref{lem:eng4-labels}(a)). The observation of $(C^\star_u,u,d)$ has
+value $h_d$, which is $\alpha'(h_T)$ if $\ell_d\in T$ and
+$\gap_{\rho'}(t(d))$ if $\ell_d\in K_0$ (Lemma~\ref{lem:eng4-labels}(c)); at
+$v$, Lemma~\ref{lem:v4-gaps}(b) gives
+$\gap_\rho(C^\star_v,v,\varphi d)=h_d\oplus\varepsilon(\varphi)$.
+
+\emph{Backward.} Given a witness $(\rho',\alpha')$ of $\mathcal I'$,
+Lemma~\ref{lem:eng4-stars}(c) gives for every component $K_j$ planar stars
+$S^j_u,S^j_v$ with the ray rotations of $\rho'$ and centre orders $\omega_j$,
+$\rev\varphi(\omega_j)$. Start with $\rho_u=\omega_0$,
+$\rho_v=\rev\varphi(\omega_0)$. For every $T=K_j$, $j\ge1$, insert a linear
+order $L_T$ representing $\omega_j$ into $\rho_u$ directly after $a$ if
+$\alpha'(h_T)=0$ and directly after $b$ if $\alpha'(h_T)=1$, and
+$\rev\varphi(L_T)$ into $\rho_v$ directly before $\varphi(a)$, respectively
+$\varphi(b)$; this preserves $\rho_v=\rev\varphi(\rho_u)$. The final
+$\rho_u$ restricts to every $\omega_j$, and dart sets of distinct $K_j$ do
+not interleave, as each insertion is contiguous. So the bonds of $S_u$ are
+planar and pairwise noninterleaving, and $S_u$ is planar by
+Lemma~\ref{lem:v4-assembly}(c); likewise $S_v$; the pipes hold. Later
+insertions after $a$ or $b$ keep earlier blocks in their interval, so
+$\gap_\rho(C^\star_u,u,d)=\alpha'(h_T)$ for $\ell_d\in T$; and they keep
+the cyclic order of $\omega_0$, so for $\ell_d\in K_0$,
+$\gap_\rho(C^\star_u,u,d)=\gap_{\omega_0}(C^\star_u,u,d)=\gap_{\rho'}(t(d))$
+by Lemma~\ref{lem:eng4-labels}(c) for $S^0_u,S^0_v$, whose join is $K_0$.
+Observations at $v$ follow by Lemma~\ref{lem:v4-gaps}(b).
+\emph{Rejection and size.} The forward construction does not use rows, so a
+witness forces $K$ to be planar. The step adds $O(D)$ rays, cap pipes, edges
+and targets, at most $D-2$ latent bits and at most $2(D-2)$ relocations.
+\end{proof}
+
+\paragraph{PropagatePQ.} Let $u$ be a matched block-vertex whose embedding
+tree $T_u$, computed in the block of $G^W$ containing $u$, is not trivial. As
+in~\cite[Section~3.3]{BFR21}, replace $u$ by $T_u$: its leaves become
+vertices $\ell_d$ adjacent to their inner node and to the other end of $d$
+(whose dart there keeps its identity); replace $v$ by a copy $T'_u$ under an
+isomorphism $\kappa$, the leaf $\kappa(\ell_d)$ receiving the edge of
+$\varphi(d)$ (an edge $uv$ thus joins two leaves); for each inner node
+$\alpha$ let $\kappa_\alpha$ map the darts at $\alpha$ to those at
+$\kappa\alpha$ (tree darts to tree darts). Add the pipe
+$(\alpha,\kappa\alpha,\kappa_\alpha)$ for every P node $\alpha$. For every Q
+node $\alpha$ make $\alpha$ and $\kappa\alpha$ Q-vertices of one fresh
+Q-cell with a fresh flip $g_\alpha=f(\alpha)=f(\kappa\alpha)$,
+$\psi(\alpha)=\theta_\alpha$, the reference order of the
+node (either order for a P node of degree three read as a Q node), and
+$\psi(\kappa\alpha)=\rev\kappa_\alpha(\theta_\alpha)$. Delete the pipe
+$(u,v,\varphi)$. If $u\in C$, replace the visit of $C$ at $u$ by the path of
+$T_u$ from $\ell_{\anin(C,u)}$ to $\ell_{\anout(C,u)}$ (the new cycle $C^T$;
+observations at other vertices of $C$ now refer to $C^T$, with unchanged
+anchors); treat $v$ and $C(v)$ likewise in $T'_u$. \emph{Median transport:}
+for an observer $x$ of $(C,u,d)$ let $m$ be the median of
+$\ell_{\anout(C,u)},\ell_{\anin(C,u)},\ell_d$ in $T_u$ and $\delta$ the dart
+of $m$ towards $\ell_d$; relocate $x$ to $\langle C^T,m,\delta\rangle\oplus0$
+if $m$ is a P node and to $f(m)\oplus\gap_{\theta_m}(C^T,m,\delta)$ if $m$ is
+a Q node. Observers at $v$ are treated in the same way in $T'_u$.
+
+\begin{lemma}[PropagatePQ]\label{lem:eng4-ppq}
+This step satisfies the contract and yields an instance. It adds $O(D)$
+vertices, edges, pipe incidences, variables and rows.
+\end{lemma}
+
+\begin{proof}
+\emph{Invariant.} $C^T$ replaces $u$ by a path of new vertices, which lie on
+no other marked cycle. As $\varphi$ maps the anchors of $u$ onto those of
+$v$, the path of $C(v)^T$ in $T'_u$ is $\kappa$ of the path $P$ of $C^T$, so
+the new pipes are aligned on $P$ and off elsewhere. The median $m$ lies on
+$P$, $\delta$ does not, and $C^T$ enters $m$ towards $\ell_{\anin(C,u)}$ and
+leaves towards $\ell_{\anout(C,u)}$, so targets are observable.
+\emph{Median identity.} If $\rho'$ is planar on $G'$, contracting $T_u$ and
+$T'_u$ gives a planar $\rho$ with the frontiers at $u,v$
+(Lemma~\ref{lem:v4-median}(d)), and by Lemma~\ref{lem:v4-median}(e)
+$\gap_\rho(C,u,d)=\gap_{\rho'}(C^T,m,\delta)$, which is
+$f(m)\oplus\gap_{\theta_m}(C^T,m,\delta)$ at a Q node by~\ref{it:v4-W2} and
+Lemma~\ref{lem:v4-gaps}(a); likewise at $v$.
+\emph{Forward.} By Lemmas~\ref{lem:eng4-wheel}(a)
+and~\ref{lem:v4-frontier}(b), $\rho_u$ is the frontier of $T_u$ with the
+rotations induced by an embedding of the block. Give $T'_u$ the mirrored
+rotations $\rev\kappa_\alpha(\rho'_\alpha)$; its frontier is
+$\rev\varphi(\rho_u)=\rho_v$~\cite[proof of Lemma~5]{BFR21}, so by
+Lemma~\ref{lem:v4-median}(d) the expansion $\rho'$ is planar; the new pipes
+hold, and $\alpha'(g_\alpha)=0$ if and only if $\rho'_\alpha=\theta_\alpha$
+satisfies~\ref{it:v4-W2} at $\alpha$ and $\kappa\alpha$. The median
+identity gives the rows. \emph{Backward.} Contract the trees; pipes and
+Q-cells make them mirror images, so $\rho_v=\rev\varphi(\rho_u)$~\cite[proof
+of Lemma~5]{BFR21}, and the median identity gives the observations at $u,v$.
+\emph{Size.} $T_u$ has $\le D-2$ inner nodes and $D$ leaves.
+\end{proof}
+
+\paragraph{SimplifyMatching: the trivial pole.} In the rest of this
+subsection $G^W$ is planar, every P-vertex has degree at least four, $u$ is a
+matched block-vertex of $G$ with trivial embedding tree, $D=\deg u$, and $B$
+is the block of $G^W$ containing $u$. As $T_u$ is trivial, $\Theta_B(u)$
+consists of one P node and $D$ leaves: exactly one P or R node $\mu$ of
+$\mathcal T_B$ allocates $u$, it is a P node with $D$ skeleton edges
+$\varepsilon_1,\dots,\varepsilon_D$, and the expansion $B_i$ of
+$\varepsilon_i$ contains exactly one edge at $u$; let $e_i$ be its dart at
+$u$. The other pole $w$ of $\mu$ is the \emph{partner} of $u$. Let $I_i$ be
+the set of darts at $w$ of the edges of $B_i$.
+
+\begin{lemma}[trivial pole]\label{lem:eng4-pole}
+\begin{enumerate}[label=(\alph*),nosep]
+\item $w$ is a P-vertex of $G$; the sets $I_i$ are nonempty and partition
+  the darts of $B$ at $w$; so $\deg w\ge D$.
+\item Every directed simple cycle of $G^W$ through $w$ but not through $u$
+  has its two darts at $w$ in one $I_i$ or in one block other than $B$.
+\item If $u\in C\in\mathcal M$, then $w\in C$; the anchors
+  $e_a=\anout(C,u)$, $e_b=\anin(C,u)$ satisfy $a\ne b$; $C^W$ is a path of
+  $B_a$ from $u$ to $w$ followed by a path of $B_b$ from $w$ to $u$; and
+  $\anin(C,w)\in I_a$, $\anout(C,w)\in I_b$.
+\item If $\deg w=D$, or if $w$ is a block-vertex of $G$ with trivial
+  embedding tree, then $\deg w=D$, every $I_i$ has exactly one element, and
+  all darts at $w$ lie in $B$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) Lemma~\ref{lem:eng4-qint}(c), as $D\ge4$; each expansion is connected
+and contains $w$. (b) A cycle lies in one block. If $Z\subseteq B-u$ met
+two expansions, a maximal subpath of $Z$ in one of them would have both ends
+at $w$, so it would be $Z$. (c) $C^W$ lies in $B$, and its darts at $u$ lie
+in distinct expansions. Leaving $u$ along $e_a$ it stays in $B_a$ until it
+reaches $w$, and symmetrically it returns through $B_b$; it passes $w$ once.
+(d) If $\deg w=D$, the $D$ nonempty disjoint sets $I_i$ exhaust $A_w$. If
+$w$ is a block-vertex with trivial embedding tree, $\Theta_B(w)$ is one P
+node, which must be $\mu$, with one leaf per direction.
+\end{proof}
+
+Let $\rho$ be a planar rotation system of $G$ with
+$\rho_q\in\{\psi(q),\rev\psi(q)\}$ for every Q-vertex of degree at least
+three, $\rho^W$ its extension (Lemma~\ref{lem:eng4-wheel}(a)), and
+$\mathcal E$ the embedding of $B$ induced by $\rho^W$. In $\mathcal E(w)$ the
+sets $I_i$ form intervals appearing in the order $\mathcal E_\mu(w)$, and in
+$\mathcal E(u)=\rho_u$ the darts $e_i$ appear in the order $\mathcal
+E_\mu(u)=\rev\mathcal E_\mu(w)$ by \ref{it:v4-T3}, \ref{it:v4-T4}; so $I_k$
+directly follows $I_i$ in $\mathcal E(w)$ if and only if $e_i$ directly
+follows $e_k$ in $\rho_u$. Each $I_i$ is an interval of
+$\mathcal E(w)=\rho_w|_{B}$ and so has a first dart. The \emph{superblock}
+$S_i$ is the interval of $\rho_w$ from the first dart of $I_i$ up to,
+excluding, the first dart of the next interval $I_k$, with its linear order.
+The superblocks partition $A_w$, $I_i\subseteq S_i$, and the other darts of
+$S_i$ belong to blocks other than $B$ (Figure~\ref{fig:eng4-superblock}).
+
+\begin{figure}[t]
+\centering
+\def\sbToW#1#2{\draw (#1) to[out=0,in=#2] ($(w)+(#2:1.3)$) -- (w);}
+\begin{tikzpicture}[scale=0.75,
+  every node/.style={font=\small},
+  pole/.style={circle,draw=black,fill=black!15,inner sep=1.8pt},
+  bnd/.style={rectangle,rounded corners=2.2mm,draw=black,fill=black!8,
+    inner sep=0pt,minimum width=8mm,minimum height=4.4mm,font=\scriptsize},
+  oth/.style={draw=black,fill=black!40,line join=round},
+  markcyc/.style={draw=black!18,line width=6pt,line cap=round,line join=round},
+  >={Stealth[length=2.2mm]}]
+\foreach \x/\l/\m/\pa/\pb/\pc/\ps/\pe/\cp/\cw in
+  {0/2/3/124/140/156/116/170/{(a) $\rho_u=(e_5,e_4,e_3,e_2,e_1)$}/{$S_1S_2S_3S_4S_5$},
+   7.6/3/2/146/162/178/138/192/{(b) $\tau=(e_5,e_4,e_2,e_3,e_1)$}/{$S_1S_3S_2S_4S_5$}} {
+\begin{scope}[xshift=\x cm]
+\coordinate (u) at (0,0); \coordinate (w) at (4.9,0);
+\draw[markcyc] (u) to[out=55,in=180] (1.5,1.5) -- (2.1,1.5) to[out=0,in=100]
+  ($(w)+(100:1.3)$) -- (w) -- ($(w)+(208:1.3)$) to[out=208,in=0] (2.1,-0.75)
+  -- (1.5,-0.75) to[out=180,in=-27] (u);
+\path (1.8,1.5) node[bnd] (b1) {$B_1$} (1.8,0.75) node[bnd] (b2) {$B_\l$}
+  (1.8,0) node[bnd] (b3) {$B_\m$} (1.8,-0.75) node[bnd] (b4) {$B_4$}
+  (1.8,-1.5) node[bnd] (b5) {$B_5$};
+\foreach \b/\a in {b1/55,b2/27,b3/0,b4/-27,b5/-55}
+  \draw (u) to[out=\a,in=180] (\b.west);
+\sbToW{b1.east}{100} \sbToW{b4.east}{208} \sbToW{b5.east}{240}
+\ifnum\l=2 \sbToW{$(b2.east)+(0,0.07)$}{\pa} \sbToW{$(b2.east)+(0,-0.07)$}{\pb}
+  \sbToW{b3.east}{180}
+\else \sbToW{b2.east}{124}
+  \sbToW{$(b3.east)+(0,0.07)$}{\pa} \sbToW{$(b3.east)+(0,-0.07)$}{\pb}
+\fi
+\filldraw[oth] (w) -- ($(w)+(\pc:1.15)$) -- ($(w)+(\pc+11:1.15)$) -- cycle;
+\node[font=\scriptsize,inner sep=1pt,anchor=east] at ($(w)+(\pc+5:1.18)$) {$\beta$};
+\filldraw[oth] (w) -- ++(18:0.75) -- ++(270:0.46) -- cycle;
+\node[font=\scriptsize,anchor=west] at ($(w)+(0:0.72)$) {$\beta'$};
+\draw[densely dotted,thick] ($(w)+(\ps:0.62)$) arc[start angle=\ps,end angle=\pe,radius=0.62];
+\draw[->,black!55] (0.55,1.25) -- (0.95,1.5);
+\node at (0.45,1.6) {$C$};
+\node[pole,label=left:$u$] at (u) {};
+\node[pole,label={[label distance=1pt]below right:$w$}] at (w) {};
+\node at (2.5,-2.25) {\cp};
+\node at (2.5,-2.75) {at $w$: \cw};
+\end{scope}}
+\end{tikzpicture}
+\caption{A trivial pole $u$, its partner $w$ and the five skeleton edges of
+$\mu$, drawn as their expansions $B_1,\dots,B_5$; $e_i$ is the dart of
+$B_i$ at $u$, the marked cycle $C$ (shaded) runs through $B_1$ and $B_4$,
+$\beta,\beta'$ are blocks at $w$ other than $B$, and the drawings realize
+the rotations. The superblock $S_2$ (dotted) consists of the darts of $B_2$
+and $\beta$ at $w$, and $S_5$ of those of $B_5$ and $\beta'$. Exchanging
+$e_2,e_3$ changes only the skeleton embedding of $\mu$ and moves $S_2,S_3$
+as wholes; as $e_2,e_3$ stay in $(e_4,e_1)$ at $u$, all gaps at $u$ and $w$
+are kept (Lemma~\ref{lem:eng4-superblock}(c)).}
+\label{fig:eng4-superblock}
+\end{figure}
+
+\begin{lemma}[superblock permutation]\label{lem:eng4-superblock}\label{cor:eng4-fgb}
+Let $\rho$ be as above and $\tau$ any cyclic order of $A_u$. Define
+$\rho^\tau$ by $\rho^\tau_u=\tau$, $\rho^\tau_z=\rho_z$ for $z\ne u,w$, and
+$\rho^\tau_w$ the cyclic concatenation of the superblocks, each with its
+linear order, in which $S_k$ directly follows $S_i$ if and only if $e_i$
+directly follows $e_k$ in $\tau$.
+\begin{enumerate}[label=(\alph*),nosep]
+\item $\rho^\tau$ is planar, and $\rho^{\rho_u}=\rho$.
+\item If $u$ lies on no marked cycle, every observation has the same value
+  under $\rho$ and $\rho^\tau$.
+\item If $u\in C\in\mathcal M$ and $\gap_\tau(C,u,e)=\gap_\rho(C,u,e)$ for
+  every nonanchor $e$ at $u$, every observation has the same value under
+  $\rho$ and $\rho^\tau$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) $\rho^{\rho_u}=\rho$ was shown above. Let $\mathcal E^\tau$ be the
+embedding of $B$ given by \ref{it:v4-T3} with the skeleton embeddings of $\mathcal
+E$ except $\mathcal E^\tau_\mu(u)=\tau$. Its rotations are the frontiers of
+the embedding trees with the induced node rotations. For $x\in
+V(B)\setminus\{u,w\}$, $\mu$ does not allocate $x$, so $\mathcal
+E^\tau(x)=\mathcal E(x)$; and $\mathcal E^\tau(u)=\tau$. In $\Theta_B(w)$
+only the rotation of $\mu$ changes, to $\rev\tau$; by
+Lemma~\ref{lem:v4-median}(b) the contour concatenates the excursions at
+$\mu$ in this order, each visiting its leaves in an unchanged order. So
+$\mathcal E^\tau(w)$ concatenates the same linear sequences $I_i$, with $I_k$
+directly after $I_i$ if and only if $e_i$ directly follows $e_k$ in $\tau$;
+this is the restriction of $\rho^\tau_w$ to $B$.
+
+Now apply block assembly (Lemma~\ref{lem:v4-assembly}(c)) to the component
+of $u$ in $G^W$, with $\mathcal E^\tau$ on $B$, the restrictions of $\rho^W$
+on the other blocks, $\rho^W_x$ at cutvertices $x\ne w$ (where nothing
+changed; $u$ is no cutvertex) and $\rho^\tau_w$ at $w$. Every other block
+$B'$ at $w$ does not interleave with $B$ in $\rho_w$, so its darts lie in
+one \emph{slot} between consecutive darts $g,g'$ of $\mathcal E(w)$. Whether
+$g,g'$ lie in one $I_i$ or $g$ ends $I_i$, the whole slot lies in $S_i$
+directly after $g$; as superblocks keep their linear order, every slot stays
+a contiguous sequence with its old order, followed by a dart of $B$. Hence
+$\rho^\tau_w$ restricts to every block rotation at $w$ and no two blocks
+interleave. The resulting planar rotation system is $\rho^W$ except at $u,w$;
+Lemma~\ref{lem:eng4-wheel}(b) gives $\rho^\tau$.
+
+(b), (c) Rotations and anchors at vertices other than $u,w$ are unchanged,
+and observations at $u$ occur only in (c), where the hypothesis applies; so
+we consider observations at $w$. (b) A marked cycle $C'$ through $w$ avoids
+$u$, so by
+Lemma~\ref{lem:eng4-pole}(b) both its anchors at $w$ lie in one $I_i$ or in
+one block $B'\ne B$, hence in one superblock $S_i$. For $g\in S_i$ the gap is
+determined by the linear order of $S_i$; for $g\notin S_i$,
+$g\in(\anout,\anin)$ if and only if $\anin$ precedes $\anout$ in $S_i$. Both
+are preserved.
+
+(c) By Lemma~\ref{lem:eng4-pole}(c), $\anin(C,w)\in S_a$ and $\anout(C,w)\in
+S_b$ with $a\ne b$. A dart $g\in S_a$ lies in $(\anout(C,w),\anin(C,w))$ if
+and only if it precedes $\anin(C,w)$ in $S_a$, and $g\in S_b$ if and only if
+it follows $\anout(C,w)$ in $S_b$; these are preserved. For $g\in S_i$, $i\ne
+a,b$: $g\in(\anout(C,w),\anin(C,w))$ if and only if $(S_b,S_i,S_a)$ is
+counter-clockwise in the order of superblocks, if and only if $(e_a,e_i,e_b)$
+is counter-clockwise at $u$ (the superblock order is the reverse of the
+order of the $e_j$, for $\rho$ by (a) and for $\rho^\tau$ by definition). So
+$\gap(C,w,g)=\gap(C,u,e_i)$ under both systems, equal by hypothesis.
+\end{proof}
+
+\begin{lemma}[bond map and orbits]\label{lem:eng4-orbits}
+(a) If $\deg w=D$, let $\beta(e_i)$ be the unique dart of $I_i$
+(Lemma~\ref{lem:eng4-pole}(d)). Then $\rho_w=\rev\beta(\rho_u)$ for every
+$\rho$ as above, and $\rho^\tau_w=\rev\beta(\tau)$. If $u\in C$, then $\beta$
+exchanges the anchor types of $C$ at $u$ and $w$, and
+$\gap(C,u,e)=\gap(C,w,\beta e)$ whenever $\rho_w=\rev\beta(\rho_u)$.
+(b) A permutation $\pi$ of a set of size $n$ fixes some cyclic order if and
+only if all its orbits have equal length. If this holds, $n\ge3$ and $\pi$
+preserves a pair $\{x,y\}$, then $\pi$ is the identity or a fixed-point-free
+involution with $\pi(x)=y$. In the latter case every
+$\pi$-invariant cyclic order $\sigma$ has exactly one of $z,\pi z$ in
+$(x,y)_\sigma$ for each $z\ne x,y$; and if $\Lambda$ contains one element of
+each orbit other than $\{x,y\}$ and $L$ is a linear order of $\Lambda$, then
+$\sigma=(x,L,y,\pi L)$ is $\pi$-invariant with $(x,y)_\sigma=\Lambda$.
+\end{lemma}
+
+\begin{proof}
+(a) Here $S_i=I_i=\{\beta e_i\}$; apply Lemma~\ref{lem:eng4-superblock}(a);
+$C$ enters $w$ through $B_a$ (Lemma~\ref{lem:eng4-pole}(c)), and
+Lemma~\ref{lem:v4-gaps}(b) applies to $\beta$. (b) $\pi$ fixes $\sigma$ if
+and only if it commutes with the successor map of $\sigma$, an $n$-cycle,
+that is, $\pi$ is a power of it; and a permutation with $n/k$ orbits of
+length $k$ is conjugate to the $(n/k)$-th power of an $n$-cycle. Since
+$\pi(x)\in\{x,y\}$, all orbits have length one, or all have length two with $\pi(x)=y$. A $\pi$-invariant $\sigma$ is shifted by $\pi$, for an
+involution by half its length, so $y$ is opposite $x$ and $\pi$ maps
+$(x,y)_\sigma$ onto $(y,x)_\sigma$. Finally $\pi(x,L,y,\pi L)=(y,\pi L,x,L)$.
+\end{proof}
+
+\begin{definition}[SimplifyMatching]\label{def:eng4-sm}
+Let $u$ be as above with pipe $(u,r,\varphi)$, and assume that its partner
+$w$ is unmatched (\emph{case (i)}), or $r=w$ (\emph{case (ii)}), or $w$ is a
+block-vertex with trivial embedding tree matched by $(w,w',\varphi')$ with
+$w'\ne u$ (\emph{case (iii)}). The graph part is that
+of~\cite[Section~3.4]{BFR21}: delete the pipe of $u$ in cases (i), (ii),
+and replace both pipes by $(r,w',\alpha)$, $\alpha=\varphi'\beta\varphi^{-1}$,
+in case (iii). In case (ii) let $\pi=\varphi\beta^{-1}$.
+\begin{enumerate}[label=(\alph*),nosep]
+\item \emph{$u$ on no marked cycle:} in case (ii) reject unless all orbits of
+  $\pi$ have equal length; no update.
+\item \emph{$u\in C$, $r\ne w$:} add, for every nonanchor $e$ at $u$, the
+  row $\langle C,u,e\rangle\oplus\langle C(r),r,\varphi e\rangle=
+  \varepsilon(\varphi)$.
+\item \emph{$u\in C$, $r=w$:} reject unless $\pi$ is the identity or a
+  fixed-point-free involution exchanging $\anout(C,w)$ and $\anin(C,w)$; in
+  the second case add, for every orbit $\{f,\pi f\}$ other than the anchor
+  pair, the row $\langle C,w,f\rangle\oplus\langle C,w,\pi f\rangle=1$.
+\end{enumerate}
+\end{definition}
+
+\begin{lemma}[SimplifyMatching]\label{lem:eng4-sm}
+In the situation of Definition~\ref{def:eng4-sm}, $\deg w=D$ in cases (ii)
+and (iii); the step satisfies the contract, yields an instance, and adds
+at most $2D$ variables and $D$ rows.
+\end{lemma}
+
+\begin{proof}
+In case (ii) the pipe gives $\deg w=D$, in case (iii)
+Lemma~\ref{lem:eng4-pole}(d). In cases (i), (iii), $r\notin\{u,w\}$. Forward
+maps keep $\rho$; every backward rotation system is $\rho'^\tau$ for some
+$\tau$, so by Lemma~\ref{lem:eng4-superblock} it suffices to check the pipes and the
+observations at $u,w$.
+\emph{Off cycles (a).} If $\deg w=D$, a marked cycle through $w$ would avoid
+$u$ and have both anchors in one single-dart set $I_i$
+(Lemma~\ref{lem:eng4-pole}(b),(d)); so in cases (ii), (iii) $w$, and
+by~\ref{it:v4-M4} $r$ and $w'$, lie on no marked cycle. Rejection in (ii) is
+sound by Lemma~\ref{lem:eng4-orbits}(b), as a witness has $\pi(\rho_w)=\varphi\beta^{-1}(\rev\beta\rho_u)=
+\rev\varphi(\rho_u)=\rho_w$. Forward, in case (iii)
+$\rev\rho_{w'}=\varphi'(\rho_w)=\varphi'\rev\beta(\rho_u)=\alpha(\rho_r)$.
+Backward: in cases (i), (iii) let $\tau=\rev\varphi^{-1}(\rho'_r)$; in case
+(ii) let $\sigma$ be $\pi$-invariant and $\tau=\beta^{-1}(\rev\sigma)$. With
+$\rho=\rho'^\tau$, the pipe of $u$ holds in (i), (iii) as $\rho_r=\rho'_r$;
+in (ii) $\rho_w=\sigma$ and $\varphi(\tau)=\pi(\rev\sigma)=\rev\sigma$; in
+(iii) $\varphi'(\rho_w)=\varphi'\rev\beta(\tau)=\alpha(\rho'_r)=
+\rev\rho'_{w'}$. Observations at $w$ are kept
+(Lemma~\ref{lem:eng4-superblock}(b)).
+\emph{Remote aligned (b).} Here $w\in C$ (Lemma~\ref{lem:eng4-pole}(c)) and
+$\varphi(e)$ is nonanchor at $r\in C(r)$. Forward,
+Lemma~\ref{lem:v4-gaps}(b) gives the rows. Backward, with
+$\tau=\rev\varphi^{-1}(\rho'_r)$, Lemma~\ref{lem:v4-gaps}(b) and the rows
+give $\gap_\tau(C,u,e)=\gap_{\rho'}(C(r),r,\varphi e)\oplus
+\varepsilon(\varphi)=\gap_{\rho'}(C,u,e)$, so $\rho'^\tau$ keeps every
+observation (Lemma~\ref{lem:eng4-superblock}(c)); the pipes hold as in (a).
+In case (iii), $\varphi^{-1}$, $\beta$, $\varphi'$ map anchor pairs onto
+anchor pairs, so the shortcut is aligned.
+\emph{Self-pipe (c).} $w\in C$, and $\varphi$, $\beta$ map the anchor pair
+at $u$ onto that at $w$, so $\pi$ preserves it, and by Lemma~\ref{lem:eng4-orbits}(b) the
+rejection is sound and the two remaining cases are exhaustive. By Lemma~\ref{lem:eng4-orbits}(a),
+$\rev\varphi(\rho_u)=\pi(\rho_w)$, so the pipe holds if and only if
+$\pi(\rho_w)=\rho_w$; for $\pi=\mathrm{id}$ it always holds. For an
+involution, the rows hold forward by Lemma~\ref{lem:eng4-orbits}(b).
+Backward, the set $\Lambda$ of nonanchor $f$ with $\gap_{\rho'}(C,w,f)=0$
+contains one dart of each nonanchor orbit by the rows; let
+$\sigma=(\anout(C,w),L,\anin(C,w),\pi L)$ for a linear order $L$ of
+$\Lambda$ and $\tau=\beta^{-1}(\rev\sigma)$. Then $\sigma$ is
+$\pi$-invariant, $\gap_\sigma(C,w,f)=\gap_{\rho'}(C,w,f)$, and by
+Lemma~\ref{lem:eng4-orbits}(a) $\gap_\tau(C,u,e)=\gap_\sigma(C,w,\beta e)=
+\gap_{\rho'}(C,u,e)$. So $\rho'^\tau$ keeps every observation and
+$\rho'^\tau_w=\sigma$.
+\emph{Invariant and size.} The graph and the marked cycles are unchanged;
+the shortcut is off in (a) and aligned in (b); at most $2(D-2)$ observers
+and $D-2$ rows are added.
+\end{proof}
+
+\begin{remark}[the self-pipe rows are necessary]\label{rem:eng4-selfpipe}
+Let $G$ have two vertices $u,w$ and parallel edges $a,b,d,e$, the marked
+digon $C:u\xrightarrow{a}w\xrightarrow{b}u$, observers $x_d,x_e$ of
+$(C,w,d),(C,w,e)$, the row $x_d\oplus x_e=0$, and the aligned pipe
+$(u,w,\varphi)$ exchanging the ends of $a,b$ and of $d,e$. Then
+$\pi=(a\,b)(d\,e)$, so ordinary SimplifyMatching deletes the pipe, after
+which $(a,d,e,b)$ at $w$ satisfies the row. With the pipe, $\rho_w$ is
+$(a,d,b,e)$ or $(a,e,b,d)$, so $d,e$ lie in different gaps and the instance
+is infeasible; the rows of Definition~\ref{def:eng4-sm}(c) record exactly
+this. In the identity case nothing is lost, since $\rho_w=\rev\beta(\rho_u)$
+already follows from planarity (Lemma~\ref{lem:eng4-orbits}(a)). We do not
+know whether the involution case occurs in instances derived from compiled
+instances.
+\end{remark}
+
+\subsection{The terminal solver}\label{sec:eng4-terminal}
+
+Let $\mathcal I$ be a pipe-free instance with $G^W$ planar, and for a marked
+cycle $C$ let $B(C)$ be the block of $G^W$ containing $C^W$. For a P-vertex
+$v$ on a marked cycle we write $C=C(v)$. The \emph{terminal system}
+$\Sigma(\mathcal I)$ consists of $R$ and the rows (R1)--(R3) below, over $X$
+and the following new variables, each created only when a row uses it:
+$\zeta_\mu$ for an R node $\mu$ of a block of $G^W$; $\xi_{\mu,\varepsilon}$
+for a P node $\mu$ of $\mathcal T_{B(C)}$ that displays a lifted marked cycle
+$C^W$ and a nonanchor direction $\varepsilon$ of $\mu$; and $\eta_{v,B'}$ for
+a P-vertex $v$ on a marked cycle $C$ that is a cutvertex of $G^W$ and a block
+$B'\ne B(C)$ of $G^W$ at $v$.
+\begin{enumerate}[label=(R\arabic*),nosep]
+\item\label{it:eng4-R1} For an observer $x$ of $(C,v,d)$ such that the edge
+  of $d$ lies in a block $B_d\ne B(C)$: $x\oplus\eta_{v,B_d}=0$.
+\item\label{it:eng4-R2} For an observer $x$ of $(C,v,d)$ with $d$ in $B(C)$,
+  let $m$ be the median of the leaves $\anout(C,v),d,\anin(C,v)$ in
+  $\Theta_{B(C)}(v)$, $\mu$ its source, and $e_{\mathrm{out}},e_d,
+  e_{\mathrm{in}}$ the directions at $m$ towards them. If $\mu$ is an R node:
+  $x\oplus\zeta_\mu=\operatorname{or}_{\theta}(e_{\mathrm{out}},e_d,
+  e_{\mathrm{in}})$, $\theta$ the reference order of $m$. If $\mu$ is a P
+  node: $x\oplus\xi_{\mu,e_d}=0$.
+\item\label{it:eng4-R3} For every Q-vertex $q$ with $\deg q\ge3$:
+  $f(q)\oplus\zeta_{\mu(q)}=b_q$, where $\mu(q)$ is the R node whose skeleton
+  contains the wheel of $q$, and $b_q=0$ if and only if the reference
+  embedding of $\mu(q)$ induces $\psi(q)$ at $q$ (spokes correspond to
+  skeleton edges).
+\end{enumerate}
+In~\ref{it:eng4-R2} the source matters: a P node with three directions,
+displayed as a Q node by the embedding tree of~\cite{BFR21}, gets a free
+variable $\xi_{\mu,\varepsilon}$, never a reflection variable. A digon block
+has no nonanchor dart, so observations at its vertices use~\ref{it:eng4-R1}.
+
+\begin{theorem}[terminal solver]\label{thm:eng4-terminal}
+Let $\mathcal I$ be a pipe-free instance of size $S$. If $G^W$ is not
+planar, $F(\mathcal I)=\emptyset$. Otherwise $\Sigma(\mathcal I)$ consists of
+$R$ and $O(S)$ further rows, all binary, over $X$ and $O(S)$ new variables;
+it is computed in $O(S)$ time; $F(\mathcal I)$ is the projection to $X$ of
+its solution set; and every solution yields in $O(S)$ time a witness of
+$\mathcal I$ whose assignment is its restriction to $X$.
+\end{theorem}
+
+\begin{proof}
+If $\mathcal I$ has a witness, $G^W$ is planar by
+Lemma~\ref{lem:eng4-wheel}(a). Let $G^W$ be planar.
+\emph{Well-definedness.} In~\ref{it:eng4-R2}, a P median displays $C^W$
+(Lemma~\ref{lem:v4-frontier}(c)) and no other lifted marked cycle
+(Lemma~\ref{lem:eng4-qint}(d)), so $\xi_{\mu,\varepsilon}$ refers to the
+pole-independent gap $\gap_\mu$ with respect to $C^W$. In~\ref{it:eng4-R1},
+$v$ is a cutvertex on the single marked cycle $C$. In~\ref{it:eng4-R3}, the
+wheel of $q$ is $3$-connected and lies in the skeleton of one R node
+$\mu(q)$~\cite[proof of Lemma~8]{BFR21}. A spoke $qp$ lies in an expansion
+containing the skeleton vertices $q,p$, hence in that of the skeleton edge
+$qp$; so every skeleton edge at $q$ contains exactly one spoke,
+$\Theta_B(q)$ is the single node of $\mu(q)$, and $\mathcal E(q)$ is the
+order of the spokes in $\mathcal E_{\mu(q)}(q)$ for every embedding
+$\mathcal E$. Likewise a rim edge $pp'$ lies in the expansion of the
+skeleton edge $pp'$. So the skeleton contains the wheel, with some rim
+edges possibly represented by virtual edges, and as the wheel is
+$3$-connected, the reference embedding induces $\psi(q)$ or $\rev\psi(q)$ at $q$.
+\emph{Forward.} Given a witness $(\rho,\alpha)$, extend $\rho$ to $\rho^W$
+(Lemma~\ref{lem:eng4-wheel}(a)) with block embeddings $\mathcal E$, and put
+$\zeta_\mu=r_\mu(\mathcal E)$ and $\xi_{\mu,\varepsilon}=\gap_\mu(\mathcal
+E,\varepsilon)$. The darts of $B'\ne B(C)$ at $v$ do not interleave with the
+anchors of $C$, which lie in $B(C)$ (Lemma~\ref{lem:v4-assembly}(a)), so they
+have one gap; let $\eta_{v,B'}$ be it. Then~\ref{it:eng4-R1} holds
+by~\ref{it:v4-W3}, \ref{it:eng4-R2} by Lemmas~\ref{lem:eng4-wheel}(d)
+and~\ref{lem:v4-frontier}(c), and~\ref{it:eng4-R3} by~\ref{it:v4-W2}.
+\emph{Backward.} Given a solution, embed each R skeleton by its reference
+embedding or the reverse according to $\zeta_\mu$, each P skeleton
+displaying a lifted marked cycle (at most one) by an order
+$(\varepsilon^{\mathrm{out}},L_0,\varepsilon^{\mathrm{in}},L_1)$ with the
+directions of gap $0$ in $L_0$ and of gap $1$ in $L_1$, and everything not
+determined by a created variable arbitrarily. At every cutvertex $x$ of
+$G^W$ start from the rotation of one block and insert those of the others as
+contiguous sequences; if $x$ is a P-vertex on a marked cycle $C$, start with
+$B(C)$ and insert $B'$ directly after $\anout(C,x)$ if $\eta_{x,B'}=0$ and
+after $\anin(C,x)$ otherwise. Block assembly
+(Lemma~\ref{lem:v4-assembly}(c)) gives a planar $\rho^W$, and
+Lemma~\ref{lem:eng4-wheel}(b) gives $\rho$. Later insertions keep earlier
+blocks in their interval, so~\ref{it:eng4-R1} gives~\ref{it:v4-W3} for
+$d\notin B(C)$; for $d\in B(C)$ it follows from~\ref{it:eng4-R2} and
+Lemma~\ref{lem:v4-frontier}(c); \ref{it:eng4-R3} gives~\ref{it:v4-W2}.
+\emph{Size and time.} Each observer and each Q-vertex gives one row and at
+most one new variable. Building $G^W$, testing planarity, and computing
+blocks, SPQR trees and reference embeddings takes
+$O(S)$~\cite{HT74,Tar72,HT73,GM01}, and so does the complete family of
+embedding trees with pointers from darts to leaves, skeleton edges of
+directions and reference orders (Lemma~\ref{lem:v4-trees}). With cyclic
+position indices in reference orders and in every $\psi(q)$, a triple is
+oriented in $O(1)$. For~\ref{it:eng4-R2}, all observations of a P-vertex $v$
+inside $B(C)$ use the same anchor leaves of $\Theta_{B(C)}(v)$; one traversal
+of the path between them and of the subtrees hanging off it records, for
+every leaf, its median and direction, in $O(|\Theta_{B(C)}(v)|)$, and each
+tree is used for at most one cycle. \ref{it:eng4-R1} uses the block of each
+dart, \ref{it:eng4-R3} the single node of $\Theta_B(q)$ and one triple. The
+binary system is solved in linear time by breadth-first search (rows are
+weighted edges, possibly loops; consistency means that every cycle has even
+weight). For the witness, give every node of the complete family the
+rotation induced by its source (Lemma~\ref{lem:v4-trees}), read every block
+rotation as a frontier, and assemble with doubly linked cyclic lists, $O(1)$
+splices per insertion; all in $O(S)$.
+\end{proof}
+
+\subsection{The engine}\label{sec:eng4-main}
+
+The \emph{schedule} is that of the proof of~\cite[Lemma~7]{BFR21}: (S1) if a
+pipe joins two cutvertices, apply EncapsulateAndJoin to it; (S2) otherwise,
+if a matched block-vertex has a nontrivial embedding tree, apply PropagatePQ
+at it; (S3) otherwise apply SimplifyMatching at $u$, where $u$ is the other
+end of the pipe of a matched cutvertex of maximum degree if one exists, and
+any matched vertex otherwise. By the proof of~\cite[Lemma~7]{BFR21}, if an
+instance with all P-vertices of degree at least four and $G^W$ planar has a
+pipe, the selected operation is applicable: in (S3), $u$ is a block-vertex
+with trivial embedding tree, and its partner is unmatched or a matched
+block-vertex with trivial embedding tree, which is
+Definition~\ref{def:eng4-sm}.
+
+\begin{algorithm}[t]
+\caption{The local-gap engine}\label{alg:eng4}
+\begin{algorithmic}[1]
+\State make the input $\mathcal I$ canonical; apply ConvertSmall to all P-vertices of
+  degree $\le3$; call the result $\mathcal I_0$; $j\gets0$
+\While{$\mathcal I_j$ has a pipe}
+  \If{$G_j^W$ is not planar} \Return reject \EndIf
+  \State apply the step selected by the schedule
+  (Lemmas~\ref{lem:eng4-join}, \ref{lem:eng4-ppq}, \ref{lem:eng4-sm});
+  \textbf{if} it rejects, \Return reject
+  \State apply ConvertSmall to all P-vertices of degree $\le3$; call the
+  result $\mathcal I_{j+1}$; $j\gets j+1$
+\EndWhile
+\State solve $\Sigma(\mathcal I_j)$ (Theorem~\ref{thm:eng4-terminal});
+  \textbf{if} it is inconsistent, \Return reject
+\State construct a witness of $\mathcal I_j$; apply the backward maps in
+  reverse order
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[engine]\label{thm:eng4-main}
+Let $\mathcal I$ be an instance of size $S_0$, let $m_0=|E(G)|$, let $D_0$ be
+the maximum degree of a pipe end ($D_0=0$ if there is no pipe), and
+$S_\ast=S_0+m_0D_0$. Algorithm~\ref{alg:eng4} performs at most $2m_0$
+iterations of the while loop, every intermediate instance has size
+$O(S_\ast)$, and:
+\begin{enumerate}[label=(\alph*),nosep]
+\item if it rejects, $F(\mathcal I)=\emptyset$;
+\item otherwise it outputs a system $\Sigma$ of binary rows over a set of
+  variables containing $X$, consisting of $R$ and $O(S_\ast)$ further rows,
+  such that $F(\mathcal I)$ is the projection to $X$ of the solution set of
+  $\Sigma$, and from every solution it constructs a witness of $\mathcal I$
+  whose assignment is the solution restricted to $X$.
+\end{enumerate}
+The running time, including the witness, is
+$O\bigl((m_0+1)(S_0+m_0D_0)\bigr)$ word operations.
+\end{theorem}
+
+\begin{proof}
+\emph{Correctness.} Every step satisfies the contract and produces an
+instance (Section~\ref{sec:v4-lang}; Lemmas~\ref{lem:eng4-convert},
+\ref{lem:eng4-join}, \ref{lem:eng4-ppq}, \ref{lem:eng4-sm}), and a rejection
+at the planarity test is sound by Lemma~\ref{lem:eng4-wheel}(a). Composing
+the contracts and the backward maps, with one assignment throughout, and
+applying Theorem~\ref{thm:eng4-terminal} to the final instance gives (a) and
+(b).
+\emph{Termination.} Our trees keep their leaves as degree-two vertices
+(so that darts keep their identities and marked cycles can be rerouted),
+which become Q-vertices; the size analysis in the proof
+of~\cite[Lemma~10]{BFR21} counts only inner tree nodes, identifying each
+leaf with its reattached edge. Suppressing our leaves yields the graph
+counted there, and subdividing an edge
+changes neither the degree, the cut status nor the embedding tree of any
+other vertex, nor partner poles. The schedule and the potential $\Phi$
+of~\cite[Section~3.6]{BFR21} depend only on these data and on the pipes, not
+on Q-cells, observations or rows, and ConvertSmall is applied as assumed
+in~\cite{BFR21}; so our run makes the same choices with the same
+potential. \cite[Lemma~10]{BFR21} accounts for the pipes an
+operation removes and creates; every other pipe keeps its class, since its
+ends keep their cut status (Lemma~\ref{lem:eng4-encap} for
+EncapsulateAndJoin; contraction of trees avoiding $y$ turns $G'-y$ into
+$G-y$ for PropagatePQ; the graph is unchanged otherwise). New pipes of degree
+at most three are cap pipes at block-vertices (Lemma~\ref{lem:eng4-encap}),
+of weight $0$. So each step decreases $\Phi$ by
+\cite[Lemma~10(i)]{BFR21} (which uses~\cite[Lemma~9]{BFR21}), and
+$\Phi(\mathcal I_0)\le2m_0$ by~\cite[Lemma~11]{BFR21}. Nothing else is
+imported: the size bounds of~\cite[Lemma~10(ii),(iii) and Theorem~12]{BFR21}
+do not cover our leaves, so we bound sizes separately.
+\emph{Size.} New pipes have degree at most $D_0$; each step, including the
+tree leaves and the following conversion, adds $O(D_0)$; canonicalization
+and the initial conversion add $O(S_0)$; so all sizes are $O(S_\ast)$.
+\emph{Time.} Let $S=O(S_\ast)$ bound all sizes. Canonicalization takes
+$O(S_0)$, as an observable triple is determined by its dart. Per iteration,
+$G^W$, planarity, blocks, SPQR trees and the selection take $O(S)$ (a matched
+block-vertex has a trivial tree if and only if no R node contains it and
+exactly one P node has it as a pole), and so does each step (for
+EncapsulateAndJoin including the planarity test of $K$ and a breadth-first
+search from $\{p,q\}$ for the targets; Lemma~\ref{lem:v4-trees} for
+PropagatePQ; partner, sets $I_i$ and orbits for SimplifyMatching), the
+conversion and each backward map
+(Lemma~\ref{lem:eng4-stars}(c) for the join). With at most $2m_0$
+iterations and the terminal stage in $O(S_\ast)$, the total is
+$O(S_0+m_0S_\ast+S_\ast)=O\bigl((m_0+1)(S_0+m_0D_0)\bigr)$.
+\end{proof}
+
+\begin{remark}[why we restrict anchor pairs]\label{rem:eng4-anchors}
+Arbitrary collections of local triple orientations at one P-vertex need not
+admit an affine description. At a vertex with darts $a,b,c,d$ and
+unconstrained rotation $\sigma$, the vector
+$(\operatorname{or}_\sigma(a,b,c),\operatorname{or}_\sigma(a,b,d),
+\operatorname{or}_\sigma(a,c,d),\operatorname{or}_\sigma(b,c,d))$ of local
+gaps for several anchor pairs takes the six values $0000$, $0011$, $1001$,
+$1100$, $0110$, $1111$ (for $\sigma=(a,b,c,d)$, $(a,b,d,c)$, $(a,c,b,d)$,
+$(a,c,d,b)$, $(a,d,b,c)$, $(a,d,c,b)$), while the projection of the solution
+set of a system of rows, even with auxiliary variables, is an affine space of
+size $0$ or a power of two; compare~\cite[Section~8.1]{Pfr22}. This excludes
+affine descriptions only, not other graph gadgets; and different anchor pairs
+are not by themselves the obstruction, since $\operatorname{or}_\sigma(1,3,2)$
+and $\operatorname{or}_\sigma(1,4,3)$ take all four values on darts
+$1,2,3,4$. Theorem~\ref{thm:eng4-main} avoids the question: all observations
+at a P-vertex use one anchor pair, for which every vector of gaps is
+realizable.
+\end{remark}

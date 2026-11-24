@@ -1,0 +1,82 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.05in,includeheadfoot]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools,microtype}
+\usepackage{booktabs,tabularx,array,enumitem,tikz}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue,
+  pdftitle={Simultaneous Embedding with Fixed Edges for Two Graphs},
+  pdfauthor={}}
+\usepackage{fancyhdr}
+\setlength{\headheight}{13.6pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape Simultaneous Embedding with Fixed Edges}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\parindent}{1.3em}
+\setlength{\parskip}{0pt}
+\setlist{topsep=3pt,itemsep=1pt,parsep=1pt}
+\allowdisplaybreaks[2]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\Ftwo}{\mathbb F_2}
+\newcommand{\cc}{\operatorname{cc}}
+\newcommand{\rev}{\operatorname{rev}}
+\newcommand{\side}{\operatorname{side}}
+\newcommand{\gap}{\operatorname{gap}}
+\newcommand{\orcyc}{\operatorname{or}}
+\newcommand{\SEFE}{\ensuremath{\mathrm{SEFE\text{-}2}}}
+\newcommand{\SP}{\ensuremath{\mathrm{SP}}}
+\title{Simultaneous Embedding with Fixed Edges\\[3pt]for Two Graphs}
+\author{}
+\date{Draft --- November 2026}
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+\begin{abstract}
+We describe a deterministic polynomial-time algorithm for simultaneous
+embedding with fixed edges of two planar graphs, without restrictions on
+the common graph, and give a procedure constructing compatible
+combinatorial embeddings.  The central intermediate result characterizes
+when prescribed embeddings of the colour blocks can be assembled: a
+common order of the shared darts must respect both block partitions,
+and every component outside a common block must have a face incident
+with all its attachments and consistent with its prescribed colour lobes.
+
+To choose the block embeddings, we retain complete face sectors at common
+P-nodes.  A component attached exactly at the two poles may occupy any
+of several sectors, while an additional attachment restricts each
+potentially nonaffine side observation to at most two possibilities.
+This yields a constrained-planarity language with partial bijections
+between finite domains and affine equations on Boolean variables.  We
+extend the Synchronized Planarity reductions to this language and give
+forward and inverse witness transformations for every operation.
+A conservative bound for the resulting algorithm is
+$O((N+1)^{60})$, where $N$ is the total input size.
+\end{abstract}
+\input{sections/introduction.tex}
+\input{sections/preliminaries.tex}
+\input{sections/repair.tex}
+\input{sections/general_compilation.tex}
+\input{sections/complete_sector_engine.tex}
+\input{sections/composition.tex}
+\appendix
+\input{sections/verification_general.tex}
+
+\section*{Acknowledgement}
+This manuscript was developed with substantial assistance from the AI
+system Astra~6.2, building on earlier results on flower and cactus common
+graphs.  It has been checked by independent reviews and by brute-force
+comparison with an exhaustive SEFE oracle on small instances, but it has
+not been refereed.
+
+\input{references.tex}
+\end{document}

@@ -1,0 +1,346 @@
+\section{Preliminaries}\label{sec:v4-prelim}
+
+\subsection{Conventions}\label{sec:v4-conv}
+
+All graphs are finite and loopless; multigraphs, whose edges have
+identities, are allowed only where this is said. An \emph{instance} of \sefe{} is a pair of simple graphs
+$G_1=(V,E_1)$ (red) and $G_2=(V,E_2)$ (blue), with \emph{common graph}
+$H=(V,E_1\cap E_2)$ and \emph{union} $U=(V,E_1\cup E_2)$; edges of $H$ are
+\emph{common}, the others \emph{private}, and $N=|V|+|E_1|+|E_2|$. A
+\emph{cactus} is a graph whose blocks are edges or cycles. We draw on a fixed
+oriented sphere $S$; a \emph{SEFE} is a pair of planar drawings of $G_1,G_2$
+that coincide on $H$.
+
+\paragraph{Rotation systems.}
+A \emph{dart} is an incidence of an edge with one of its ends; $A_v$ is the
+set of darts at $v$, $\bar h$ is the dart of the same edge at its other end,
+and the dart at $u$ of an edge $uy$ is identified with the traversal
+$u\to y$. A \emph{rotation system} $\rho$ gives a cyclic order $\rho_v$ of
+$A_v$, the \emph{rotation}, at every vertex $v$, and restricts to subgraphs.
+The \emph{successor} of a traversal $u\to y$ is $y\to z$, where the dart of
+$yz$ follows that of $yu$ at $y$. The \emph{faces} (\emph{facial walks}) are
+the orbits of the successor map together with one (empty) face for every
+isolated vertex; this convention is used throughout. Every component $X$ has
+$|V(X)|-|E(X)|+f\le2$ ($f$ its number of faces), and $\rho$ is
+\emph{planar} if equality holds for every component, i.e.\ genus
+$0$~\cite[Chapter~3]{MT01}. Planar rotation systems of connected
+graphs are exactly those induced (counter-clockwise) by planar drawings,
+which they determine up to orientation-preserving
+homeomorphisms~\cite[Chapter~3]{MT01}.
+
+\paragraph{Cyclic orders.}
+In a cyclic order $\sigma$, $(x,z)_\sigma$ is the set of elements strictly
+between $x$ and $z$ going forward from $x$, and
+$\operatorname{or}_\sigma(x,y,z)=0$ if $y\in(x,z)_\sigma$ and $1$ otherwise;
+$\operatorname{or}_{\rev\sigma}(x,y,z)=\operatorname{or}_\sigma(z,y,x)
+=\operatorname{or}_\sigma(x,y,z)\oplus1$, where $\rev\sigma$ is the reverse
+of $\sigma$. For a bijection $\varphi$, $\varphi(\sigma)$ is the image of
+$\sigma$; then $(x,z)_{\rev\sigma}=(z,x)_\sigma$ and
+$\varphi((x,z)_\sigma)=(\varphi x,\varphi z)_{\varphi\sigma}$. An \emph{interval} is a set of
+consecutive elements. Disjoint sets $A,B$ \emph{interleave} if some
+$a,a'\in A$, $b,b'\in B$ appear in the cyclic order $a,b,a',b'$; a family is
+\emph{noncrossing} if no two members interleave. \emph{Cutting} $\sigma$ at the \emph{corner after} $a$ gives the
+linear order from the successor of $a$ to $a$; \emph{inserting} into it
+places elements between $a$ and its successor.
+
+\begin{lemma}[intervals]\label{lem:v4-intervals}
+Let $\omega$ be a cyclic order of a finite set.
+(a) If $\omega$ is the concatenation of nonempty intervals $I_1,\dots,I_m$
+and $A,B$ are disjoint, interleave, and meet no common $I_k$, then
+$\{k:I_k\cap A\neq\emptyset\}$ and $\{k:I_k\cap B\neq\emptyset\}$
+interleave in $(1,\dots,m)$. (b) A noncrossing family of at least two
+nonempty sets has a member that is an interval of the restriction of
+$\omega$ to the union of the family.
+\end{lemma}
+
+\begin{proof}
+(a) An interval containing $a,a'$ contains $b$ or $b'$. (b) In the
+restriction, a \emph{gap} of $X$ is a maximal set strictly between consecutive
+elements of $X$. If no member is an interval, take a nonempty gap $I$ of some
+$X$, after $x$, with $|I|$ minimal; a member $X'$ meeting $I$ lies in $I$, and
+one of its two nonempty gaps avoids $x$, hence is a smaller gap inside $I$.
+\end{proof}
+
+\paragraph{Sides.}
+Cycles have length at least two (a \emph{digon}, in a multigraph, has two).
+A \emph{directed} cycle $C$ is drawn as a Jordan curve with left side $0$
+and right side $1$; $\side(C,Y)$ is the side containing a connected set $Y$
+disjoint from $C$. For $u\in V(C)$ the \emph{anchors}
+$c_{\mathrm{out}}(C,u)$ and $c_{\mathrm{in}}(C,u)$ are the darts by which
+$C$ leaves and enters $u$; the other darts at $u$ are \emph{nonanchor}. For
+a cyclic order $\sigma$ of $A_u$ and a nonanchor dart $d$ the \emph{local
+gap} is $\gap_\sigma(C,u,d)=\operatorname{or}_{\sigma}(c_{\mathrm{out}}(C,u),
+d,c_{\mathrm{in}}(C,u))$, and $\gap_\rho(C,u,d)=\gap_{\rho_u}(C,u,d)$ for a
+rotation system $\rho$; so $\gap_\rho(C,u,d)=0$ iff
+$d\in(c_{\mathrm{out}}(C,u),c_{\mathrm{in}}(C,u))_{\rho_u}$. In a planar
+drawing this sector lies on the left of $C$, so the edge of $d$ leaves $u$
+into side $\gap_\rho(C,u,d)$. The \emph{corner side} $\lambda_\rho(C,u,q)$
+of a dart $q$ at $u$ is $0$ if $q=c_{\mathrm{out}}(C,u)$, $1$ if
+$q=c_{\mathrm{in}}(C,u)$, and $\gap_\rho(C,u,q)$ otherwise; darts $d$
+inserted into the corner after $q$ satisfy
+$\gap_{\rho'}(C,u,d)=\lambda_\rho(C,u,q)$, since no dart of $C$ separates
+them from $q$.
+
+\begin{lemma}[sector]\label{lem:v4-sector}
+If $C$ is a directed cycle of a planarly drawn graph with rotation system
+$\rho$, $u\in V(C)$, and $Y$ is a connected subgraph with $V(Y)\cap
+V(C)=\emptyset$, then $\side(C,Y)=\gap_\rho(C,u,d)$ for the dart $d$ at $u$
+of every edge joining $u$ to $Y$, since $Y$ together with these edges,
+without their end $u$, is connected and disjoint from $C$.
+\end{lemma}
+
+\subsection{Embeddings and common embeddings}\label{sec:v4-emb}
+
+For components $X_a\neq X_b$ of a planarly drawn graph,
+$\operatorname{pos}_{X_a}(X_b)$ is the face of $X_a$ containing $X_b$. The
+\emph{embedding} of a drawing is its rotation system together with these
+\emph{relative positions}. The \emph{containment tree} has as nodes the
+components $X_j$ and the components of the complement (\emph{regions}), and
+an edge labelled $F$ from $X_j$ to the region meeting $F$ next to $X_j$ for
+every face $F$ of $X_j$; it is a tree (Euler characteristic), and
+$\operatorname{pos}_{X_a}(X_b)$ labels its first edge towards $X_b$.
+Conversely, the edges of $F$ at $X_a$ and $F'$ at $X_b\neq X_a$ meet a common
+region iff $F=\operatorname{pos}_{X_a}(X_b)$,
+$F'=\operatorname{pos}_{X_b}(X_a)$ and $\operatorname{pos}_{X_c}(X_a)=
+\operatorname{pos}_{X_c}(X_b)$ for all $c\neq a,b$, so the positions
+determine the tree, which is the undirected auxiliary graph
+of~\cite[Sections~4--5]{JS09}; thus our embeddings correspond to their
+topological embeddings. Drawings with the same embedding
+differ by an orientation-preserving homeomorphism~\cite[Chapter~3]{MT01},
+\cite{RS72}, so $\side_{\mathcal E}(C,x)$ is defined for an embedding
+$\mathcal E$; and $(G_1,G_2)$ has a SEFE if and only if $G_1,G_2$ have
+embeddings inducing the same embedding of $H$~\cite[Theorem~4]{JS09}. For a
+cactus this has a local form.
+
+\begin{lemma}[cactus faces]\label{lem:v4-faces}
+A planarly drawn connected cactus with $c$ directed cycles has $c+1$ faces;
+every face lies on one side of every cycle, and distinct faces have
+distinct \emph{side vectors} $(\side(C,F))_C$.
+\end{lemma}
+
+\begin{proof}
+Add blocks one at a time. An edge keeps the faces and vectors. A cycle $C$
+attached at $u$ adds one face: $C-u$ lies in a face $F$, and $F\setminus C$
+consists of two faces, on the two sides of $C$, whose vectors differ exactly
+in the coordinate of $C$.
+\end{proof}
+
+\begin{lemma}[common embeddings]\label{lem:v4-charact}
+Let $H$ be a cactus with directed cycles. Embeddings of $G_1$ and $G_2$
+induce the same embedding of $H$ if and only if every common dart has the
+same rotation at its vertex in both, and $\side_1(C,x)=\side_2(C,x)$ for
+every cycle $C$ of $H$ and $x\in V\setminus V(C)$. Such embeddings are
+\emph{compatible}; a SEFE exists if and only if compatible embeddings exist.
+\end{lemma}
+
+\begin{proof}
+Necessity is clear. Conversely, the faces of each component $X$ of $H$ and
+their side vectors agree, and for $x$ in a component $X'\neq X$,
+$\operatorname{pos}^i_X(X')$ is the face of $X$ with side vector
+$(\side_i(C,x))_C$ (Lemma~\ref{lem:v4-faces}).
+\end{proof}
+
+\subsection{Block assembly}\label{sec:v4-assembly}
+
+If $W$ is connected and $w\in V(W)$, the blocks $B$ of $W$ at $w$ correspond
+to the components $D_B\supseteq B-w$ of $W-w$, and the edges between $w$ and
+$D_B$ are those of $B$ at $w$.
+
+\begin{lemma}[assembly]\label{lem:v4-assembly}
+Let $W$ be connected and $w\in V(W)$.
+\begin{enumerate}[label=(\alph*),nosep]
+\item In every planar rotation system of $W$ the dart sets at $w$ of
+distinct blocks do not interleave.
+\item Let $W=W_1\cup\dots\cup W_m$ with connected $W_k$ that have an edge at
+$w$ and pairwise share only $w$, let $\rho_k$ be planar rotation systems of
+$W_k$, and let $\sigma$ be a cyclic order of the darts at $w$ restricting to
+every $\rho_k(w)$, in which the dart sets of distinct $W_k$ do not
+interleave. Then the rotation system with rotation $\sigma$ at $w$ and
+$\rho_k$ elsewhere is planar.
+\item Given planar rotation systems of all blocks of $W$ and, at every
+cutvertex $u$, a cyclic order $\sigma_u$ of its darts restricting to the
+rotations of the blocks at $u$ in which the dart sets of distinct blocks do
+not interleave, the rotation system of $W$ with these rotations is planar.
+\item Let $H$ be a cactus, $G_1,G_2$ connected, $w$ a cutvertex of $U$ with
+components $D_1,\dots,D_m$ of $U-w$, and let $\rho^k_1,\rho^k_2$ be
+compatible rotation systems of the pair $P_k=(G_1[D_k\cup\{w\}],
+G_2[D_k\cup\{w\}])$, whose colours are connected. For each $k$, if $P_k$
+has a common dart at $w$, choose one, $q_k$, and cut $\rho^k_1(w)$ and
+$\rho^k_2(w)$ at the corner after $q_k$; otherwise cut them anywhere.
+Concatenating the cut rotations in the order $k=1,\dots,m$, in both colours,
+and keeping all other rotations gives compatible rotation systems of
+$(G_1,G_2)$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) If $a=wy,b,a'=wy',b'$ appear in this order, $a,a'\in B$, $b,b'\in B'$, a
+$y$--$y'$ path in $D_B$ closes a cycle avoiding $D_{B'}$ that separates $b$
+from $b'$. (b) Induction on $m$. By Lemma~\ref{lem:v4-intervals}(b) the
+darts of some $W_m$ form an interval $a_1,\dots,a_p$ of $\sigma$; let $b'$
+be the dart before $a_1$. The successor map of $W$ arises from that of
+$W'=\bigcup_{k<m}W_k$ and $W_m$, with $w$ doubled, by exchanging the
+successors of the traversals entering $w$ along $b'$ and $a_p$, which lie in
+different orbits; so $W$ has $f'+f_m-1$ faces and genus $0$. (c) Induction,
+splitting at a cutvertex and using (b). (d) Every $x\in D_k$ is joined to $w$ in $G_i$ inside $D_k\cup\{w\}$, and
+every cycle of $U$ lies in one $P_k$. Planarity follows from (b), and the
+common rotations agree since the common darts of $P_k$ form an interval
+starting after $q_k$ in both colours. For a cycle $C$ of $H$ in $P_k$ and
+$x\in D_{k'}$, $k'\neq k$, $x$ has the side of $w$ if $w\notin V(C)$, and
+otherwise side $\lambda_{\rho^k_i}(C,w,q_k)$, by Lemma~\ref{lem:v4-sector}
+applied to the component of $G_i[D_{k'}]$ containing $x$, which is joined to
+$w$ by an edge whose dart lies in the corner after $q_k$. This depends only on
+common data; apply Lemma~\ref{lem:v4-charact}.
+\end{proof}
+
+\subsection{Plane trees}\label{sec:v4-trees}
+
+A \emph{plane tree} is a tree with a rotation system. If it has an edge,
+its one face is the \emph{contour}, and the \emph{frontier} is the cyclic
+order in which the contour enters the leaves; a single node counts as a leaf
+and its frontier is the one-element order of this leaf, as for the embedding
+tree of an edge block (Section~\ref{sec:v4-spqr}). The edges \emph{behind} $t\to u$ form the
+component of $T-tu$ containing $u$.
+
+\begin{lemma}[plane trees]\label{lem:v4-median}\label{lem:v4-contract}
+Let $T$ be a plane tree with an edge and rotation system $\rho$. (a) For an
+edge $tu$ the contour is $t\to u$, the traversals of the edges behind
+$t\to u$, $u\to t$, and the remaining traversals. (b) If $e_1,\dots,e_k$ are
+the edges at $t$ in the order $\rho(t)$, the contour concatenates the
+\emph{excursions} along $e_1,\dots,e_k$, each consisting of the traversal
+leaving $t$ along $e_l$, those behind it, and the one returning; so the
+traversals leaving $t$ appear in the order $\rho(t)$. (c) For a subtree
+$T'$ with an edge and the restricted rotations, the contour of $T'$ is the
+restriction of that of $T$; reversing all rotations reverses the frontier.
+\begin{enumerate}[label=(\alph*),nosep,start=4]
+\item (Contraction.) Let $\rho$ be a rotation system of a multigraph $M$ and
+$T\subseteq M$ a subtree with an edge, whose inner nodes have all their
+darts in $T$ and whose leaves $\ell$ have at most one further dart
+$d_\ell$, the edge of which has its other end outside $T$. Contracting $T$
+to one vertex whose rotation lists the darts $d_\ell$ in the frontier order
+of $T$ preserves the genus of every component. Conversely, replacing a
+vertex $w$ by such a tree, with the darts of $w$ attached to its leaves in
+frontier order $\rho(w)$, preserves the genus of every component.
+\item (Median identity.) Let $a,b,d$ be distinct leaves and $m$ their
+\emph{median}, the node on all three paths between them. Then $m$ is an
+inner node, the edges $e_a,e_b,e_d$ at $m$ towards $a,b,d$ are distinct,
+and $\operatorname{or}_{\mathrm{fr}}(a,d,b)=\operatorname{or}_{\rho(m)}
+(e_a,e_d,e_b)$ for the frontier $\mathrm{fr}$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) After $t\to u$ the contour stays behind $tu$ until it returns; (b)
+follows. (c) If the contour leaves $T'$ along an edge, it returns along it
+by (a). Reversal replaces the successor $s$ by $rs^{-1}r$, $r$ reversing
+traversals. (d) As every $d_\ell$ leaves $T$, each edge of $T$ is the only
+edge joining its ends. If $e=tu$ is such an edge, $\rho(t)=(e,a_1,\dots,a_k)$
+and $\rho(u)=(e,b_1,\dots,b_l)$, the contracted vertex with rotation
+$(b_1,\dots,b_l,a_1,\dots,a_k)$ has the same faces minus the traversals of
+$e$ (a single edge becomes an isolated vertex), so genera are kept.
+Cutting the edge of each $d_\ell$ into a pendant edge $\ell\ell'$ and
+contracting the edges of $T$ one by one keeps the single face of $T$ with
+these edges and ends with a star whose rotation is its frontier, the
+$\ell'$ in the frontier order of $T$. The converse is the same statement for
+the expanded graph. (e) Two leaves behind one edge at $m$ would be joined
+avoiding $m$; by (b) $a,b,d$ lie in the excursions of $e_a,e_b,e_d$.
+\end{proof}
+
+\subsection{Two noncrossing partitions}\label{sec:v4-partitions}
+
+\begin{lemma}[two noncrossing partitions]\label{lem:v4-partitions}
+Let $Y$ be a finite set with a red and a blue partition, every block $X$
+carrying a cyclic order $\sigma_X$. Let $M$ be the bipartite multigraph on
+the blocks in which each $y\in Y$ is an edge joining its two blocks, with
+rotation $\sigma_X$ at red and $\rev\sigma_X$ at blue blocks. This rotation
+system is planar if and only if some cyclic order of $Y$ restricts to every
+$\sigma_X$ and makes both partitions noncrossing; such an order is computed
+in $O(|Y|)$ time.
+\end{lemma}
+
+\begin{proof}
+Given such an order, place $Y$ on a circle and draw red blocks as stars
+inside within the convex hulls of their elements, blue ones likewise
+outside. Conversely
+(compare~\cite[Lemma~9]{BE18}), draw a component of $M$ planarly with each
+edge $y$ subdivided at $m_y$. For every corner $(e,e')$ at a blue vertex,
+with red ends $A,A'$, draw an arc from $A$ to $A'$ in the face of the corner
+along $e$ and $e'$, leaving $A$ just before $e$ and reaching $A'$ just after
+$e'$. These disjoint arcs connect all red vertices; choose a spanning tree of them
+by breadth-first search and discard the other arcs. With the red halves of
+all edges it forms an embedded tree $\Upsilon$, and the boundary
+of a thin neighbourhood of $\Upsilon$ crosses each edge once, near $m_y$, in
+the frontier order $\omega$ of the leaves $m_y$. It restricts to the
+rotations at red vertices and, from outside, to the reversed rotations at
+blue ones; disjoint stars do not interleave. Concatenate over the
+components. Combinatorially, the rotation of $\Upsilon$ at a red vertex $A$
+is $\rho(A)$ in which the corner between consecutive edges $y,y'$ receives,
+in this order, the tree arc of the blue corner ending with $y$ and the tree
+arc of the blue corner starting with $y'$ (where these are tree arcs);
+$\omega$ is its frontier, computed by face tracing in linear time.
+\end{proof}
+
+\subsection{Normalization}\label{sec:v4-normalize}
+
+\begin{definition}\label{def:v4-normalized}
+An instance is \emph{normalized} if (N1) $G_1,G_2$ are simple, planar and
+connected; (N2) $U$ is biconnected with at least three vertices; (N3) $H$ is
+a cactus in which every edge lies on a cycle (isolated vertices allowed).
+\end{definition}
+
+\begin{theorem}\label{thm:v4-normalize}
+For an instance with planar colours whose common graph is a cactus one
+computes in $O(N)$ time normalized instances $I^1,\dots,I^m$ and a set of
+one-vertex \emph{trivial factors} such that (a) $\sum_tN(I^t)=O(N)$; (b)
+the instance has a SEFE if and only if every $I^t$ has one; (c) from
+compatible rotation systems of all $I^t$, compatible embeddings of the
+instance, given by rotation systems and containment trees, are computed in
+$O(N)$ time.
+\end{theorem}
+
+\begin{proof}
+Each step preserves simplicity, planarity and the cactus property, and
+SEFEs map back by deletion or restriction. \emph{(1)} Treat the components of
+$U$ separately; one-vertex components are trivial factors.
+
+\emph{(2) Connecting the colours}, a variant of~\cite[Section~2]{BR15},
+whose pendant common edge would be a bridge of $H$. If colour $i$ is
+disconnected, let $v_1v_2$ be an edge of $U$ joining two of its components,
+private to colour $3-i$. Add vertices $z,t$, the common edges
+$v_1z,zt,tv_1$ and the colour-$i$ edge $zv_2$; this merges two components
+of $G_i$ and keeps those of $G_{3-i}$. Conversely, by
+Lemma~\ref{lem:v4-connect} a SEFE may be assumed to have a face $g$ of
+colour $i$ incident with $v_1$ and $v_2$; draw the triangle in a sector at
+$v_1$ of the union drawing lying in $g$, and $zv_2$ inside $g$. The edges
+$v_1v_2$ of a phase form a spanning tree of $U$ with the components of $G_i$
+contracted~\cite[Theorem~1]{BR15}; there are at most $2|V|-2$ steps.
+
+\emph{(3) Bridges.} For every bridge $e=uw$ of $H$ add a vertex $t_e$ and
+common edges $ut_e,t_ew$, a block of $H$ as $u,w$ are separated in $H-e$;
+in a SEFE nothing crosses $e$, so the triangle can be drawn along it.
+
+\emph{(4) Cutvertices of $U$.} Replace the instance by the pairs $P_k$ of
+Lemma~\ref{lem:v4-assembly}(d) at every cutvertex, so that the factors are
+induced by the blocks of $U$. No block of $U$ is an edge $xy$: a private
+$xy$ has a path in the other colour, a common one lies on a common cycle.
+This gives (N1)--(N3).
+
+(a) A step of (2) adds two vertices, three common edges and one private
+edge, that is, $9$ to $N$; so (2) adds less than $18|V|$ to $N$, leaving
+$|V'|<5|V|$ vertices. Step (3) adds $5$ per bridge, at most $5|V'|$, and
+step (4) duplicates only cutvertices,
+$\sum_B|V(B)|<2|V''|$; all steps take linear time~\cite{Tar72}. (b) composes
+the equivalences.
+
+(c) Undo the splits by Lemma~\ref{lem:v4-assembly}(d), in $O(\deg_U(w))$
+time each, obtaining the embeddings of a SEFE of a connected instance.
+Deleting $t_e,z,t$ may disconnect the colours; the relative positions are
+output as containment trees (Section~\ref{sec:v4-emb}), computed in linear
+time since the regions are the classes of faces joined across deleted
+edges. Finally, draw the components $U_j$ of $U$ in disjoint disks, in each
+colour with the corner after a common dart $d_j$ at a vertex $u_j$ of $U_j$
+(any corner if none exists) facing outwards. The complement of the disk of
+$U_j$ is connected and avoids $U_j$, so a vertex outside $U_j$ lies on side
+$\lambda(C,u_j,d_j)$ of a cycle $C\ni u_j$ of $U_j$, and on the side of $u_j$
+otherwise, in both colours (Lemma~\ref{lem:v4-charact}).
+\end{proof}

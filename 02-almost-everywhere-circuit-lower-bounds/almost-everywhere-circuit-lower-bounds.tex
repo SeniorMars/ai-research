@@ -1,0 +1,287 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm,xcolor}
+\usepackage[margin=1.04in]{geometry}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue!45!black]{hyperref}
+\hypersetup{pdftitle={Almost-everywhere circuit lower bounds from sparse 3-SAT}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newcommand{\ENP}{\mathrm{E}^{\mathrm{NP}}}
+\newcommand{\size}{C_{B_2}}
+\newcommand{\poly}{\operatorname{poly}}
+\newcommand{\bits}{\{0,1\}}
+\title{Almost-everywhere circuit lower bounds\\from sparse 3-SAT}
+\author{}
+\date{23 November 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+Suppose 3-SAT on \(V\) variables and at most \(5V\) clauses has a deterministic
+algorithm running in \(V^{O(1)}2^{O(V/\sqrt{\log V})}\) time. Then one language
+in \(\ENP\) requires \(\Omega(n\sqrt{\log n})\) unrestricted fan-in-two gates
+at every sufficiently large input length \(n\). We adapt the bounded-witness
+refuter of Chen, Lyu and Williams to select a hard accepting computation at
+each address length. The verifier reads the occupied portion of the initial
+tape directly, so the number of variables in its SAT query grows linearly
+with the gate budget and the address length. The same construction transfers
+general nondecreasing savings rates without having to compute the rate.
+\end{abstract}
+
+\section{The transfer}
+Write \(W_n\) for the characteristic function of a language on \(\bits^n\).
+The size \(\size(f)\) counts noninput gates in a single-output circuit over
+all binary Boolean functions, with arbitrary depth and free fan-out.
+All logarithms have base two. We use the multitape bit model, and \(\ENP\)
+allows a deterministic \(2^{O(n)}\)-time machine to write queries of that length
+to an NP oracle.
+
+\begin{theorem}\label{thm:transfer}
+Let \(a(V)\ge1\) be nondecreasing and tend to infinity. Suppose a uniform
+deterministic algorithm \(D\) decides satisfiability for CNFs of width at
+most three on \(V\) declared variables with at most \(5V\) clauses in time
+\(O(V^b 2^{A V/a(V)})\), for fixed \(A,b>0\). The declaration may include
+unused variables. There exist \(W\in\ENP\) and \(c,\rho>0\) such that for
+every sufficiently large \(n\),
+\[
+       \size(W_n)>c\min\{n\,a(n),\,2^{\rho n}\}.
+\]
+The language can be chosen as a function of \(D\) alone.
+\end{theorem}
+
+In particular, if \(\log a(n)=o(n)\), the conclusion is
+\(\size(W_n)>c\,n a(n)\) eventually. At the fixed-density rate reported in
+October 2026 this gives \(c\,n\sqrt{\log n}\). OpenAI's Corollary 1.4
+obtains this size at infinitely many lengths by applying the nondeterministic
+time hierarchy to a unary language \cite{oai}. Here the hard function is a
+tableau chosen separately at each length.
+
+Fortnow and Santhanam proved an almost-everywhere hierarchy for machines with
+bounded nondeterminism \cite{fs}. Chen, Lyu and Williams gave a refuter that
+finds a disagreement at a prescribed length \cite[Secs.~4--5]{clw}. Their
+Theorem 1.1 allows a fixed power of the target size in the hypothesis on
+Gap-UNSAT. At the present gate scale that power matters. We use their
+root-and-successor computation and account directly for the size of its local
+test.
+
+\section{One tape and a small test for a guessed tableau}
+Fix a binary-branching, one-tape interpreter \(U\) with a left end. Its input
+\(x(e,n,s,w)\) encodes a deterministic multitape verifier \(e\), unary \(n\),
+a positive integer gate budget \(s\) in binary, and a raw bit string \(w\).
+Give \(e\) and the binary expansion of \(s\) a unary length prefix followed
+by a zero. A zero terminates unary \(n\), and the first blank terminates \(w\).
+Write \(g=|w|\). The two inputs to a simulated verifier are a word and a
+separate witness.
+
+First \(U\) runs \(e\) on the \emph{root} \(x(e,n,s,0^g)\), supplying \(w\)
+as its witness. If that branch accepts, \(U\) rejects. If it rejects and
+\(w=1^g\), \(U\) accepts. Otherwise, after root rejection, \(U\) runs \(e\)
+on \(x(e,n,s,w+1)\) with a freshly guessed \(g\)-bit witness and adopts its
+answer. Here \(w+1\) is the fixed-width binary successor. Acceptance returns
+the head to the origin, writes a distinguished symbol and enters an absorbing
+state. Rejection is absorbing as well.
+
+For each fixed \(e\), if both simulated branches take at most \(t\) steps
+and \(|x|=m\), the whole computation takes at most \(C_e(t+m+1)^3\) steps.
+Indeed the interpreter stores the tapes as marked strings. The total used
+length is \(O_e(t+m+1)\). Sweeps collect the scanned symbols, find the
+instruction in the stored program, and change symbols and head marks. Even a
+quadratic allowance in the used length per simulated step suffices. Copying
+the root, forming the successor, preparing either witness and returning to
+the origin fit the same bound. Only the multiplicative constant depends on
+the simulated program.
+
+Put \(r=\lfloor n/5\rfloor\), \(R=2^r\). A table on \(\bits^n\) describes
+\(R\) rows of \(2R\) cells. Use a tag, \(r\) row bits, \(r+1\) column bits
+and a fixed number of component-selector bits for a cell's symbol and
+head state. Set the remaining address bits to zero. A second tag with the
+column and selector zero specifies one choice bit for each transition row.
+The used fields fit at all large \(n\). Other table bits are unrestricted.
+
+The first row contains \(x\), followed by blanks, with one head at the origin.
+The last row must carry the distinguished accepting head and symbol there.
+For each transition, the old three-cell neighborhood and the choice bit
+determine the new center cell. Use outside sentinels at the two ends, reject
+outward moves, and test legal cell encodings. The address for the choice
+depends only on the old row. Starting with the unique initial head, induction
+therefore gives precisely the genuine computation for the row choices.
+Conversely, if \(m<R\), any accepting branch of fewer than \(R-1\) steps
+fits in the rectangle and extends to its final row by absorption.
+
+\begin{lemma}\label{lem:checker}
+For \(m<R\) and address fields that fit, given \(x\) and an \(n\)-input circuit
+of at most \(s\) gates, validity of its table can be decided by polynomial-time
+preprocessing and at most one call to \(D\) with \(V=K(n+s)\) variables.
+Here \(K\) is a fixed integer depending only on \(U\).
+\end{lemma}
+\begin{proof}
+For each \(j<m\), evaluate the supplied circuit at all component addresses
+of cell \(j\) in row zero. Compare the resulting cell to the symbol \(x_j\),
+including the head and the left-end convention. There are only
+\(O_U(m)\) evaluations, each taking \(\poly(n+s)\) bit operations by
+scanning the gate list.
+
+For the remaining checks build a circuit whose inputs select a test, row
+and column, and whose output indicates a violation. The blank portion of
+row zero uses the guard \(j\ge m\). Transition and final-state tests use
+only fixed predicates. A constant number of copies of the guessed circuit
+read the cell components and the common choice bit. Comparing indices,
+testing endpoints and shifting a row or column by one take \(O(n)\) gates.
+This gives \(G=O_U(s+n)\) gates and \(O(n)\) inputs, even when \(m\) is
+large. Primary inputs and gate outputs receive distinct variables.
+For each binary gate, four clauses forbid its inconsistent truth-table
+rows. Pin the violation output to one with a unit clause. Each primary
+assignment has a unique consistent extension to gate outputs. The circuit
+has a violation exactly when this formula is satisfiable.
+Declare unused variables up to \(V=K(n+s)\), choosing \(K\ge1\) large enough
+to cover all variables and \(4G+1\le 5V\). Accept exactly when the occupied
+cells passed and the formula is unsatisfiable.
+\end{proof}
+
+\section{Choosing a gate budget under one clock}
+Let \(M\) be the verifier in Lemma~\ref{lem:checker}, using the actual input
+word \(x(e,n,s,w)\) as the initial tape to check. Its separate witness \(u\)
+describes an \(s\)-gate circuit. With \(\ell=\lceil\log(n+s+2)\rceil\), use
+\[
+          g=g(n,s)=s(4+2\ell)+\ell
+\]
+bits for the gate truth tables, two predecessor indices per gate, and the
+output index. Reject malformed words, wrong lengths, forward references
+and out-of-range indices. Unused dummy gates allow every circuit of size
+at most \(s\) to be encoded. Fix \(e=\operatorname{code}(M)\) now. The
+alphabet and transition rule of \(U\), hence \(K\), were fixed before
+specifying \(M\). Constructing the formula uses the transition rule as a
+finite table.
+
+For chain inputs \(|w|=|u|=g\) the length \(m\) depends only on \(e,n,s\)
+and is \(O_e(n+(s+1)\log(n+s+2))\). Whenever the fields fit and \(m<R\),
+the time on \emph{every} pair \(w,u\) has logarithm at most
+\begin{equation}
+     A\,\frac{K(n+s)}{a(K(n+s))}+B\log(n+s+2)+O_e(1) . \label{eq:cost}
+\end{equation}
+Here \(B\) absorbs the solver's polynomial factor, the scans over the input
+and circuit, and all formula construction. The verifier need not know \(a\).
+
+Set \(t=2^{\lfloor n/40\rfloor}\). Call a budget \emph{admissible} at \(n\)
+if the address fields fit, \(m\le t<R\), and \(M\) halts in at most \(t\)
+steps on all \(g\)-bit pairs \(w,u\) at that budget. A deterministic
+\(\ENP\) machine can find the largest admissible budget among
+\(1,2,4,\ldots,2^n\), using zero output if there is none. First discard
+budgets failing the size checks. For each remaining budget ask if there
+\emph{exists} a pair \(w,u\) on which \(M\) is still running after \(t\)
+steps. With \(t\) written in unary, an NP machine guesses the pair and
+simulates the deterministic verifier. A negative answer certifies the
+budget. There are only \(n+1\) budgets, and each gets its own test.
+
+For comparison, choose small constants \(0<\eta,\rho<1\). Take \(s\) to
+be the largest power of two at most \(\min\{\eta n a(n),2^{\rho n}\}\).
+Since \(K(n+s)\ge n\), monotonicity bounds the first term of
+\eqref{eq:cost} by \(AK\eta n+AKn/a(n)\). Also
+\(\log(n+s+2)\le\rho n+o(n)\) and \(\log m\le\rho n+o(n)\).
+Choose \(AK\eta+B\rho<1/80\) and \(\rho<1/80\).
+Then \(m\le t\) and every branch halts by \(t\) for all large \(n\).
+The largest admissible budget is at least this comparison budget, hence
+at least \((\eta/2)\min\{n a(n),2^{\rho n}\}\).
+Only the proof chooses \(\eta,\rho,s\) from the rate.
+
+\paragraph{The square-root logarithm case.}
+For this rate one may fix a small positive rational \(\eta\), set
+\(s=\lfloor\eta n\lfloor\sqrt{\lfloor\log n\rfloor}
+\rfloor\rfloor\) and omit the budget search. Estimate~\eqref{eq:cost} gives
+log-time at most \((AK\eta+o(1))n\). A lookup circuit in the style of
+Lupanov \cite{lupanov} can also check the whole initial row inside the SAT
+query. At this budget \(m=O(s\log n+n)\).
+Pad the \(m\)-bit word to a power of two and use blocks of power-of-two length
+\(b\in[\tfrac14\log m,\tfrac12\log m]\). Prefix trees produce the block
+indicators and the within-block indicators in \(O(m/b+b)\) gates. Form all
+\(2^b\) block words as disjunctions of the latter indicators, then use each
+block indicator to select its prescribed word. The lookup uses
+\(O(m/b+b2^b)=O(m/\log m)\) gates and is constructible in polynomial time.
+Since \(m\ge n\), this adds \(O(s+n)\) gates with a constant independent of
+\(\eta\le1\). A comparator supplies blanks beyond the word.
+
+\section{Finding a hard table at the chosen length}
+Fix a sufficiently large \(n\) and its selected admissible \(s\).
+The interpreter uses at most \(C_e(2t+1)^3<R-1\) steps on each branch
+of every chain input. List the \(g\)-bit strings as
+\(w_0,\ldots,w_{H-1}\) in binary order, with \(H=2^g\). Write
+\(x_i=x(e,n,s,w_i)\). Consider three bits for each \(i\).
+\begin{align*}
+ P_i & = [M(x_i,u)\text{ accepts for some }u\in\bits^g],\\
+ d_i & = [M(x_0,w_i)\text{ accepts}],\\
+ Q_i & = [U(x_i)\text{ has an accepting table}].
+\end{align*}
+Set \(P_H=1\). The root branches enumerate all witnesses, the two simulations
+fit in the rectangle, and every accepted circuit passes the exact table test.
+Consequently,
+\[
+       P_0=\bigvee_{i<H}d_i,\qquad
+       Q_i=(1-d_i)P_{i+1},\qquad P_i\le Q_i \quad(0\le i<H).
+\]
+If \(P_0=1\), induction gives \(P_i=1\) and \(d_i=0\) at each actual
+index, contradicting the disjunction. Thus \(P_0=0\) and every \(d_i=0\).
+Between the zero at \(0\) and the sentinel one at \(H\), retain a zero
+left endpoint and a one right endpoint by querying their midpoint. After
+at most \(g\) queries this gives consecutive endpoints \(j,j+1\).
+Now \(P_j=0\) and \(Q_j=P_{j+1}=1\). There is an accepting table for
+\(x_j\), and every circuit of at most \(s\) gates fails to encode one.
+Indeed, a circuit for any such table would supply an accepting description
+to \(M(x_j,\cdot)\).
+
+On input \(y\in\bits^n\), compute that same \(j\), using an NP query with
+unary clock \(t\) for each \(P_i\). The sentinel is supplied directly.
+The endpoints need \(g+1\) bits, and \(g\le m\le t\). Write out the
+ordinary initial, transition and final constraints on \(2^n\) table
+bits for \(x_j\). Their total encoding length is \(2^{O(n)}\).
+Select the lexicographically first satisfying table, in address order,
+by testing whether each successive zero bit has a satisfying extension
+of the chosen prefix. Return its bit at \(y\). Use zero if the formula
+is unsatisfiable or no budget was selected. At most \(2^n+1\) SAT queries
+of length \(2^{O(n)}\) suffice for the table selection.
+The algorithm therefore defines one \(W\in\ENP\). At each sufficiently
+large \(n\) its slice encodes an accepting table on \(x_j\), so
+\(\size(W_n)>s\). This proves Theorem~\ref{thm:transfer}.
+
+\section{Instantiating the decision bound}
+OpenAI's proof of Corollary 1.4 explicitly uses a decision algorithm for
+\(V\) variables and at most \(5V\) clauses in time
+\(V^{O(1)}2^{O(V/\sqrt{\log V})}\). The polynomial-space implementation
+allows a multitape simulator to scan the workspace on each bit access
+with polynomial overhead per access \cite{oai}. OpenAI's separate Lean
+formalization records the exponent \(O(V(\log\log V)^2/\sqrt{\log V})\).
+Using that bound alone gives \(\Omega(n\sqrt{\log n}/(\log\log n)^2)\)
+at every sufficiently large length by the same theorem.
+
+Anthropic's \texttt{MainTheorem} gives a second route \cite{anthropic}.
+For width three, the clause-count term has exponent \(O(q/\sqrt{\log q})\)
+for \(q\ge2\) distinct clauses and at least four occurring variables.
+Delete tautologies and duplicate clauses, simplify repeated literals,
+drop unused variables and renumber the rest. An empty clause decides
+unsatisfiability immediately. If fewer than four variables or fewer than
+two clauses remain, a constant-size test suffices. Otherwise encode the
+normalized formula in polynomial time, run the finite-stack machine and
+test whether the returned count is positive. Each stack of a fixed
+finite-alphabet machine can be maintained on its own tape. Since
+\(q\le5V\) and \(u/\sqrt{\log u}\) increases for real \(u\ge2\), the
+exponent is \(O(V/\sqrt{\log V})\). Either stated sparse bound supplies
+the same almost-everywhere corollary.
+
+\begin{thebibliography}{9}\small
+\bibitem{lupanov} O. B. Lupanov. On a method of circuit synthesis.
+\emph{Izvestiya VUZ, Radiofizika} 1(1), 120--140, 1958.
+\href{https://radiophysics.unn.ru/issues/1958/1/120}{Original article}.
+\bibitem{fs} L. Fortnow and R. Santhanam.
+New non-uniform lower bounds for uniform classes. CCC, 2016.
+\href{https://doi.org/10.4230/LIPIcs.CCC.2016.19}{Proceedings}.
+\bibitem{clw} L. Chen, X. Lyu and R. Williams.
+Almost-everywhere circuit lower bounds from non-trivial derandomization.
+FOCS, 2020. \href{https://eccc.weizmann.ac.il/report/2020/150/}{Full version, ECCC TR20-150}.
+\bibitem{oai} OpenAI. The Exponential Time Hypothesis is False.
+Revised 25 October 2026. Theorem 1.1 and Corollary 1.4.
+\href{https://github.com/openai/math/tree/main/preprints/The-Exponential-Time-Hypothesis-is-False-October-25-2026}{Manuscript},
+\href{https://raw.githubusercontent.com/openai/math/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/preprints/The-Exponential-Time-Hypothesis-is-False-October-25-2026/build/quantitative-circuits.tex}{quantitative circuit proof}
+and \href{https://github.com/openai/math/blob/main/lean/docs/378.md}{scope of the Lean formalization}.
+\bibitem{anthropic} Claude (Anthropic). A \(2^{o(n)}\) Time Algorithm for 3-SAT.
+October 2026. \href{https://github.com/anthropics/formal-math/blob/16a5ce41304fcdaea4e0be7c132e1c361dc26da5/eth/MainResults.lean}{Formal statement}
+and \href{https://github.com/anthropics/formal-math/blob/16a5ce41304fcdaea4e0be7c132e1c361dc26da5/eth/Solution.lean}{proof endpoint}.
+\end{thebibliography}
+\end{document}

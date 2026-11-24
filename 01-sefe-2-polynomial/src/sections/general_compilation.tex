@@ -1,0 +1,725 @@
+\section{Encoding arbitrary common graphs}
+\label{gen:section}
+
+This section gives an exact reduction to the complete-sector extension
+of Synchronized Planarity, which is solved in Section~\ref{cse:section}
+(Theorem~\ref{cse:main}). In particular, the
+compilation below does not assume tractability of arbitrary simultaneous
+ordering, arbitrary triple-orientation constraints, or arbitrary finite-domain
+constraint satisfaction.
+
+\begin{theorem}[General face-list compilation]
+\label{gen:compilation}
+Let $I=(G_1,G_2)$ have connected colours and biconnected union $U$.  Suppose
+that every P-node $\mu$ of every nontrivial common block is supplied with a
+cyclic order $\pi_\mu$ such that every simultaneous embedding induces either
+$\pi_\mu$ or its reversal at that node.  There is a deterministic
+polynomial-time construction of an instance of the complete-sector
+Synchronized Planarity language which is feasible if and only if $I$ admits
+a \SEFE.  Both witness transformations are polynomial.
+
+The construction uses only complete-sector observations, unary domain
+restrictions, partial bijections, and affine equations on Boolean variables,
+in addition to the ordinary graph, pipes, and Q-cells.  With
+$N=|V|+|E_1|+|E_2|$, its output has size $O((N+1)^3)$, and a direct implementation of the construction takes
+$O((N+1)^4)$ time.
+\end{theorem}
+
+The reduction theorem uses the
+SPQR embedding parameterization, the source-labelled embedding-tree
+construction, Lemma~\ref{rep:lem:two-partitions}, and the repair
+Theorem~\ref{rep:thm:repair}.
+
+\subsection{Normalization and the fixed common P orders}
+\label{gen:porders}
+
+The normalization of Section~\ref{sec:normalization} first makes the colours
+connected and splits at union cutvertices.  Let $\mu$ be a P-node of a
+nontrivial common block $K$, with poles $p,q$.  Its directions are the
+$\{p,q\}$-bridges of $K$ (Section~\ref{gen:sectors}); a direction is
+\emph{non-real} unless it is the edge $pq$, and its \emph{interior} is its
+vertex set minus $\{p,q\}$.  Two non-real directions are \emph{linked} if
+$U$ contains a path from an interior vertex of one to an interior vertex of
+the other whose internal vertices avoid $V(K)$; equivalently, some
+component of $U-V(K)$ is adjacent to both interiors, or a private edge
+joins them.  The \emph{union-link graph} of $\mu$ has the non-real
+directions as nodes and the linked pairs as edges.  This is the union-link
+graph of~\cite{bkr}, restricted to non-real directions.  Linked directions
+are consecutive in the P order of every \SEFE{}~\cite[Lemma~2]{bkr}.
+
+The common-cycle separation-pair decomposition of
+Bl\"asius--Karrer--Rutter~\cite[Lemma~4 and Theorem~2]{bkr} then produces
+an equivalent family of total linear size in which the union-link graph of
+every common P-node is connected.  Here the split components at a
+separation pair $\{u,v\}$ of $U$ are the components of $U-\{u,v\}$ with
+their edges to $u,v$; an existing or added edge $uv$ is not counted as a
+split component carrying a common path.  Without this convention a factor
+together with its added edge $uv$ would again separate a common cycle, and
+the decomposition would not terminate.  The qualification ``non-real'' is
+necessary: a real common pole edge has no interior and would be isolated in
+a link graph that included it.  By~\cite[Lemma~3]{bkr}, in a feasible
+instance every connected union-link graph is a spanning path or cycle.  A
+spanning path fixes the order of the non-real directions up to reversal.
+A real common pole edge, if present, must be inserted in the closing gap
+of the path, because every other gap is forced by a link that would have
+to cross it~\cite[Lemma~2]{bkr}; neither~\cite{bkr} nor~\cite{fpr} states
+this placement explicitly.  A spanning cycle fixes the order when there is
+no real common pole edge and otherwise causes rejection.  These rules
+supply the reference cyclic order $\pi_\mu$.  Any other connected link
+graph is a valid rejection.  See also~\cite[Lemma~4(c)]{fpr}.
+Throughout, $\pi_\mu$ is the cyclic order at the pole $p$; at $q$ the same
+embedding induces the reversed order.
+
+For clarity about intermediate edge identities, a fresh common two-edge
+path can replace a newly added common pole-to-pole marker.  Restricting a
+\SEFE{} to each factor and contracting a common path in another factor gives
+the forward witness map.  Conversely, the common markers permit the factor
+drawings to be glued in disjoint pole-to-pole regions, after which the
+markers are deleted.  Each colour remains connected: every colour component
+of a factor meets at least one pole, and the marker connects the poles.
+Each nontrivial augmented union factor is biconnected.  Subdivision makes
+parallel marker edges harmless if a simple-graph representation is desired.
+Perform it after the decomposition and retain the already computed
+reference orders.  The orders $\pi_\mu$ are computed \emph{before} this
+subdivision, with every marker treated as a real common pole edge in the
+rules above; after subdivision a marker would be an unlinked non-real
+direction, and the rules would wrongly reject.  Subdivided markers are not
+subjected to a new link connectivity test.
+The stronger BKR preprocessing that removes certain further two-pole split
+components is not needed in this section.
+
+\subsection{Attachment sets, bridges, and reference sectors}
+\label{gen:sectors}
+
+For a nontrivial common block $K$, let $B_i(K)$ be its unique containing
+colour-$i$ block.  For $Z\in\cc(U-V(K))$ and a colour lobe
+$Y\in\cc(B_i(K)-V(K))$, write
+\[
+ A(K,Z)=N_U(Z)\cap V(K),\qquad
+ A_i(K,Y)=N_{B_i(K)}(Y)\cap V(K).
+\]
+Each lobe lies in a unique $Z$.  Biconnectivity gives at least two distinct
+attachments for every $Z$ and every lobe.  Common bridges have only one
+face and need no additional face rows.  They and isolated common vertices
+remain present in the ordinary source-tree construction and in the final
+repair.
+
+A $\{p,q\}$-bridge of a biconnected graph is a component after deleting
+$p,q$, with its incident pole edges, or the real edge $pq$ if present.
+There is a canonical P-node at $p,q$ exactly when there are at least three
+such bridges.  For a common P-node $\mu$ with poles $p,q$, write
+\[
+ \pi_\mu=(e_0,e_1,\ldots,e_{k-1}),\qquad k\geq 3.
+\]
+Name its reference sector $j$ by the consecutive pair
+$(e_j,e_{j+1})$, with indices modulo $k$.  The Boolean $r_\mu$ specifies
+whether the common P order is the reference order or its reversal.
+Reflection changes the oriented corner used by a named sector, not its
+name.  Common R-sources also receive global reflection variables relative
+to fixed reference embeddings.
+
+\paragraph{The fixed sign convention for represented tree copies.}
+Give each represented tree copy a bit $\varepsilon$: it is $0$ for an
+original red tree or an auxiliary $X$ tree, and $1$ for an original blue
+tree or its comparison $K'$ tree.  If $\rho_B$ is its original block
+frontier, the rotation in the ordinary constraint graph is
+\[
+ \widehat\rho=\rev^{\varepsilon}(\rho_B).
+\]
+For the same three labelled leaves, the median identity therefore reads
+\begin{equation}
+ \orcyc_{\rho_B}(a,b,c)
+   =\orcyc_{\widehat\rho}(a,b,c)\oplus\varepsilon
+   =\orcyc_{\widehat\rho_m}(a_m,b_m,c_m)\oplus\varepsilon.
+ \label{gen:copy-sign}
+\end{equation}
+Here $m$ is their median and $a_m,b_m,c_m$ are its three directions.
+All side observations use the original directed cycle's outgoing and
+incoming labelled leaves; they do not acquire a second sign from the
+direction in which a doubled marked route happens to be traversed.
+
+For an R-copy, choose its represented reference rotation to be
+$\rev^{\varepsilon}$ of its original source reference.  Its Q-cell flip
+then equals the original native reflection bit.  For a P-copy, do the
+same with its marked reference list.  If a list
+$(a_0,\ldots,a_{h-1})$ is reversed while retaining $a_0$ as its first
+entry, represented sector $j$ corresponds to original sector
+$-j-1\pmod h$.  Thus the sector relabeling is the identity for
+$\varepsilon=0$ and $j\mapsto-j-1\pmod h$ for $\varepsilon=1$.
+This also swaps the two sector names when $h=2$.  The fixed maps in the
+proof below include this explicit relabeling and the chosen pole
+convention.  Equation~\eqref{gen:copy-sign}, rather than an unspecified
+blue offset, is used whenever an original triple bit is compiled.
+
+\begin{lemma}[Faces at a P-pair]
+\label{gen:p-faces}
+In every embedding of $K$ with P order $\pi_\mu$ up to reversal, its
+faces incident with both $p$ and $q$ are in bijection with the $k$ reference
+sectors of $\mu$.
+\end{lemma}
+
+\begin{proof}
+A nonedge bridge has connected interior and at most one face incident with
+both poles.  Indeed, two pole-to-pole arcs in distinct such faces would
+form a Jordan curve through only the poles with bridge edges on both
+sides, disconnecting the interior after deletion of $p,q$.  In the
+embedding of a bond of bridges, every other bridge occupies that unique
+pole-to-pole exterior region.  Gluing the bridges in their cyclic order
+therefore creates exactly one common face between every consecutive pair.
+The edge bridge is handled as one direction of the bond.  Every face
+incident with both poles arises in this way.  Internal changes to a bridge
+may alter the boundary path of such a face, but cannot alter its named
+sector.
+\end{proof}
+
+\subsection{Common directions at a colour source}
+
+Let $B$ be a biconnected supergraph of $K$ (a colour block or an auxiliary
+graph), let $\mu$ be a common P-node of $K$ with poles $p,q$, and let $J$
+be a $\{p,q\}$-bridge of $B$; when $B$ has a P-source at $p,q$, these are
+its expansions.  Two common $\mu$-directions contained in $J$ are
+\emph{colour-linked} if $B$ contains a path between interior vertices of
+the two directions that lies in $J-\{p,q\}$ and has no internal vertex in
+$V(K)$; equivalently, some component of $B-V(K)$ inside $J$ is adjacent to
+both interiors, or a private edge of $B$ joins them.  The
+\emph{colour-link graph} of $J$ has the common $\mu$-directions in $J$ as
+nodes and the colour-linked pairs as edges.
+
+\begin{lemma}[Projection to common bridge groups]
+\label{gen:groups}
+Let $K$ be a biconnected subgraph of a biconnected graph $B$, and let $\nu$
+be a P-source of $B$ with poles $p,q$.  If at most one pole belongs to $K$,
+all edges of $K$ lie in one source expansion.  If at least three source
+expansions meet $K$, then $p,q$ are poles of a common P-node $\mu$.
+The source expansions meeting $K$ partition the common $\mu$-directions
+into groups, each of which is a cyclic interval in every extending common
+P order.  Their cyclic order is the projection of that common order.
+\end{lemma}
+
+\begin{proof}
+Deleting at most one vertex from $K$ leaves it connected, proving the first
+statement.  If both poles belong to $K$, each component of
+$K-\{p,q\}$ lies in one source expansion; a real edge $pq$ is also
+indivisible.  Conversely, if an expansion contains a vertex of $K$ other
+than its poles, connectivity of $K-p$ connects that vertex to $q$ inside
+the expansion, and connectivity of $K-q$ connects it to $p$.  Thus every
+expansion meeting $K$ contains one or more whole common bridges.
+Three such expansions imply at least three common bridges and the stated
+common P-node.
+
+The interior of one colour bridge is connected.  Paths in it between
+common directions, broken at successive visits to $K$, give a connected
+colour-link graph on those directions.  Each link forces its two common
+directions to be consecutive, because the link lies in one common face.
+Equivalently, all other colour bridges lie in the unique pole-to-pole
+exterior face of this bridge.  Its common directions therefore form one
+cyclic interval, and the order of the colour bridges is the projected
+order of these intervals.
+\end{proof}
+
+If a proposed reference order has a noninterval group, it cannot extend to
+a planar embedding of $B$ and is rejected.  Otherwise the projected group
+order supplies the prescribed complete marked order at every source P-copy
+with at least three marked directions.  This prescribes only its marked
+subset; every unmarked direction can still be placed in any permitted gap
+and in any order within that gap.
+
+Two different common blocks cannot both display a cycle at the same
+P-source: both displayed cycles would contain both poles, whereas distinct
+common blocks share at most one vertex.
+
+\subsection{An injective read of an entire two-pole face}
+
+\begin{lemma}[Complete face read]
+\label{gen:complete-read}
+Suppose that $A_i(K,Y)=\{p,q\}$ and that $p,q$ are the poles of a
+common P-node $\mu$.  The face of $K$ containing $Y$ can be represented
+exactly by a variable $t_Y$ with domain $\{0,\ldots,k-1\}$ using one of
+the following forms: a constant; an injective relabeling of a Boolean
+variable; or an injective relabeling of one complete source-sector
+category.  The form and all maps are computable in polynomial time.
+\end{lemma}
+
+\begin{proof}
+The lobe $Y$ is an entire component of $B_i(K)-\{p,q\}$.  A path from
+it to a vertex of $K-\{p,q\}$ would first create an additional attachment
+to $K$, contrary to the hypothesis.  Thus $Y$ is a private pole-to-pole
+bridge with nonempty interior.
+
+Partition the common $\mu$-directions according to their containing
+colour pole-to-pole bridges, and let $h$ be the number of nonempty groups.
+Suppose first that $h\geq 2$.  Together with $Y$ there are at least
+$h+1\geq 3$ bridges, so the colour graph has a P-source $\nu$ at these
+same poles.  Its marked directions are precisely the $h$ groups meeting
+$K$, and its direction for $Y$ is unmarked.  Each complete source sector
+maps to the common gap between the last direction of one interval group
+and the first direction of the next.  The $h$ resulting gaps are distinct.
+Call this injection $\iota$.
+
+For $h\geq 3$, the source frame is synchronized with $r_\mu$, with the
+fixed reference and pole convention offset, by the chain rows of
+Section~\ref{gen:sync} (see the paragraph after~\eqref{gen:chain-rows}).
+Consequently $t_Y$ is the fixed injective relabeling $\iota$ of its framed
+source category, independently of reflection choices.
+
+For $h=2$, the two anchors alone imply no frame equality.  Let
+$(a_0,a_1)$ be the ordered reference pair of the source copy
+(Section~\ref{gen:marking}), let $G_0$ be the group whose colour bridge
+contains $a_0$, and let $G_1$ be the other group.  Let $\iota(0)$ be the
+reference sector between the last direction of $G_0$ and the first
+direction of $G_1$ in $\pi_\mu$, and let $\iota(1)$ be the other sector
+between the two groups.  Let $c$ be the two-sector category of the
+dart of $Y$ at that copy and $f$ the frame of that copy.  Introduce a Boolean $b$
+with
+\begin{equation}
+ b=c\oplus f\oplus r_\mu\oplus\delta,
+ \qquad t_Y=\iota(b),
+ \qquad \delta=\varepsilon\oplus\sigma,
+ \label{gen:two-gauge}
+\end{equation}
+where $\varepsilon$ is the copy bit of~\eqref{gen:copy-sign}, and
+$\sigma=0$ if the read is made at the pole $p$ at which $\pi_\mu$ is read
+and $\sigma=1$ if it is made at $q$.  To verify the constant, take
+$\varepsilon=0$ and a read at $p$.  By Definition~\ref{cse:definition},
+$c\oplus f=0$ exactly when the dart of $Y$ lies after $a_0$ and before
+$a_1$ in the rotation at $p$.  Going forward from the bridge of $G_0$ to
+that of $G_1$ crosses the common gap $\iota(0)$ if the common order at $p$
+is $\pi_\mu$ ($r_\mu=0$), and $\iota(1)$ if it is reversed.  A read at $q$
+sees the reversed common order, and a represented copy with
+$\varepsilon=1$ sees the reversed rotation with the same frame; each adds
+$1$.  The first relation in~\eqref{gen:two-gauge} is affine and the
+second is a partial bijection.  Formula~\eqref{gen:two-gauge} retains the
+independent two-anchor gauge explicitly.
+
+Now let $h=1$.  A real common edge $pq$ cannot occur in this case:
+it would itself be a separate colour bridge.  Thus every common direction
+has an interior.  All common directions lie in one colour bridge.  Its
+colour-link graph is connected: a path in the bridge minus the poles,
+broken at successive visits to $K$, gives a link-graph path between any
+two common directions.  In a planar embedding it is a spanning path or
+cycle of the common cyclic order.  A cycle is impossible here.  The
+private bridge $Y$ would occupy some common pole-to-pole face.  A colour
+link across that sector is a crosscut of the face disk joining interiors
+of its two boundary pole-to-pole paths, and hence separates $p$ from $q$
+inside the disk.  The required colour pole-to-pole path in $Y$ could not
+cross it.
+Thus the link graph is a spanning path.  The gap between its endpoints is
+the only common sector available to a private pole-to-pole bridge.  Pin
+$t_Y$ to that sector.  Its reference name is determined by the graph and
+$\pi_\mu$, independently of the embedding.  If the colour-link graph is not
+a spanning path whose linked pairs are consecutive in $\pi_\mu$, then no
+planar embedding of $B_i(K)$ induces $\pi_\mu$ or its reversal, and the
+construction rejects.  This is correct, because every \SEFE{} induces
+$\pi_\mu$ or its reversal.
+
+These expressions record the actual face in every planar block embedding.
+They impose no other choice of order or position inside that face.  Real
+private chords $pq$ can be additional unmarked bridges, but they are not
+lobes and do not affect the argument.  The same read may be made at the
+other pole $q$ with the same injection $\iota$: for $h=2$ this is the
+case $\sigma=1$ of~\eqref{gen:two-gauge}; for $h\geq3$ the pole
+convention is part of the fixed reference offset of the chain rows; for
+$h=1$ the face is a constant.  No further correction is applied.  Thus the
+statement applies to either pole copy at which a later basis-side
+observation occurs.
+\end{proof}
+
+\subsection{Synchronizing all common R and P choices}
+\label{gen:sync}
+
+For every occurrence of a biconnected supergraph $B$ of $K$, whether an
+actual colour block or an auxiliary graph, synchronize its induced
+common embedding with the global source variables of $K$.
+
+For a common R-node $\mu$, select three actual common darts at a skeleton
+vertex behind three distinct skeleton directions.  Their median in
+$\Theta_B(v)$ is an R-source.  A P median with other pole $q$ would
+separate those three darts after deleting $v,q$.  This contradicts the
+3-connectivity of the common R-skeleton: $q$ affects at most one incident
+expansion, or one other skeleton vertex, and the other two selected
+directions remain connected through the R-skeleton after those deletions.
+Thus $r_\mu$ equals a native R flip plus a computable reference constant.
+Add that affine row.
+
+For a common P-node $\mu$, write its reference order as
+$\pi_\mu=(e_0,\ldots,e_{k-1})$, and select one real common dart
+$a_j$ behind each direction $e_j$ at one pole.  A linear family of
+triple-orientation equations suffices to synchronize the full order.
+
+\begin{lemma}[Chain characterization of a cyclic order]
+\label{gen:chain-lemma}
+Let $\alpha=(a_0,\ldots,a_{k-1})$ be a reference cyclic order and
+$r\in\Ftwo$.  A cyclic order $\rho$ equals $\alpha$ when $r=0$ and
+its reversal when $r=1$ if and only if
+\begin{equation}\label{gen:order-chain}
+ \orcyc_\rho(a_0,a_i,a_{i+1})
+  =\orcyc_\alpha(a_0,a_i,a_{i+1})\oplus r
+ \quad (1\le i\le k-2).
+\end{equation}
+\end{lemma}
+\begin{proof}
+Cut the cyclic order immediately after $a_0$.  For $r=0$ the
+comparisons in~\eqref{gen:order-chain} say
+$a_1<a_2<\cdots<a_{k-1}$; for $r=1$ they say the reverse chain.
+Either chain determines the complete order of the remaining labels.
+\end{proof}
+
+For every occurrence of $\mu$ add the $k-2$ rows
+\begin{equation}\label{gen:chain-rows}
+ \orcyc(a_0,a_i,a_{i+1})
+   =\orcyc_{\pi_\mu}(a_0,a_i,a_{i+1})\oplus r_\mu
+ \qquad (1\le i\le k-2).
+\end{equation}
+At the median of any such triple in the represented embedding tree,
+there are either three rigid R-directions or three marked P-directions.
+The former gives a native affine flip expression; the latter gives its
+complete marked frame plus a reference constant.  A P median for three
+common pole-to-pole directions has the same other pole $q$: deleting
+any other proposed pole would leave at least two of the three directions
+connected through $q$.  In particular, this read is never a vacuous
+two-anchor observation.
+
+The chain also synchronizes the frame of every colour P-source carrying
+at least three common direction groups.  Indeed, select the group
+containing $a_0$.  Among the remaining groups some boundary
+$a_i,a_{i+1}$ separates two successive groups.  The corresponding
+chain triple uses three distinct source directions, so its equation
+directly relates the source frame to $r_\mu$.  Thus all relevant source
+frames are correlated with the common order, not merely its projection
+on one chosen triple.
+
+By Lemma~\ref{gen:chain-lemma}, the rows force exactly the prescribed
+reference order or its reversal.  Together with the common R rows they
+synchronize the entire oriented embedding of $K$ through the SPQR
+parameterization.  S-skeletons have no independent choice.  Copy
+reference signs and pole conventions are handled by~\eqref{gen:copy-sign}.
+
+\subsection{Localization of the only large-domain side read}
+
+Fix a fundamental cycle basis $\mathcal C(K)$.  For a connected set $Y$
+outside a basis cycle $C$ in a represented block $B$, let $W$ be the
+component of $B-V(C)$ containing $Y$.  Select an edge $ax$ with
+$a\in C$ and $x\in W$.  The local gap of $ax$ between the outgoing and
+incoming darts of $C$ is exactly $\side(C,Y)$, for every such edge,
+because $W$ is connected and avoids $C$.  Any choice may therefore be
+fixed, for example the first such edge in a fixed order; the statements
+below hold for every choice.  Read this triple at its embedding-tree
+median.
+
+An R median gives a native flip plus a constant.  A two-marked-direction
+P median gives a two-sector category, its frame, and a constant.  If a
+P median has at least three marked directions and the observed third
+direction is marked, the triple is determined by its complete marked
+frame.  Only an unmarked third direction at such a P-source would produce
+a noninjective interval predicate on an unrestricted larger category.
+
+\begin{lemma}[Exceptional-read localization]
+\label{gen:localization}
+In that last case, the source poles $p,q$ are the poles of a common
+P-node, the observed expansion $J$ is disjoint from $K$ except at its
+poles, and
+\[
+       Y=W=J-\{p,q\},\qquad A_i(K,Y)=\{p,q\}.
+\]
+\end{lemma}
+
+\begin{proof}
+The cycle $C$ uses two distinct source expansions, so it traverses both
+poles.  Lemma~\ref{gen:groups} gives the common P-node.  Every expansion
+meeting $K$ outside the poles contains a whole common bridge
+(Lemma~\ref{gen:groups}), hence a $K$-dart at the median's vertex.  The
+marked subtree of Section~\ref{gen:marking} is the minimal subtree spanning
+all $K$-dart leaves, so every such expansion is marked.  Therefore the
+unmarked expansion $J$ contains no vertex of $K$ except its poles.
+
+Its interior is connected and cannot leave to another expansion after
+the deletion of $C$, because both poles were deleted.  Hence the
+component reached by the selected attachment edge is exactly
+$W=J-\{p,q\}$.  As $W$ contains no common-block vertex, it is also
+the entire component $Y$ of $B-V(K)$ that it meets.  Both poles are its
+attachments.
+\end{proof}
+
+This statement identifies the actual original lobe, not a coarse
+projection of some other component.  That distinction is what permits
+the domain restriction in the next step.
+
+\subsection{Face witnesses and fixed basis signatures}
+
+\begin{lemma}[Auxiliary hub witnesses]
+\label{gen:hub}
+Let $A\subseteq V(K)$ contain at least two distinct vertices, and let
+$X$ be $K$ with a new vertex $z$ adjacent exactly to $A$.  Then $X$ is
+biconnected.  For any fixed oriented embedding $\kappa$ of $K$, it has
+an embedding extending $\kappa$ if and only if $A$ is incident with one
+face of $\kappa$.  Every such face can contain the new vertex in an
+extension, and in every extension the hub face is incident with all of
+$A$.
+\end{lemma}
+
+\begin{proof}
+Deleting $z$ leaves $K$ connected.  Deleting a vertex of $K$ leaves
+$K$ minus that vertex connected, and $z$ retains a neighbour because
+$|A|\geq2$.  This proves biconnectivity.  In an extension, the hub and
+the interiors of its incident edges form a connected set disjoint from
+$K$, so they lie in one face and every neighbour is on that face's
+boundary.  Conversely, the boundary of a face of the biconnected plane
+graph $K$ is a simple cycle.  Put $z$ inside its disk and draw a star
+to the specified boundary vertices in their boundary order.  Its edges
+are disjoint except at $z$, giving the required extension.
+\end{proof}
+
+\begin{lemma}[Fixed basis signatures distinguish faces]
+\label{gen:basis}
+Let $\mathcal C(K)$ be any fixed graph cycle basis consisting of simple
+cycles.  In every planar embedding of the biconnected graph $K$, distinct
+faces have distinct side vectors with respect to $\mathcal C(K)$.
+\end{lemma}
+
+\begin{proof}
+Choose a curve between points in two distinct faces, transverse to edges
+and avoiding vertices.  For a simple graph cycle, the parity of its
+crossings with the curve is the XOR of the endpoint side bits.  This
+crossing parity is linear on the binary edge-incidence vectors of cycles.
+If both faces had the same basis signature, it would vanish on the whole
+cycle space.  But the boundary of the first face is a simple cycle: the
+first face lies on one side and every other face lies on the other.
+That boundary cycle has odd crossing parity, a contradiction.  The proof
+uses the same graph basis in every embedding and does not assume that
+its cycles remain facial as source choices change.
+\end{proof}
+
+\subsection{Pairs with an extra attachment: a binary restriction}
+
+Call $(K,Z)$ a \emph{full-sector pair} if $A(K,Z)$ is exactly the two
+poles of a common P-node.  For every other pair, retain an independent
+auxiliary graph
+\[
+ X(K,Z)=K+z_{K,Z},\qquad N(z_{K,Z})=A(K,Z).
+\]
+Test its planarity before constructing source references.  By
+Lemma~\ref{gen:hub}, it is biconnected, and it extends a specified common
+embedding exactly when all attachments share one face.  Every eligible
+face can contain its hub.  Its comparison copy $K'$ is synchronized by
+the common source rows above.
+
+\begin{lemma}[Two relevant categories]
+\label{gen:two-categories}
+For every exceptional read of a lobe $Y\subseteq Z$ in a pair that is
+not a full-sector pair, there is a fixed computable unary list of at
+most two complete source categories which contains its category in
+every \SEFE.
+\end{lemma}
+
+\begin{proof}
+Lemma~\ref{gen:localization} supplies a common P-node $\mu$ with
+$A_i(K,Y)=\{p,q\}\subseteq A(K,Z)$.  Because the pair is not a
+full-sector pair, there is an extra attachment
+$a\in A(K,Z)-\{p,q\}$.  Select any one; every choice gives a valid list,
+and for definiteness the construction uses the first in a fixed vertex
+order.  It belongs to the interior of a unique
+common $\mu$-direction $e$.  A face incident with $p,q,a$ must be
+one of the two reference sectors adjacent to $e$.  These names are
+fixed even when internal reflections change their boundary paths or
+whether $a$ is incident with them.
+
+The exceptional source has at least three marked directions.  Its
+source-to-common-sector map is the injection of
+Lemma~\ref{gen:complete-read}.  Pull back the two sectors adjacent to
+$e$ through that injection.  The resulting list has size at most two.
+\end{proof}
+
+Add the list as a unary restriction.  An empty list rejects; a singleton
+pins the category.  For a two-element list $(c_0,c_1)$ introduce a Boolean
+$b$ and the partial bijection $b\mapsto c_b$.  Every interval predicate
+on that restricted category is a constant, $b$, or $b\oplus1$.
+Consequently the original gap read becomes affine in $b$ and its source
+frame.  This is a two-entry truth-table substitution, not an affine
+representation of arbitrary triple orientations.
+
+The hub has no exceptional large-domain read.  (Its reads lie in the
+comparison of $X(K,Z)$ with $K'$, which is marked as in
+Section~\ref{gen:marking}.)  If its attachment set has
+size at least three, Lemma~\ref{gen:localization} would contradict that
+size.  If it has size two and that pair is not a common P-pair, the same
+lemma contradicts the absence of that common P-node.
+
+For every lobe $Y\subseteq Z$ and every $C\in\mathcal C(K)$ retain the
+original equality
+\begin{equation}
+ \side(C,Y)=\side(C,z_{K,Z}).
+ \label{gen:side-equality}
+\end{equation}
+Every term is now affine.  The unary list is used only as a necessary
+condition in the forward direction.  In the inverse direction no face
+condition is discarded: every equality~\eqref{gen:side-equality} remains,
+and the substituted expression is exactly the original side bit on its
+restricted domain.
+
+\subsection{Full-sector pairs: direct equality of the whole face}
+
+For a full-sector pair $(K,Z)$ at common P-node $\mu$, introduce a variable
+$t_{K,Z}\in\{0,\ldots,k-1\}$.  No auxiliary hub or cycle-basis side row
+for this pair is needed.  Every colour lobe in $Z$ has at least two
+attachments, all in $\{p,q\}$, so its attachment set is exactly that
+pair.  Use Lemma~\ref{gen:complete-read} to obtain its exact face variable
+$t_Y$, and impose
+\begin{equation}
+                    t_Y=t_{K,Z}.
+ \label{gen:whole-face}
+\end{equation}
+This is a bijection.  A constant read pins $t_{K,Z}$; a two-category read
+uses the affine gauge equation~\eqref{gen:two-gauge} followed by its
+injection.  If there are no colour lobes, the sector is free.  Every named
+sector is incident with both attachment vertices, so the attachment-face
+condition is automatic.
+
+Equation~\eqref{gen:whole-face} retains the complete face choice.  In
+particular, the two ends of a union factor cannot independently choose
+different sectors merely because each endpoint choice is legal.
+Appendix~\ref{ver:two-pole} gives an instance showing that this relation
+cannot be dropped.
+
+\subsection{The ordinary graph and the marked-block invariant}
+\label{gen:marking}
+
+Take all source-labelled embedding trees of all original colour blocks,
+including vertices without common darts.  Correlate each R-source's
+copies by a Q-cell and the two P-pole copies by one pipe.  Join matching
+red and blue common-dart leaves at every original vertex, with the reversed
+blue convention.  Lemma~\ref{rep:lem:two-partitions} makes planarity of this
+ordinary doubled graph equivalent to condition (O).
+
+For each auxiliary graph, make an independent doubled comparison with
+its literal common copy $K'$.  Include the hub's source tree despite its
+lack of common joining leaves.  Source synchronization ensures that this
+copy has the common embedding chosen by the originals.
+
+For each nontrivial common block $K$ at a vertex $v$, mark the
+minimal subtree spanning all $K$-dart leaves in each of the two
+represented embedding trees, together with the matching leaf joins.
+A marked piece is therefore two trees connected at the same leaf set,
+which contains at least two darts.  It is biconnected: after deleting
+an internal node of one tree, each remaining branch contains a marked
+leaf and the other tree connects those leaves; deleting a joined leaf
+leaves connection through the other leaves.  Common bridges remain
+unmarked.  This construction is independent of the later choice of a
+cycle basis for the face comparisons.
+
+Mark every auxiliary comparison in the same way.  In the comparison of
+$X(K,Z)$ with $K'$, at each $v\in V(K)$ mark the minimal subtrees spanning
+the $K$-dart leaves in the trees of $X(K,Z)$ and of $K'$, together with
+their leaf joins.  Only $K$ is marked there, and the hub's darts are
+unmarked.  The groups at a P-source of $X(K,Z)$ are intervals of $\pi_\mu$,
+or the instance is rejected (Lemma~\ref{gen:groups} applies to $X(K,Z)$),
+and the marked P-copies of the comparison receive reference lists
+projected from $\pi_\mu$ as below.  The following invariant argument
+applies verbatim to these comparisons.
+
+Every marked edge belongs to a cycle.  A free P-copy can meet only one
+such common-block piece, by the two-poles argument of
+Lemma~\ref{gen:groups}.  Its marked edges therefore lie in one
+biconnected marked block.  A source pipe maps exactly the marked source
+directions at both poles, since the marked $K$-directions agree at the two poles.  Thus pipes are off at both ends or aligned
+on their whole marked sets.  These are precisely the marking hypotheses
+of the complete-sector engine.
+
+At a marked P-copy with at least three marked directions, use the
+reference order of Lemma~\ref{gen:groups}.  At a two-marked-direction copy
+choose an ordered pair $(a_0,a_1)$ and keep its frame explicit; the
+constant $\delta$ in~\eqref{gen:two-gauge} refers to this choice.  All observations above are at
+actual source copies, so no additional pipe membership or transparent
+replication gadget is assumed.
+
+\subsection{Correctness and witness transformations}
+
+\begin{proof}[Proof of Theorem~\ref{gen:compilation}]
+Suppose first that a \SEFE{} exists.  Restrict it to its colour blocks and
+choose their exact SPQR source rotations.  These satisfy the ordinary
+graph, pipes, Q-cells, and (O).  Set the common R and P variables from the
+common embedding.  All native-R and common-P triple rows hold.
+
+For a pair that is not a full-sector pair, the connected drawing of $Z$
+lies in one face of $K$ incident with every attachment.  Embed its
+independent auxiliary star in that face and give $K'$ the same common
+embedding.  Every side equality holds.  The unary two-category lists are
+satisfied by Lemma~\ref{gen:two-categories}; choose each Boolean selector
+to record the observed category.  Its affine read is then the original
+side bit.
+
+For a full-sector pair, set $t_{K,Z}$ to the actual named sector of its
+face.  Every lobe occupies that same face, and
+Lemma~\ref{gen:complete-read} gives its exact category or constant,
+including the two-anchor gauge.  Thus every whole-face equality holds.
+This extends every solution; it makes no canonical choice of a private
+order or an interleaving at a common cutvertex.
+
+Conversely, decode a target witness into planar embeddings of all
+original colour blocks and auxiliary graphs.  The original doubled graph
+gives (O).  The common R rows and P-order chain rows identify the whole
+oriented embedding of each common block in both colours and every
+auxiliary copy.
+
+For a pair that is not a full-sector pair, choose the hub's face as
+$F(K,Z)$.  It is incident with all attachments.  Every substituted affine
+read is the actual original side bit, including the two-entry exceptional
+truth tables.  Equation~\eqref{gen:side-equality} therefore gives each
+lobe the hub's full cycle-basis side vector.  By
+Lemma~\ref{gen:basis}, such vectors distinguish faces in every embedding.
+Hence every lobe lies in
+$F(K,Z)$.
+
+For a full-sector pair, interpret $t_{K,Z}$ as its unique pole-to-pole
+face using Lemma~\ref{gen:p-faces}.  It is incident with both attachments.
+The exact complete-face read and equation~\eqref{gen:whole-face} put
+every lobe in that face.
+
+Thus all selected faces satisfy every attachment incidence and every
+lobe pin of Theorem~\ref{rep:thm:repair}.  Apply that theorem to the decoded
+block embeddings and (O).  It produces a \SEFE, with all relative
+component positions, common cutvertices, bridges, and isolated common
+vertices accounted for.  The normalization inverse reconstructs a
+solution of the original instance.  All operations are explicit source
+decoding, face traversal, or the polynomial repair construction.  The
+size and time bounds are derived in Section~\ref{gen:size}.
+\end{proof}
+
+\subsection{Size of the compiled instance}
+\label{gen:size}
+
+Let $N$ be the size of $I$.  We count the explicit data.
+\begin{enumerate}
+\item \emph{Pairs and lobes.}  By the charging argument of
+      Section~\ref{rep:algorithm}, there are $O(N)$ pairs $(K,Z)$ and
+      $O(N)$ colour lobes in total.  Also $\sum_K|E(K)|\le N$.
+\item \emph{Graphs.}  The original colour blocks have total size $O(N)$.
+      There are $O(N)$ auxiliary graphs $X(K,Z)$, one per pair, and each of
+      them and its copy $K'$ has size $O(N)$, so all auxiliary graphs have
+      total size $O(N^2)$.  An embedding tree at
+      a vertex has one leaf per dart, and its inner nodes have degree at
+      least three, so the source-labelled embedding trees of a graph have
+      size linear in that graph.  Hence the ordinary doubled graph, its
+      pipes and Q-cells, the marking, and all reference lists have total
+      size $O(N^2)$.
+\item \emph{Rows.}  A block $K$ has $|\mathcal C(K)|\le|E(K)|$ basis
+      cycles and $O(N)$ pairs and lobes, so the side
+      equalities~\eqref{gen:side-equality} number
+      $O(N\sum_K|E(K)|)=O(N^2)$.  The block $K$ occurs in $B_1(K)$,
+      $B_2(K)$, and in $X(K,Z)$ and $K'$ for each of its $O(N)$ pairs; each
+      occurrence receives $O(|E(K)|)$ chain and R rows, so there are
+      $O(N^2)$ such rows.  The equalities~\eqref{gen:whole-face} number
+      $O(N)$.  Each row has constant width, with at most one Boolean
+      selector and one unary list of size at most two per exceptional
+      read.
+\item \emph{Finite domains.}  Every category observer and every variable
+      $t_Y,t_{K,Z}$ has a domain of size at most $N$, and every partial
+      bijection has an explicit table of at most $N$ pairs.  There are
+      $O(N^2)$ observers and relations, so domains and tables have total
+      size $O(N^3)$.
+\end{enumerate}
+Altogether the output has size $O((N+1)^3)$.  Each item is produced by a
+search in one graph or embedding tree of size $O(N)$, after planarity
+tests and SPQR decompositions of the $O(N)$ graphs involved.  Even with a
+fresh $O((N+1)^2)$-time computation for each of the $O(N^2)$ items, the
+construction takes $O((N+1)^4)$ time.
+

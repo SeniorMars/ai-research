@@ -1,0 +1,739 @@
+\section{Synchronized Planarity with complete-sector constraints}
+\label{cse:section}
+
+The central change from the two-anchor engine is to retain an entire sector
+category. A vertex may have many marked directions in an order prescribed
+up to reflection, while its other directions remain freely insertable in
+every sector. The only relations involving large categories will be
+injective correspondences. Binary quantities may satisfy arbitrary affine
+equations. This restriction is what separates the present language from
+the NAE-hard language of arbitrary multi-gap observations.
+
+\subsection{The instance and its preservation contract}
+
+Let $G$ be a loopless multigraph with the ordinary P-vertices, Q-vertices,
+Q-cells, and matching of pipes of Synchronized Planarity. A pipe
+$(u,v,\phi)$ requires
+\[
+ \rho_v=\rev\bigl(\phi(\rho_u)\bigr).
+\]
+A Q-vertex has a prescribed reference rotation and uses it or its reverse
+according to its cell's Boolean variable. At degrees zero, one, and two,
+the rotational requirement is vacuous, while the cell variable is retained.
+
+\begin{definition}[Complete-sector instance]
+\label{cse:definition}
+Mark a subgraph $L\subseteq G$ satisfying the following conditions.
+\begin{enumerate}
+\item Every marked edge belongs to a simple marked cycle.
+\item At each marked P-vertex, all marked incident edges belong to one
+      biconnected block of $L$.
+\item A pipe is either off at both ends or maps the complete marked dart
+      set at one end onto the complete marked dart set at the other.
+\end{enumerate}
+At each marked P-vertex $v$, prescribe a reference cyclic list
+\[
+ A_v=(a_0,\ldots,a_{k_v-1})
+\]
+of all its marked darts and a Boolean frame variable $f_v$. Require
+\[
+ \rho_v|_{A_v}=A_v\quad\text{if }f_v=0,
+ \qquad
+ \rho_v|_{A_v}=\rev(A_v)\quad\text{if }f_v=1.
+\]
+Here $k_v\ge2$. For $k_v=2$ the order condition is vacuous; $f_v$ remains
+an explicit gauge for the two sector names.
+
+For an unmarked dart $d$ at $v$, define its category $c_v(d)$ to be the
+unique $j\in\{0,\ldots,k_v-1\}$ such that
+\[
+ \begin{cases}
+ d\in(a_j,a_{j+1})_{\rho_v},&f_v=0,\\
+ d\in(a_{j+1},a_j)_{\rho_v},&f_v=1,
+ \end{cases}
+\]
+where indices are cyclic. The two sector names remain distinct when
+$k_v=2$.
+
+Variables have explicitly listed finite domains. An observer has the form
+$x=c_v(d)$, with the corresponding $k_v$-element domain. A relation between
+two finite-domain variables is allowed if it is a \emph{partial bijection}:
+it contains at most one pair with any prescribed first coordinate and at
+most one pair with any prescribed second coordinate. Unary domain
+restrictions are allowed. Boolean variables are designated two-element
+variables with values $0,1$. Arbitrary affine equations over $\Ftwo$ may
+involve these Boolean variables, including Q-cell variables, frame
+variables, and two-sector variables. In particular, every observer
+$c_v(d)$ at a vertex with $k_v=2$, every two-valued category variable
+introduced by the operations below (such as a detached-component variable
+$h_T$ in the Join when $k=2$, and the two-direction source variables
+$\xi_{\mu,e}$ of the pipe-free stage), and every selector $b$ is designated
+Boolean; its values $0,1$ are its two sector names. A noninjective Boolean
+predicate of a larger category is not permitted as an affine variable.
+\end{definition}
+
+A witness comprises a planar rotation system and values of all variables
+that satisfy the ordinary pipes and Q-cells, all frame and observer
+conditions, all partial bijections, and all affine equations. An operation
+preserves the instance if it preserves the exact set of assignments of
+\emph{every} old variable and has constructive witness maps in both
+directions. This includes gauge variables introduced by earlier
+operations. No operation may silently replace their values.
+
+An active graph observer is interned once for each pair $(v,d)$.
+Repeated input observer identifiers are joined to it by identity partial
+bijections. Relocating an old variable deletes its old active graph
+observation, retains the variable, and adds one indicated transport
+relation to the newly interned representative. Thus repeated earlier
+identifiers do not generate repeated graph observations in later steps.
+
+\begin{theorem}[Complete-sector engine]
+\label{cse:main}
+Let $M$ be one plus the explicit input size, including all domain lists,
+relation tables, reference lists, and affine rows. Feasibility of a
+complete-sector instance is decidable in deterministic
+$O((M+1)^{20})$ time. Within the same bound, the algorithm constructs a witness.  The
+large-domain variables are not assumed to admit an affine encoding.
+\end{theorem}
+
+Conditions 1--3 of Definition~\ref{cse:definition} are hypotheses on the
+input: the engine does not test them, and Theorem~\ref{cse:main} applies
+to instances that satisfy them. For compiled instances they are
+established in Section~\ref{gen:marking}.
+
+The exponent is deliberately conservative. Its purpose is to give an
+explicit bound while retaining simple implementations of every table and
+source-tree operation.
+
+\subsection{The finite-domain algebra}
+
+\begin{lemma}[Partial bijections and Boolean equations]
+\label{cse:algebra}
+A system of partial-bijection relations, unary domain restrictions, and
+affine equations on designated Boolean variables is polynomial-time
+solvable. Its feasible relation on those Boolean variables is affine, and
+every feasible Boolean assignment can be extended constructively.
+\end{lemma}
+\begin{proof}
+Consider one connected component of the graph whose edges are the
+partial-bijection relations. Fix a root variable. For each possible root
+value, propagate its unique image or inverse image across every edge.
+Discard the root value on encountering an undefined image, an excluded
+domain value, or inconsistent values at a vertex. A surviving root value
+determines one complete assignment of the component. Conversely, every
+solution is obtained this way.
+
+If the component contains a Boolean variable, choose one as root. There
+are at most two surviving assignments. Zero assignments reject the
+instance. One assignment fixes every Boolean variable in the component.
+If two survive, each other Boolean variable has the form $t\oplus b$,
+where $t$ is the root value and $b$ is a constant. Indeed, a path composes
+injections, so its two different root values cannot produce the same
+value at the other end.
+
+A component with no Boolean variable occurs in no affine equation. It
+can independently choose any surviving root value. Substitute the affine
+description of the other components into the given affine equations and
+solve the resulting linear system over $\Ftwo$. Back substitution chooses
+the finite-domain values. Gaussian elimination also gives the claimed
+projection. All enumerated root domains and relation tables are explicit
+parts of the input, so the procedure takes polynomial time.
+\end{proof}
+
+The injectivity assumption is indispensable to this argument. If a large
+category could be mapped to a Boolean interval-membership predicate,
+different category values could agree at one Boolean variable while
+disagreeing at another; the preceding two-assignment conclusion would no
+longer follow.
+
+\subsection{Pipe transfer and source structure}
+
+Suppose a pipe maps $k\ge3$ marked darts. Its map must send the first
+reference cyclic list either to the second reference list or to its
+reverse, allowing a cyclic shift. Otherwise no admissible pair of marked
+orders satisfies the pipe, and the instance is rejected. If the reference
+orders are preserved, the pipe requires $f_v=f_u\oplus1$; if they are
+reversed, it requires $f_v=f_u$. Under this relation it induces a fixed
+bijection $\sigma_{uv}$ of reference sector names, and
+\begin{equation}
+\label{cse:large-transfer}
+ c_v(\phi(d))=\sigma_{uv}\bigl(c_u(d)\bigr).
+\end{equation}
+These statements follow by applying the reference map and then reversing
+the full cyclic order. Retain the forced frame equation if the pipe is
+subsequently removed.
+
+For two marked darts the reference cyclic order does not determine frame
+parity. Choose their stored ordered representatives. The ordinary
+two-gap reads satisfy $g_u\oplus g_v=e$ for a reference-dependent
+constant. Since a framed category is its underlying gap read, its frame
+bit, and a fixed labeling offset added modulo two, the exact transfer is
+\begin{equation}
+\label{cse:two-transfer}
+ c_u(d)\oplus c_v(\phi(d))\oplus f_u\oplus f_v=e_{uv}.
+\end{equation}
+No equation between $f_u$ and $f_v$ alone is inferred in this case.
+
+Replace each Q-vertex of degree at least three by its ordinary reference
+wheel. Lift marked edges through their edge segments and spokes; no rim
+edge is marked. Let $G^W,L^W$ denote the resulting graph and marking. The
+ordinary wheel witness maps preserve rotations of old P-vertices. Every
+port has marked degree at most two, while a hub may meet several marked
+blocks.
+
+\begin{lemma}[One complete source anchor set]
+\label{cse:source}
+No wheel hub is a P-source pole. A P-source with at least four directions
+(skeleton edges) has original P-vertices at both poles. If a P-source displays marked cycles,
+all those cycles belong to one block of $L^W$, and the set of source
+directions used by that block is the same at both poles. A source with at
+least three marked directions has original P-vertices at both poles.
+\end{lemma}
+\begin{proof}
+If a hub $q$ and another vertex $w$ were P-source poles, the rim minus
+$w$ would connect every port other than possibly $w$ while avoiding both
+poles. All those spokes lie in one expansion, and only a possible spoke
+$qw$ lies in another. There are at most two directions, contradicting the
+fact that a P-source has at least three. A wheel port cannot be a pole of a
+P-source with at least four directions: its other pole is not the hub, and after
+deleting both poles its spoke and at least one rim edge remain joined
+through the hub. These two incident edges enter one expansion, leaving
+at most three directions from its at most four graph edges. Unwheeled
+Q-vertices have degree at most two. This proves the claim about four
+directions.
+
+Every displayed marked cycle contains both source poles. Two distinct
+biconnected blocks cannot share both poles, so the displayed cycles
+belong to one marked block $B$. At either pole all marked incident edges
+belong to this block: at an original P-vertex by the second invariant, and
+at a wheel port because a port has at most two marked edges and a marked
+cycle through one of them, which exists by the first invariant, uses the
+other. If one such edge
+enters an expansion at a pole $p$, connectivity of $B-p$ connects its
+other end to the other pole $q$ through that expansion: the only exits
+from an expansion are its poles. Hence the expansion has a marked edge
+at $q$ as well. The symmetric argument identifies the same complete
+direction set at both poles. Finally a wheel port has at most two marked
+edges, and a hub is excluded. Thus three or more marked directions
+require original P-poles.
+\end{proof}
+
+We use the ordinary SPQR description of planar embeddings: independent
+R-source reflections and P-source permutations, with opposite orders at
+the two poles. The source-labelled embedding tree at a vertex has one
+leaf per incident dart. Its frontier gives the vertex rotation, and the
+orientation of three leaves is the orientation of their directions at
+their unique median. These are the ordinary embedding-tree facts used by
+the BFR operations~\cite{bfr}.
+
+\subsection{Small vertices and encapsulation}
+\label{cse:small}
+
+\paragraph{ConvertSmall.}
+Convert a P-vertex of degree at most three, and its pipe mate when
+present, exactly as in the ordinary algorithm. As in BFR~\cite[Section
+3.1.1]{bfr}, the conversion is applied whenever such a vertex appears: at
+the start, and again after every operation of the schedule in
+Section~\ref{cse:schedule}, once that operation's relocations have been
+made (an encapsulate-and-join step counts as one operation). Thus every
+P-vertex has degree at least four whenever an operation is applied. Use the new Q-cell
+variable $g$ and the ordinary reversed matched reference rotations.
+With three marked darts there is no private observation, and the old
+frame condition is the affine equation $f_v\oplus g=b$. With two marked
+darts, an observed third dart satisfies
+\[
+ c_v(d)=g\oplus f_v\oplus b,
+\]
+where $b$ compares the chosen references. Off vertices have neither
+condition. Keeping the old variables and adding these equations preserves
+all assignments in both directions. Marks are unchanged; their block
+condition no longer needs to be checked at a converted Q-vertex.
+
+\paragraph{Encapsulation.}
+Let $u$ be a P-cutvertex. For every component $Y$ of $G-u$, create the
+ordinary residual cap and star ray, linked by the cap pipe. Mark the two
+replacement edges exactly when the old edge at $u$ was marked.
+
+If $u$ is marked, all its marked darts enter one component of $G-u$,
+because their marked block remains connected after deleting $u$. Thus
+one cap and one ray have the same complete marked set as $u$; all other
+new caps and rays are off. The marked part of the star is a parallel
+bond with $k_u$ edges. The residual marked block is the old block with
+$u$ renamed as its cap, and is biconnected. Every other marked block is
+unchanged. The new pipe maps complete marked sets.
+
+Give the marked cap the old reference list, and the marked ray its
+reverse. Introduce fresh frame variables at both and equate both with
+$f_u$, including when $k_u=2$. This does not restrict any old variable:
+the fresh gauges can always be chosen in this way. The ordinary split
+map preserves all old rotations, and its inverse uses the reversed cap
+correspondence. Thus every old category and frame is preserved. The
+reference choices make the new frame and category conditions exact.
+
+BFR allow the two ends $u,v$ of the pipe to lie in one component of $G$,
+possibly adjacent or on one marked block. Encapsulate $u$ first. Then $v$
+is still a cutvertex of its new piece: a component of $G-v$ avoiding $u$
+has no edge to $u$, hence none to the cap of $u$, and remains a component
+after deleting $v$ from the piece. A marked block through $u$ and $v$
+becomes the residual block of $u$, with $u$ renamed as its cap; after
+encapsulating $v$ it is a residual block with two caps. The arguments
+above apply to each end separately.
+
+\subsection{Joining stars with many marked edges}
+
+Join the two encapsulated stars with centers $u,v$ along their center
+pipe. The ray graph $K$ is bipartite; its edge $\ell_d$ corresponds to a
+matched pair of old center darts. Every ray rotation retains its identity.
+If the centers are marked, the $k$ marked edges form a parallel bond
+between the two marked rays $p,q$.
+
+Keep the ray reference lists and frame variables supplied by
+encapsulation. In particular,
+\[
+ A_p=\rev(A_u),\qquad f_p=f_u,
+ \qquad A_q=\rev(A_v),\qquad f_q=f_v,
+\]
+under the appropriate dart identifications. Do not overwrite $f_q$ with
+$f_u$: for two anchors these may be different old values. Measure global
+ray-graph sectors in $p$'s frame. The star bonds induce fixed reference
+sector bijections from $u$ to $p$ and from $v$ to $q$. Transfer a local
+$q$-category to $p$ by a fixed bijection when $k\ge3$, using the retained
+old pipe-frame equation; for $k=2$ use
+\[
+ c_q\oplus f_q\oplus f_p\oplus b
+\]
+with the computed reference constant $b$.
+
+\begin{lemma}[Complete-sector Join]
+\label{cse:join}
+Every old center observation can be relocated to a category at $p$ or
+$q$, or to one fresh category for a detached component of $K$, with
+partial-bijection relations and affine Boolean equations. The resulting
+instance preserves every old assignment and has constructive witnesses
+in both directions.
+\end{lemma}
+\begin{proof}
+In a forward witness, all edges of an ordinary ray have the same global
+sector label. Otherwise that ray's star bond would interleave with two
+edges of the marked star bond. At $p$ and $q$, opposite bond orders give
+exactly the transfer formulas above. Labels are therefore constant along
+every connected piece avoiding $p,q$.
+
+Let $K_0$ contain the marked bond. If an observed edge is in $K_0$, follow
+a fixed path from it to $\{p,q\}$, first meeting that set at the last
+vertex. Its label is the category of the last edge there, converted to
+$p$'s frame. This uses a fixed sector bijection for $k\ge3$ and an affine
+formula for $k=2$. For every other component $T$ introduce one arbitrary
+category $h_T$ in the $k$-element $p$-sector domain. Relocate the old
+$u$- and $v$-observations through their retained star-bond transfers.
+
+Conversely, the ordinary BFR separating-curve inverse splits each planar
+embedded component of $K$ into two stars with opposite matched center
+orders and unchanged ray rotations~\cite{bfr}. Keep the center order
+obtained from $K_0$. For a detached component $T$, convert $h_T$ through
+the fixed $p$-to-$u$ sector bijection and insert a linear representative
+of its entire center order in that $u$-sector. If its name is $j$, insert
+after $a_j$ when $f_u=0$, or after $a_{j+1}$ when $f_u=1$. Use the reversed
+matched complete order at $v$.
+
+Each component is a contiguous excursion, preserving the noncrossing
+ray-bond partitions of both stars. Its sector is exactly the selected
+$h_T$; later insertions in the same sector do not change this. The
+restriction to $K_0$ is unchanged, and path-label propagation identifies
+every recovered category there with its relocated value. Transfer recovers
+the observations at the other center while retaining both old gauges.
+All ray rotations, cap pipes, and residual-piece constraints survive.
+\end{proof}
+
+For an off center pipe, all star edges are unmarked, and there are no
+center frames or observations. Use the ordinary join and concatenate its
+component orders in the inverse. Marks elsewhere are not removed: every
+marked cycle lies in a residual piece and is unchanged. The cap pipes are
+off at their newly created ends. Thus the off case also preserves the
+whole marked instance.
+
+\subsection{Propagation and injective contour maps}
+
+Let $u$ be a matched block-vertex with a nontrivial ordinary embedding
+tree $T$, computed in $G^W$. Let $S$ be the minimal subtree spanning its
+marked leaves. A cyclic reference order of these leaves is a frontier
+of the unlabelled tree $S$ precisely when every tree-edge shore has its
+leaf set in one cyclic interval. To see sufficiency, the reference order
+determines the cyclic order of the branches at every branching vertex;
+tracing the contour with those branch orders gives the prescribed leaf
+order. Necessity follows because a branch occupies one interval in every
+plane-tree frontier. At an inner Q-node the induced order of three or
+more marked branches must additionally match its prescribed order or its
+reverse. Check these conditions explicitly and reject if any fails.
+
+\begin{lemma}[Injective sector transport in a tree]
+\label{cse:contour}
+Fix a reference plane embedding of $S$ with the prescribed marked-leaf
+order. At an inner vertex $m$ with $h$ marked branches, its $h$ reference
+corners map injectively to the intervals between consecutive marked
+leaves. If a private leaf attaches to $S$ at $m$, its full sector at the
+old vertex is the image of its local sector at $m$. The map remains
+unchanged when the reference tree and local frames are reflected together.
+\end{lemma}
+\begin{proof}
+Follow the tree contour through a corner at $m$. It passes from the last
+leaf of one incident branch to the first leaf of the next. These are
+consecutive leaves in the full frontier. Two different corners at $m$
+lie between different consecutive branch intervals, and hence determine
+different leaf intervals. A private branch hanging at $m$ is traversed
+exactly at its attachment corner, proving the first identity. Reversing
+the whole reference reverses both traversals while leaving each named
+reference corner and its named reference leaf interval corresponding.
+The same argument applies to two branches, whose two corners are distinct.
+\end{proof}
+
+Perform the ordinary PropagatePQ replacement with two copies of $T$,
+retaining leaves as degree-two subdivisions. Each such subdivision vertex
+is an unmatched Q-vertex of degree two in a fresh singleton Q-cell: its
+rotation requirement is vacuous, and it carries no frame and no observer.
+This departs from the BFR graph operation only by these subdivisions; the
+size estimate of Section~\ref{cse:schedule} accounts for them. Mark the
+spanning subtree
+in each copy. Crucially, carry out the reference construction separately
+using each endpoint's own old reference and frame. New P-nodes in the
+$u$-copy use their induced reference marked-branch lists and fresh frames
+equal to $f_u$; the corresponding nodes in the $v$-copy use its own
+induced references and frames equal to $f_v$. These two gauges are not
+silently identified when there are two marked leaves.
+
+Corresponding inner P-nodes receive the ordinary pipes. Corresponding
+inner Q-nodes receive a shared fresh cell and reversed full reference
+orders. At a Q-node with at least three marked branches, enforce the
+affine equation between its native Q-flip and the old frame that makes
+the induced marked order correct. With two marked branches impose no
+frame equation.
+
+For a private leaf $d$, let $m$ be its first point on $S$, and let
+$\delta$ be the direction toward $d$. If $m$ is P, relocate an old
+category $x$ by
+\[
+ x=\iota_m\bigl(c_m(\delta)\bigr),
+\]
+where $\iota_m$ is the injection of Lemma~\ref{cse:contour}; this is a
+partial-bijection relation. If $m$ is Q with three or more marked
+branches, its category is constant after its frame equation, and $x$ is
+pinned to the corresponding image. If $m$ is Q with two marked branches,
+introduce a Boolean variable
+\[
+ b=g_m\oplus f_u\oplus b_0
+\]
+in the $u$-copy, using $f_v$ in the $v$-copy, and impose
+$x=\iota_m(b)$. The constant $b_0$ compares the full Q-reference with
+the two chosen local corners.
+
+The ordinary forward map expands center rotations into tree rotations;
+the inverse contracts the trees. The frontier test enforces precisely the
+old marked orders, and Lemma~\ref{cse:contour} enforces every old category
+in both directions. Corresponding marked subtrees map to each other under
+the old pipe, so new pipes align on whole marked sets. Their transfer
+uses \eqref{cse:large-transfer} or \eqref{cse:two-transfer} as appropriate.
+
+The marked-block invariant is retained. Replacing a vertex of a
+biconnected marked block by the minimal tree spanning all its incident
+marked leaves leaves a biconnected graph. After deleting a new tree
+vertex, every remaining branch contains a marked leaf, and the old
+marked block minus the old vertex connects all those leaves outside the
+tree. Deleting an old vertex preserves connectivity by contracting the
+new tree and using biconnectivity of the old block. This also shows that
+all inserted marked edges remain cyclic. Off pipes insert no marked
+edge and have no frame or observer updates.
+
+\subsection{Superblocks and SimplifyMatching}
+
+Suppose $u$ is a matched P-block-vertex with a trivial embedding tree and
+degree $D\ge4$. Let $w$ be its partner pole. Its source expansions have
+one dart $e_j$ at $u$ and a nonempty interval $I_j$ in the relevant block
+rotation at $w$. Define $S_j$ to start with $I_j$ and include all
+other-block insertions up to the next such interval. Changing the order
+at $u$ and concatenating these unchanged linear superblocks in the
+opposite expansion order at $w$ preserves planarity and all other
+rotations. We prove this first.
+
+\begin{lemma}[Superblock rearrangement]
+\label{cse:superblock-planar}
+Let $\rho$ be a planar rotation system of $G^W$, and let $\tau$ be a cyclic
+order of the darts at $u$. Define $\rho^\tau$ by $\rho^\tau_u=\tau$,
+$\rho^\tau_x=\rho_x$ for $x\ne u,w$, and let $\rho^\tau_w$ be the cyclic
+concatenation of the superblocks, each with its linear order, in which
+$S_k$ directly follows $S_j$ exactly when $e_j$ directly follows $e_k$ in
+$\tau$. Then $\rho^\tau$ is planar, and $\rho^{\rho_u}=\rho$.
+\end{lemma}
+\begin{proof}
+Let $B$ be the block containing $u$; it contains all darts at $u$, since
+$u$ is not a cutvertex. Its embedding tree at $u$ is the single P-node
+$\mu$ with poles $u,w$, and by Lemma~\ref{cse:source} both poles are
+original P-vertices. In the embedding $\mathcal E$ of $B$ induced by
+$\rho$, the order of the $e_j$ at $u$ is the reverse of the order of the
+intervals $I_j$ at $w$, so $\rho^{\rho_u}=\rho$.
+
+Let $\mathcal E^\tau$ be the embedding of $B$ with the same SPQR choices
+as $\mathcal E$, except that the skeleton order of $\mu$ at $u$ is $\tau$.
+A P-skeleton order affects rotations only at its poles, so
+$\mathcal E^\tau$ and $\mathcal E$ agree at every vertex other than $u,w$,
+and $\mathcal E^\tau$ has rotation $\tau$ at $u$. In the embedding tree of
+$B$ at $w$ only the rotation of the node $\mu$ changes, to the reverse of
+$\tau$. The frontier concatenates the excursions at $\mu$, which are the
+intervals $I_j$ in their unchanged linear orders. Hence the rotation of
+$\mathcal E^\tau$ at $w$ is the restriction of $\rho^\tau_w$ to $B$.
+
+Now consider another block $B'$ at $w$. Since $B$ has at least four darts
+at $w$ and does not interleave with $B'$ in $\rho_w$, all darts of $B'$
+lie in one \emph{slot} between cyclically consecutive darts $g,g'$ of $B$.
+Whether $g,g'$ lie in one interval $I_j$ or $g$ ends $I_j$, the whole slot
+lies in the superblock containing $g$, directly after $g$. Superblocks keep
+their linear orders, so in $\rho^\tau_w$ every slot is still a contiguous
+run with its old order, directly after the same dart of $B$. Consequently
+$\rho^\tau_w$ restricts to the old rotation of every block other than $B$,
+and no two blocks at $w$ interleave: two different slots are disjoint
+intervals, and a slot contains no dart of $B$.
+
+Apply the block-assembly fact of Section~\ref{rep:elementary} to the
+component of $G^W$ containing $u$, with $\mathcal E^\tau$ on $B$, the old
+rotations on all other blocks, the old merges at every cutvertex other
+than $w$, and $\rho^\tau_w$ at $w$. It gives a planar rotation system,
+which is $\rho^\tau$. Other components are unchanged. No wheel vertex is
+$u$ or $w$, so every wheel keeps its rotation.
+\end{proof}
+
+\begin{lemma}[Complete-category superblock preservation]
+\label{cse:superblocks}
+If $u$ is off, an arbitrary superblock permutation preserves every marked
+order and category at $w$. If $u$ is marked, a superblock permutation
+preserving its marked order and every unmarked-dart category preserves
+every marked order and category at $u,w$, with all old frame values.
+\end{lemma}
+\begin{proof}
+Planarity of the rearranged rotation system is
+Lemma~\ref{cse:superblock-planar}.
+If $w$ is marked and $u$ is off, the marked block through $w$ avoids $u$.
+If that marked block belongs to the active graph block, connectivity
+after deleting $w$ puts all its marked darts in one source expansion,
+hence one superblock. If it belongs to another graph block, its connected
+interior lies in one face of the biconnected active block, and hence in
+one corner at $w$; again its darts lie in one superblock. Its internal
+order remains fixed; every other superblock is in the same complementary
+marked sector. Thus all categories and the full marked order survive.
+
+If $u$ is marked, its marked block contains $w$. By
+Lemma~\ref{cse:source}, the marked superblocks at $w$ correspond exactly
+to the marked darts at $u$. Their cyclic order is unchanged. Inside a
+marked superblock its entire linear order, including all inserted other
+blocks, remains unchanged. An unmarked superblock remains between the
+same consecutive marked superblocks because its complete category at
+$u$ is unchanged. This preserves every category at $w$. Frame values
+are retained; since the marked orders and categories remain as before,
+their defining conditions still hold.
+\end{proof}
+
+Use the ordinary BFR SimplifyMatching cases. For a pipe $(u,r,\phi)$,
+delete it if $w$ is unmatched; use the self-pipe rule below if $r=w$;
+or, when $w$ is a matched trivial pole with a different mate $w'$, replace
+the two pipes by the ordinary shortcut
+\[
+ (r,w',\phi'\beta\phi^{-1}),
+\]
+where $\beta$ identifies opposite-pole darts. In the latter two cases
+$\deg w=D$ and each $I_j$ is a singleton.
+
+In a marked non-self case, before removal add exact transfer for
+\emph{every} unmarked dart at $u$: the partial bijection
+\eqref{cse:large-transfer} with its forced frame equation when $k\ge3$,
+or the affine equation \eqref{cse:two-transfer} when $k=2$. In a backward
+witness take
+\[
+ \tau=\rev\bigl(\phi^{-1}(\rho_r)\bigr)
+\]
+as the new order at $u$. The retained equations say exactly that $\tau$
+has the old marked order, the old complete categories, and the old frame
+value. Lemma~\ref{cse:superblocks} performs the required planar
+rearrangement at $w$. The ordinary reversed-order composition recovers
+both deleted pipes in the shortcut case. Complete marked sets correspond
+under the constituent maps, so the shortcut stays aligned. In the
+two-anchor case no additional gauge relation is imposed across the
+implicit map $\beta$.
+
+In an off case use the ordinary update. If $w$ is marked in the unmatched
+case, Lemma~\ref{cse:superblocks} preserves its data. In the two equal-degree
+cases $w$ must also be off: two marked darts in a block avoiding $u$
+would have to lie in the same one-dart interval $I_j$, which is impossible.
+
+\paragraph{Self-pipes.}
+Let $\pi=\phi\beta^{-1}$ be the induced permutation on the darts at $w$.
+The required order is $\pi$-invariant. A permutation admits an invariant
+cyclic order precisely when all its orbits have equal length: in an
+invariant order it commutes with the successor cycle and is a power of
+that cycle; conversely, arranging orbit representatives and then their
+successive images gives an invariant order. The off case uses this test.
+
+In a marked case, $\pi$ preserves the anchor set. For $k\ge3$ its action
+on the prescribed reference anchor cycle must be a rotation by some
+$r\pmod{k}$. Reject otherwise. Its orbit length there is
+$\ell=k/\gcd(k,r)$, with $\ell=1$ for $r=0$, and every orbit on all
+darts must have this length. Add the bijection constraints
+\begin{equation}
+\label{cse:self-sector}
+ c_w(\pi(d))=c_w(d)+r\pmod{k}
+\end{equation}
+for every unmarked dart. Necessity follows because an invariant cyclic
+order carries each reference gap to that shifted gap.
+
+For sufficiency choose an arbitrary private-dart order in one
+representative of each sector orbit under $j\mapsto j+r$, and propagate
+those orders by $\pi$. Each private orbit has exactly one member in each
+sector of its sector orbit; this follows from \eqref{cse:self-sector} and
+its length $\ell$. Use the prescribed reference anchor order for $f_w=0$
+or its reverse for $f_w=1$. The completed order is invariant and preserves
+every $w$-category and its frame. Recover the order at $u$ through the
+bond correspondence $\beta$: here $\deg w=D$, every $I_j$ is the singleton
+$\{\beta(e_j)\}$, and there are no other blocks at $w$, so the
+superblocks are single darts and Lemma~\ref{cse:superblock-planar}, with
+$\tau$ the reverse of $\beta^{-1}$ applied to the new order at $w$, gives
+planarity. The unchanged marked order and opposite-pole correspondence
+preserve all old $u$-categories as well.
+
+For $k=2$, equal orbit lengths allow only the identity or a fixed-point-free
+involution exchanging the anchors. In the latter case add
+\[
+ c_w(\pi(d))\oplus c_w(d)=1.
+\]
+Choose an arbitrary order in one sector and put its image under $\pi$ in
+the other. The resulting half-turn-invariant order preserves the selected
+categories. The independent gauges at the two poles require an explicit
+check: for a fixed reference constant $t$, the old planar pair satisfies
+\[
+ c_u(d)\oplus c_w(\beta(d))\oplus f_u\oplus f_w=t.
+\]
+The reconstructed reversed pair satisfies the identical equation. Every
+$c_w$ value and both $f_u,f_w$ are retained, so subtracting the equations
+preserves every $c_u$ value. No equality between the two gauges has been
+assumed.
+
+All Simplify cases preserve every old assignment. They change neither
+$G$ nor $L$ and introduce at most one complete-sector relation per dart,
+plus affine frame equations.
+
+\subsection{Solving the pipe-free instance}
+
+When no pipe remains, test planarity of $G^W$ and compute its blocks and
+SPQR sources. Retain all old variable relations. Introduce a reflection
+bit $r_\mu$ for every used R-source. At each marked P-vertex $v$, all its
+marked darts lie in one graph block. Form the subtree $S_v$ spanning
+these leaves in its embedding tree, and perform the reference-frontier
+tests used for propagation.
+
+At a source with at least three marked directions, the projected marked
+order is fixed by the frame $f_v$. For an R-source, compare it with the
+native reference and add $r_\mu\oplus f_v=b$. For a P-source, choose a
+canonical reference order on its complete marked direction set $A_\mu$
+and a source frame $g_\mu$. All occurrences give affine equations between
+$g_\mu$ and their $f_v$. Reject if any projected reference is neither the
+canonical one nor its reverse. Lemma~\ref{cse:source} ensures that these
+are references for the same full direction set at the two poles. These
+tests and equations are necessary and sufficient for all marked-order
+requirements, by the independent source choices and the tree-frontier
+criterion.
+
+Now expand each category observer $x=c_v(d)$ as follows.
+\begin{enumerate}
+\item If $d$ belongs to another graph block $B'$ at $v$, introduce one
+      arbitrary $k_v$-valued variable $\eta_{v,B'}$ for that whole block
+      and impose $x=\eta_{v,B'}$.
+\item Otherwise let $m$ be the attachment of $d$'s branch to $S_v$, and
+      use the injective contour map $\iota_m$.
+      At an R-source with at least three marked directions, its category
+      is constant because $r_\mu$ has already been synchronized with
+      $f_v$.
+\item At an R-source with two marked directions, use a Boolean variable
+      $b=r_\mu\oplus f_v\oplus b_0$ and the partial bijection
+      $x=\iota_m(b)$.
+\item At a P-source with at least three marked directions, introduce one
+      independent source category $z_{\mu,e}$ for every observed
+      unmarked source direction $e$. Its domain is the complete reference
+      sector set of $A_\mu$. Then $x$ is an injective relabeling of
+      $z_{\mu,e}$, including the fixed pole/reference correspondence.
+      The affine source-frame equations make the relabeling independent
+      of the frame values.
+\item At a P-source with two marked directions, introduce its underlying
+      binary gap variable $\xi_{\mu,e}$. Use a Boolean
+      $b=\xi_{\mu,e}\oplus f_v\oplus b_0$ and impose
+      $x=\iota_m(b)$. The reference constant includes reversal at the
+      other pole.
+\end{enumerate}
+Finally add the ordinary Q-wheel equations linking each nonvacuous
+Q-cell flip to the reflection of the R-source containing its wheel.
+Only injections involve larger domains; all remaining equations involve
+Boolean variables. Lemma~\ref{cse:algebra} solves this system.
+
+Necessity is given by the source and contour identities. For sufficiency,
+choose each R-reflection from its bit. At a P-source with $h\ge3$ marked
+directions, choose their order using $g_\mu$ and put each unmarked
+direction in its selected reference sector, with arbitrary order within
+each sector. At a source with two marked directions, use its selected
+binary gaps. Unused directions may be assigned arbitrarily. The source
+and contour facts guarantee every marked order and category
+simultaneously. At a marked cutvertex insert every other graph block as
+one contiguous excursion in its selected $\eta$ sector, preserving the
+block's internal rotation. The block partitions are noncrossing, and
+these insertions affect no internal source choice. Use arbitrary
+noncrossing assemblies elsewhere and delete the Q-wheels. This constructs
+the required planar witness.
+
+\subsection{Schedule, size, and reconstruction}
+\label{cse:schedule}
+
+Canonicalize observers and apply ConvertSmall; reapply it after every
+operation, as described in Section~\ref{cse:small}. Use the ordinary BFR schedule: encapsulate and join when
+both pipe ends are cutvertices; otherwise propagate a matched block-vertex
+with a nontrivial embedding tree; otherwise simplify at the pipe mate of a
+maximum-degree matched cutvertex, or at a matched vertex if none is a
+cutvertex. The ordinary
+applicability proof and potential depend on the graph and pipes, not on
+the added frame and variable data~\cite{bfr}. The preceding updates retain
+all required graph invariants. The subdivision vertices of PropagatePQ
+are unmatched. Subdividing an edge changes neither whether an existing
+vertex is a cutvertex nor the shapes of its embedding trees. A
+subdivision vertex may itself be a cutvertex, when it subdivides a bridge;
+this is harmless, because the BFR potential and the applicability of the
+operations depend only on the pipes and on the degrees and cutvertex
+status of their ends.
+
+Let $m_0=|E(G)|$ and let $D_0$ be the largest initial pipe-end degree,
+using zero when there are no pipes. There are at most $2m_0$ pipe
+operations and no later pipe has degree greater than $D_0$. Each operation
+adds $O(D_0)$ graph and marking data and at most $O(D_0^2)$ explicit
+reference, category-domain, and relation-table data. Thus the size before
+the terminal expansion is
+\[
+ S=O(M+m_0D_0^2)=O((M+1)^3).
+\]
+All embedding trees, marked subtrees, source constraints, and contour maps
+can be computed by direct graph searches and SPQR operations. Even
+traversing a whole current tree separately for every observer and listing
+every injection gives a terminal system of size $O(S^2)$. The algebra
+lemma and Gaussian elimination may conservatively be implemented in
+cubic time in that size. Recomputing the graph structure at every
+operation and executing every inverse map is bounded by a polynomial
+of smaller degree. These estimates give $O((M+1)^{20})$, including
+projection to the old Boolean variables and witness reconstruction.
+
+The inverse records explicitly retain reference maps, frame equations,
+detached-component categories, superblock intervals, and tree-contour
+maps. Composing the exact preservation contracts proves
+Theorem~\ref{cse:main}. Only explicit finite domains are enumerated in the
+algebra lemma; no permutation family or planar-embedding family is
+enumerated.
+
+\paragraph{Finite adversarial checks.}
+The accompanying exploratory script checked 35,240 instances of the
+injective contour identity on four tree topologies with five or six
+leaves, all their rotations, all proper anchor subsets of size at least
+two, both admissible frames, and every remaining observed leaf. It also
+compared the self-pipe category criterion with all cyclic orders for 720
+anchor-preserving permutations on three through seven darts. These
+checks passed. They support the specific identities tested and do not
+replace the proofs or constitute an implementation of the full engine.

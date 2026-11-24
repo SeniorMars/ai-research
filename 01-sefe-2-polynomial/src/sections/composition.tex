@@ -1,0 +1,57 @@
+\section{The algorithm and its running time}
+\label{sec:composition}
+
+We now combine the constructions.  For clarity, the following pseudocode
+lists the feasibility steps; every successful call also returns the
+embeddings and intermediate variable assignments needed by its inverse.
+\begin{quote}\small\ttfamily
+SolveSEFE($G_1,G_2$):\\
+\quad normalize colour connectivity and split union blocks;\\
+\quad apply common-cycle separation-pair preprocessing;\\
+\quad compute the reference P-orders, treating markers as real edges;\\
+\quad subdivide markers;\\
+\quad for each nontrivial normalized factor $I$: \\
+\qquad compute the common SPQR forest;\\
+\qquad compute common blocks, union components, attachments, and lobes;\\
+\qquad construct the doubled embedding-tree instance;\\
+\qquad synchronize common sources and mark common-block subtrees;\\
+\qquad use whole-sector constraints for exact common P-pole pairs;\\
+\qquad otherwise add a hub, restrict exceptional reads, and compare faces;\\
+\qquad solve the complete-sector instance; reject if infeasible;\\
+\qquad decode the colour blocks and apply face-list repair;\\
+\quad glue the normalized factors and undo the augmentations;\\
+\quad output compatible combinatorial embeddings.
+\end{quote}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+By Section~\ref{sec:normalization} and the BKR separation-pair
+preprocessing, the original input is equivalent to an AND family of
+normalized instances of total size $O(N)$.  All transformations are
+constructive in both directions.
+
+For a normalized instance, Theorem~\ref{gen:compilation} gives a
+complete-sector instance.  The forward witness map takes a SEFE to a
+satisfying embedding and constraint assignment.  The inverse witness map
+takes a satisfying assignment to planar colour-block embeddings satisfying
+the local-order condition and nonempty face lists.  Theorem~\ref{rep:thm:repair}
+then constructs compatible embeddings of the two colours and all relative
+positions of common components.  Theorem~\ref{cse:main} decides the
+complete-sector instance and constructs its witness in polynomial time.
+The composition is therefore sound and complete.
+
+For the time bound, consider a normalized factor of size $N_j$.  The
+charging argument in Section~\ref{rep:algorithm} gives $O(N_j)$ relevant
+pairs $(K,Z)$ and colour lobes.  The auxiliary graphs and source-labelled
+embedding trees have $O(N_j^2)$ total size.  By the count in
+Section~\ref{gen:size}, the compiled instance has size
+$M=O((N_j+1)^3)$ and is constructed in $O((N_j+1)^4)$ time.
+Theorem~\ref{cse:main} solves an instance of size $M$ in $O((M+1)^{20})$
+time.  Consequently the total cost per factor is $O((N_j+1)^{60})$.
+
+If the factor sizes are $N_1,\ldots,N_t$, their total is $O(N)$, and
+$\sum_j(N_j+1)^{60}=O((N+1)^{60})$.  The normalization inverse and the
+face-list reconstruction have smaller polynomial bounds.  All common
+bridges and isolated common vertices are retained throughout, and no
+relative component position is inferred from rotations alone.  This
+proves the theorem.\qedhere
+\end{proof}

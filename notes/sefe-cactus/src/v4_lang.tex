@@ -1,0 +1,145 @@
+\section{The target language}\label{sec:v4-lang}
+
+We define the instances that the compiler (Section~\ref{sec:v4-compile})
+produces and the engine (Section~\ref{sec:eng4}) decides. Graphs here are
+loopless multigraphs; darts, $A_v$, $\bar h$, rotation systems, faces and
+planarity, cyclic orders with $\rev$ and images $\varphi(\sigma)$, sides,
+anchors and local gaps are as in Section~\ref{sec:v4-conv}.
+
+Informally, the underlying instance is one of Synchronized
+Planarity~\cite{BFR21}: P-vertices have free rotations, pipes synchronize
+the rotations of pairs of P-vertices, and Q-vertices have fixed rotations up
+to reversal; here Q-vertices are grouped into Q-cells that reverse together
+according to one flip variable. Some cycles are marked, and distinct marked
+cycles share only Q-vertices, so a P-vertex has at most one distinguished
+anchor pair. An observer is a Boolean variable that records which of the two
+gaps between these anchors contains a specified dart. Binary parity rows
+relate observations, Q-cell flips and free Boolean variables.
+
+\begin{definition}[instance]\label{def:v4-instance}
+An \emph{instance} is a tuple
+$\mathcal I=(G,Q,\psi,f,\mathcal P,\mathcal M,X,\operatorname{obs},R)$ with
+the following components.
+\begin{enumerate}[label=(\arabic*),nosep]
+\item $G$ is a loopless multigraph and $Q\subseteq V(G)$. Every $q\in Q$ (a \emph{Q-vertex}) has a
+  \emph{reference rotation} $\psi(q)$, a rotation of $q$, and a \emph{flip
+  variable} $f(q)\in X$. The map $f:Q\to X$ need not be injective; its
+  nonempty fibres are the \emph{Q-cells}. The vertices not in $Q$ are
+  \emph{P-vertices}.
+\item $\mathcal P$ is a set of \emph{pipes} $(u,v,\varphi)$: $u\ne v$ are
+  P-vertices of equal degree and $\varphi:A_u\to A_v$ is a bijection;
+  $(u,v,\varphi)$ and $(v,u,\varphi^{-1})$ are identified, and every
+  P-vertex lies in at most one pipe.
+\item $\mathcal M$ is a set of \emph{marked cycles} satisfying the
+  \emph{marked-cycle invariant}:
+  \begin{enumerate}[label=(M\arabic*),nosep]
+  \item\label{it:v4-M1} each is a directed simple cycle of $G$ of length at
+    least two;
+  \item\label{it:v4-M2} they are pairwise edge-disjoint;
+  \item\label{it:v4-M3} two distinct marked cycles share only Q-vertices;
+  \item\label{it:v4-M4} every pipe $(u,v,\varphi)$ is \emph{off} (neither
+    $u$ nor $v$ lies on a marked cycle) or \emph{aligned}: $u\in C$, $v\in C'$
+    for marked cycles $C,C'$, and
+    $\varphi(\{c_{\mathrm{out}}(C,u),c_{\mathrm{in}}(C,u)\})=
+    \{c_{\mathrm{out}}(C',v),c_{\mathrm{in}}(C',v)\}$.
+  \end{enumerate}
+\item $X$ is a finite set of Boolean variables, and $\operatorname{obs}$ is a
+  partial map on $X$ whose values are \emph{observable triples} $(C,v,d)$:
+  $C\in\mathcal M$, $v$ a P-vertex of $C$, and $d$ a nonanchor dart at $v$. A
+  variable in the domain of $\operatorname{obs}$ is an \emph{observer} of its
+  triple.
+\item $R$ is a set of \emph{rows} $x\oplus y=c$ with $x,y\in X$ and
+  $c\in\Ftwo$. The case $x=y$ is allowed: the row $x\oplus x=0$ always holds
+  and the row $x\oplus x=1$ never does.
+\end{enumerate}
+The \emph{size} $|\mathcal I|$ is the number of vertices and edges of $G$
+plus the total length of the bijections of the pipes, of the reference
+rotations and of the marked cycles, plus $|X|+|R|$.
+\end{definition}
+
+By~\ref{it:v4-M3} a P-vertex $v$ lies on at most one marked cycle $C(v)$.
+Members of one Q-cell may lie in
+different components of $G$.
+
+\begin{definition}[witness]\label{def:v4-witness}
+A \emph{witness} of $\mathcal I$ is a pair $(\rho,\alpha)$ of a planar
+rotation system $\rho$ of $G$ and an assignment $\alpha:X\to\Ftwo$ such that
+\begin{enumerate}[label=(W\arabic*),nosep]
+\item\label{it:v4-W1} $\rho_v=\rev\varphi(\rho_u)$ for every pipe
+  $(u,v,\varphi)$;
+\item\label{it:v4-W2} for every $q\in Q$ with $\deg q\ge3$,
+  $\rho_q=\psi(q)$ if $\alpha(f(q))=0$ and $\rho_q=\rev\psi(q)$ if
+  $\alpha(f(q))=1$ (a Q-vertex of degree at most two is unconstrained);
+\item\label{it:v4-W3} $\alpha(x)=\gap_\rho(\operatorname{obs}(x))$ for every
+  observer $x$;
+\item\label{it:v4-W4} every row holds.
+\end{enumerate}
+The \emph{feasible set} is $F(\mathcal I)=\{\alpha:\exists\rho\
+(\rho,\alpha)\text{ is a witness}\}$, and $\mathcal I$ is \emph{feasible} if
+$F(\mathcal I)\ne\emptyset$.
+\end{definition}
+
+No condition refers to relative positions of components.
+Condition~\ref{it:v4-W1} does not depend on the orientation of the pipe.
+
+\begin{definition}[contract]\label{def:v4-contract}
+A \emph{step} maps an instance $\mathcal I$ to a rejection or to an instance
+$\mathcal I'$ with $X\subseteq X'$. It \emph{satisfies the contract} if it
+rejects only when $F(\mathcal I)=\emptyset$, and otherwise, for every
+$\alpha:X\to\Ftwo$, from every witness $(\rho,\alpha)$ of $\mathcal I$ one
+constructs a witness $(\rho',\alpha')$ of $\mathcal I'$ with
+$\alpha'|_X=\alpha$, and from every witness $(\rho',\alpha')$ of
+$\mathcal I'$ one constructs $\rho$ such that $(\rho,\alpha'|_X)$ is a
+witness of $\mathcal I$.
+\end{definition}
+
+Then $F(\mathcal I)=\{\alpha'|_X:\alpha'\in F(\mathcal I')\}$ if the step
+does not reject, and steps satisfying the contract compose.
+
+\paragraph{Relocation and canonical observers.}
+\emph{Relocating} an observer $x$ to $y\oplus c$, for a variable $y$ and
+$c\in\Ftwo$, removes $x$ from the domain of $\operatorname{obs}$ and adds the
+row $x\oplus y=c$; $x$ stays a variable. An instance is \emph{canonical} if
+no observable triple has two observers. In a canonical instance
+$\langle t\rangle$ denotes the observer of the observable triple $t$ if there
+is one, and otherwise a fresh variable $x$, added to $X$ with
+$\operatorname{obs}(x)=t$; all constructions create observers only in this
+way. An instance is made
+canonical by keeping one observer $x_t$ of each triple $t$ and relocating
+every other observer of $t$ to $x_t\oplus0$; this satisfies the contract,
+because the relocated variables keep their values in every witness. When a step
+keeps all old rows, checking a new witness amounts to checking
+planarity, \ref{it:v4-W1}--\ref{it:v4-W3} and the new rows.
+
+\begin{lemma}[gap facts]\label{lem:v4-gaps}
+Let $v$ lie on a directed simple cycle $C$ of a loopless multigraph $W$, and
+let $d$ be a nonanchor dart at $v$.
+\begin{enumerate}[label=(\alph*),nosep]
+\item $\gap_{\rev\sigma}(C,v,d)=1\oplus\gap_\sigma(C,v,d)$ for every rotation
+  $\sigma$ of $v$.
+\item \emph{(Transfer.)} Let $u\in V(C)$ and $v'\in V(C')$ for directed
+  simple cycles $C,C'$, let $\varphi:A_u\to A_{v'}$ be a bijection with
+  $\varphi(\{c_{\mathrm{out}}(C,u),c_{\mathrm{in}}(C,u)\})=
+  \{c_{\mathrm{out}}(C',v'),c_{\mathrm{in}}(C',v')\}$ (for instance an aligned
+  pipe), and let
+  $\varepsilon(\varphi)=0$ if $\varphi$ exchanges the anchor types, that is,
+  $\varphi(c_{\mathrm{out}}(C,u))=c_{\mathrm{in}}(C',v')$, and
+  $\varepsilon(\varphi)=1$ otherwise. If $\rho_{v'}=\rev\varphi(\rho_u)$, then
+  $\varphi(e)$ is nonanchor and
+  $\gap_\rho(C,u,e)\oplus\gap_\rho(C',v',\varphi(e))=\varepsilon(\varphi)$ for
+  every nonanchor dart $e$ at $u$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) is the identity for $\operatorname{or}_{\rev\sigma}$
+(Section~\ref{sec:v4-conv}). (b) Write $o=c_{\mathrm{out}}(C,u)$ and $i=c_{\mathrm{in}}(C,u)$. Since
+$\varphi$ maps $\{o,i\}$ onto the anchors at $v'$, $\varphi(e)$ is
+nonanchor. Moreover
+$e\in(o,i)_{\rho_u}$ if and only if $\varphi(e)\in(\varphi o,\varphi
+i)_{\varphi\rho_u}=(\varphi o,\varphi i)_{\rev\rho_{v'}}=(\varphi i,\varphi
+o)_{\rho_{v'}}$. If $\varphi$ exchanges the anchor types, the last interval
+is $(c_{\mathrm{out}}(C',v'),c_{\mathrm{in}}(C',v'))_{\rho_{v'}}$ and the two
+gaps are equal; otherwise it is $(c_{\mathrm{in}}(C',v'),
+c_{\mathrm{out}}(C',v'))_{\rho_{v'}}$ and the gaps differ.
+\end{proof}

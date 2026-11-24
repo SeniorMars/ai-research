@@ -1,0 +1,22 @@
+\begin{abstract}
+We give an $O(N^3)$-time algorithm for simultaneous embedding with fixed
+edges (\sefe) of two planar graphs whose common graph is a cactus, that is,
+every block of the common graph is an edge or a cycle. The common graph may
+be disconnected, contain isolated vertices, and have cutvertices of
+unbounded degree; the private edges are unrestricted. For positive
+instances the algorithm constructs compatible combinatorial embeddings.
+Combined with a reduction of Bl\"asius, Karrer and Rutter, the decision
+takes the same time when every component of the common graph is a cactus or
+$2$-connected.
+
+The proof has two parts. First, a repair theorem characterizes feasibility
+by embeddings of the blocks of both inputs that have compatible common edge
+orders at every vertex, together with sides of the vertices of each common
+cycle's block that depend only on their component of the union minus the
+cycle; from these data the block embeddings can be reassembled. Second, we
+compile this characterization into a linear-size instance of Synchronized
+Planarity augmented by marked cycles, local gap observations and binary
+parity constraints. We show how the observations transform under the
+operations of Bl\"asius, Fink and Rutter, which we run unchanged up to
+subdivided edges, and solve the final instance in linear time.
+\end{abstract}

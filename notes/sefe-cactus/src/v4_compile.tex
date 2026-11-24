@@ -1,0 +1,507 @@
+\section{Compilation}\label{sec:v4-compile}
+
+The input of this section is a normalized instance $(G_1,G_2)$
+(Definition~\ref{def:v4-normalized}) in which every common cycle carries a
+fixed traversal, used in both colours. The output is an instance $\mathcal I$
+(Definition~\ref{def:v4-instance}) of size $O(N)$, computed in $O(N^2)$ time,
+that is feasible if and only if $(G_1,G_2)$ has a SEFE, with witnesses
+translated both ways (Theorem~\ref{thm:v4-compile}). We represent every block
+by its embedding trees at all its vertices and join, at every vertex, the red
+and the blue leaf of each common dart. Condition~\ref{it:v4-R1} of
+Theorem~\ref{thm:v4-repair} becomes planarity, and~\ref{it:v4-R2} a parity
+condition on the orientation at the median of the two leaves of $C$ and a
+leaf leading off $C$.
+
+\subsection{SPQR trees and embedding trees}\label{sec:v4-spqr}
+
+This subsection collects the facts on SPQR trees used by the compiler and
+the engine. Let $B$ be a biconnected loopless planar multigraph that is
+neither an edge nor a cycle (a digon is a cycle), and $\mathcal T_B$ its SPQR tree~\cite{DT96},
+computed in linear time~\cite{GM01,HT73}. We use the standard
+facts~\cite{DT96}, \cite[Section~2.5]{BR16}:
+\begin{enumerate}[label=(T\arabic*),nosep]
+\item\label{it:v4-T1} Each node $\mu$ has a skeleton: a simple $3$-connected
+graph (R node), a cycle (S node) or a bond with at least three edges (P
+node); adjacent nodes are not both S nodes and share exactly the poles of
+their twin virtual edges; each edge of $B$ is real in exactly one skeleton.
+The \emph{expansion} $B_e$ of a skeleton edge $e$ is $e$ if real, and
+otherwise the union of the real edges of the skeletons beyond $e$. The
+expansions of the edges of $\operatorname{skel}(\mu)$ partition $E(B)$; that
+of an edge with poles $a,b$ is connected, contains $a,b$, and meets the rest
+of $B$ only in $a,b$; its other vertices are \emph{inner} to it.
+\item\label{it:v4-T2} If $e\in\operatorname{skel}(\mu)$ and
+$e'\in\operatorname{skel}(\nu)$ are twins, $B_e$ is the union of the
+expansions of the edges of $\operatorname{skel}(\nu)-e'$.
+\item\label{it:v4-T3} An embedding $\mathcal E$ of $B$ induces embeddings
+$\mathcal E_\mu$ of all skeletons, and $\mathcal E\mapsto(\mathcal
+E_\mu)_\mu$ is a bijection onto the families choosing one of the two
+embeddings of every R skeleton and one embedding of every P skeleton, i.e.\
+an order of its edges around one pole, reversed around the other.
+\item\label{it:v4-T4} The \emph{allocation nodes} of $u$, whose skeletons
+contain $u$, form a subtree whose edges are the twin pairs with pole $u$.
+For each of them, the darts at $u$ of the expansions of the skeleton edges
+at $u$ form intervals of $\mathcal E(u)$, in the order $\mathcal E_\mu(u)$.
+\end{enumerate}
+Every R skeleton has a fixed \emph{reference embedding} $\mathcal R_\mu$,
+and $r_\mu(\mathcal E)=0$ if $\mathcal E_\mu=\mathcal R_\mu$, $1$
+otherwise. A node $\mu$
+\emph{displays} a cycle $C$ of $B$ if $E(C)$ lies in no single expansion at
+$\mu$.
+
+\begin{lemma}[display]\label{lem:v4-display}
+\begin{enumerate}[label=(\alph*),nosep]
+\item If $\mu$ displays $C$, the skeleton edges whose expansions meet $E(C)$
+form a simple cycle of $\operatorname{skel}(\mu)$, and $C\cap B_e$ is a path
+between the poles of each of them. A P node displays $C$ if and only if both
+poles lie on $C$ and $C$ meets two expansions; these two edges are the
+\emph{anchors}, the others \emph{nonanchor directions}.
+\item No P node displays two cycles sharing at most one vertex.
+\item Let a P node $\mu$ with poles $p,p'$ display a directed cycle $C$, and
+let $\varepsilon^{\mathrm{out}}_p,\varepsilon^{\mathrm{in}}_p$ be the anchors
+containing the edges of $c_{\mathrm{out}}(C,p),c_{\mathrm{in}}(C,p)$. Then
+$\varepsilon^{\mathrm{out}}_p=\varepsilon^{\mathrm{in}}_{p'}$ and
+$\varepsilon^{\mathrm{in}}_p=\varepsilon^{\mathrm{out}}_{p'}$; for a nonanchor
+direction $\varepsilon$ the \emph{gap}
+$\gap_\mu(\mathcal E,\varepsilon)=\operatorname{or}_{\mathcal E_\mu(p)}
+(\varepsilon^{\mathrm{out}}_p,\varepsilon,\varepsilon^{\mathrm{in}}_p)$ does
+not depend on the pole, and every map from the nonanchor directions to
+$\Ftwo$ is the gap map of some embedding.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) $C$ passes each pole of $B_e$ once and $C\not\subseteq B_e$, so $C\cap
+B_e$ is one pole-to-pole path; contracting these paths gives a closed walk
+through distinct skeleton vertices. (b) A displayed cycle contains both
+poles. (c) $C$ runs from $p$ through $B_{\varepsilon^{\mathrm{out}}_p}$ to
+$p'$; $\mathcal E_\mu(p')=\rev\mathcal E_\mu(p)$ gives pole independence;
+realize the gaps by the order $\varepsilon^{\mathrm{out}}_p$, the
+$0$-directions, $\varepsilon^{\mathrm{in}}_p$, the $1$-directions,
+and~\ref{it:v4-T3}.
+\end{proof}
+
+\paragraph{Embedding trees and sources.}
+For $v\in V(B)$ the \emph{embedding tree} $\Theta_B(v)$ has a node $(\mu,v)$
+for every allocation node $\mu$ of $v$ and a leaf for every edge of $B$ at
+$v$. Each edge $e$ of $\operatorname{skel}(\mu)$ at $v$ is a
+\emph{direction} at $(\mu,v)$: an edge to the leaf of $e$ if $e$ is real,
+and otherwise the edge to $(\nu,v)$, $\nu$ the node of the twin $e'$, which
+is the direction $e'$ there. Nodes of S nodes have two directions and are
+suppressed, the merged edge keeping its directions at both ends. Every
+remaining inner node $(\mu,v)$ is the \emph{copy} $\mu_v$ of its
+\emph{source} $\mu$, a
+\emph{P node} or \emph{Q node} if $\mu$ is a P or R skeleton; a Q node has
+as \emph{reference order} the rotation at $v$ of the reference embedding. An embedding $\mathcal E$ \emph{induces} the
+order $\mathcal E_\mu(v)$ at a P node and, at a Q node, the reference order
+or its reverse according to $r_\mu(\mathcal E)$. A P node with three
+directions remains a P node. If $B$ is an edge, $\Theta_B(v)$ is one leaf (a single-node plane tree,
+Section~\ref{sec:v4-trees}); if $B$ is a cycle, one edge joining the leaves
+of the edges at $v$.
+
+\begin{lemma}[frontier]\label{lem:v4-frontier}
+\begin{enumerate}[label=(\alph*),nosep]
+\item $\Theta_B(v)$ is a tree with $\deg_B(v)$ leaves; it is a single edge
+if $\deg_B(v)=2$, and otherwise its inner nodes have degree at least three.
+The leaves behind the direction $e$ at $(\mu,v)$ are the edges at $v$ of
+$B_e$.
+\item For every embedding $\mathcal E$ of $B$ the frontier of
+$\Theta_B(v)$ with the induced rotations is $\mathcal E(v)$, and every
+choice of orders at the P nodes and of reference orders or their reverses
+at the Q nodes of $\Theta_B(v)$ is induced by some embedding.
+\item (Local reads.) Let $C$ be a directed cycle of $B$, $a\in V(C)$, $d$
+a dart at $a$ of an edge not on $C$, and $m$ the median of the leaves
+$c_{\mathrm{out}}(C,a)$, $d$, $c_{\mathrm{in}}(C,a)$ of $\Theta_B(a)$, with
+directions $e_{\mathrm{out}},e_d,e_{\mathrm{in}}$ towards them. For every
+embedding $\mathcal E$ of $B$: if $m$ is a Q node with source $\mu$, then
+$\gap_{\mathcal E}(C,a,d)=r_\mu(\mathcal E)\oplus\eta$ with
+$\eta=\operatorname{or}(e_{\mathrm{out}},e_d,e_{\mathrm{in}})$ in the
+reference order of $m$; if $m$ is a P node with source $\mu$, then $\mu$
+displays $C$, $e_{\mathrm{out}}=\varepsilon^{\mathrm{out}}_a$,
+$e_{\mathrm{in}}=\varepsilon^{\mathrm{in}}_a$, $e_d$ is a nonanchor
+direction, and $\gap_{\mathcal E}(C,a,d)=\gap_\mu(\mathcal E,e_d)$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) The node--node edges form the allocation subtree~\ref{it:v4-T4}; P and
+R skeletons have degree at least three at every vertex, so $\deg_B(v)=2$
+forces $v$ into one S skeleton with two real edges at $v$. The
+leaves behind $e$ follow from~\ref{it:v4-T2} by induction; at a suppressed S
+node with edges $f,f'$ at $v$ the leaves passed on are the edges at $v$ of
+$B_{f'}$, which are those of $B_e$ for the twin $e$ of $f$, so directions
+survive suppression. (b) By induction on the nodes behind $e$, the contour
+meets the leaves behind $e$ in the order of their interval in $\mathcal
+E(v)$: entering $(\nu,v)$ along the twin $e'$ it explores the other
+directions in the order $\mathcal E_\nu(v)$, which is the order of their
+intervals by~\ref{it:v4-T4}. Realizability is~\ref{it:v4-T3}. (c) By (b) and
+Lemma~\ref{lem:v4-median}(e), $\gap_{\mathcal E}(C,a,d)=
+\operatorname{or}_{\rho(m)}(e_{\mathrm{out}},e_d,e_{\mathrm{in}})$; at a P
+node the expansions of $e_{\mathrm{out}}\neq e_{\mathrm{in}}$ contain edges
+of $C$ (Lemma~\ref{lem:v4-display}(a)).
+\end{proof}
+
+\begin{lemma}[complete family of embedding trees]\label{lem:v4-trees}
+Let $W$ be a loopless planar multigraph, every block $B$ of which that is neither an
+edge nor a cycle comes with its SPQR tree and a reference embedding of every
+R skeleton. The source-labelled trees $\Theta_B(v)$, over all blocks $B$ and
+all $v\in V(B)$, have at most $4|E(W)|$ nodes in total and are computed in
+$O(|V(W)|+|E(W)|)$ time, together with the reference orders, a pointer from
+every dart to its leaf, and the list of nodes of every source. Moreover:
+\begin{enumerate}[label=(\alph*),nosep]
+\item every P source with poles $p,p'$ has exactly two nodes, in
+$\Theta_B(p)$ and $\Theta_B(p')$, both with direction set
+$E(\operatorname{skel}(\mu))$; every R source $\mu$ has exactly one node in
+$\Theta_B(v)$ for each $v\in V(\operatorname{skel}(\mu))$;
+\item an assignment of a rotation to every inner node of all $\Theta_B(v)$,
+$v\in V(B)$, is induced by an embedding of $B$ if and only if the two nodes
+of every P source carry mutually reverse orders of
+$E(\operatorname{skel}(\mu))$, and the nodes of every R source either all
+carry their reference orders or all carry the reverses; the embedding is
+then unique, and its rotation at $v$ is the frontier of $\Theta_B(v)$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+A tree with $\deg_B(v)$ leaves and inner degrees at least three has at most
+$2\deg_B(v)$ nodes, and $\sum_B\sum_v\deg_B(v)=2|E(W)|$. Construction
+(blocks by~\cite{Tar72}): create $(\mu,v)$ for all $\mu$ and $v\in
+V(\operatorname{skel}(\mu))$, attach leaves for real edges, join the nodes at
+$u$ and at $u'$ for every twin pair with poles $u,u'$, and suppress S nodes;
+by~\ref{it:v4-T4} the component of the nodes at $v$ is $\Theta_B(v)$. This is linear in the total
+skeleton size, $O(|E(B)|)$~\cite{HT73,GM01}; reference embeddings take
+linear time~\cite{HT74}. (a) A P skeleton has two vertices, both on every
+edge, and P and R nodes are never suppressed. (b) Induced rotations are
+consistent by~\ref{it:v4-T3}; consistent rotations define an embedding of
+every skeleton, hence by~\ref{it:v4-T3} a unique embedding of $B$, inducing
+them; its rotations are the frontiers by Lemma~\ref{lem:v4-frontier}(b).
+\end{proof}
+
+\subsection{The compiled instance}\label{sec:v4-cmp-instance}
+
+$B_i(C)$ and $\mathcal Z_C$ are as in Section~\ref{sec:v4-repair}; every
+common edge lies on exactly one common cycle, two common cycles share at most
+one vertex, and $B_i(C)$ is biconnected with at least three vertices. A
+\emph{lobe} of $C$ in colour $i$ is a component $Y$ of $B_i(C)-V(C)$; it
+lies in a unique member of $\mathcal Z_C$. The darts of a
+copy $\mu_v$ are the directions of $\mu$ at $v$; for the number of copies
+see Lemma~\ref{lem:v4-trees}(a). A \emph{flip node} is an R
+node or a P node with three skeleton edges; a \emph{free P node} has at
+least four. The skeleton of a flip node has exactly two embeddings, mirror
+images of each other; for a P node with three skeleton edges we also fix one
+as its reference embedding $\mathcal R_\mu$ and define $r_\mu$ as for R
+nodes.
+For a P node, $\varphi_\mu$ maps the dart of $\mu_p$ of each direction to
+the dart of $\mu_{p'}$ of the same direction. We write $\sigma^{(1)}=\sigma$
+and $\sigma^{(2)}=\rev\sigma$.
+
+A block of $G_i$ is \emph{relevant} if it contains a common cycle; every
+common edge lies in the relevant block $B_i(C)$ of its cycle, so other blocks
+contain no common edge.
+
+\begin{definition}[compiled instance]\label{def:v4-compiled}
+The \emph{compiled instance} $\mathcal I=(G,Q,\psi,f,\mathcal P,\mathcal
+M,X,\operatorname{obs},R)$ is defined as follows.
+\begin{enumerate}[label=(K\arabic*),leftmargin=2.6em]
+\item\label{it:v4-K1} \emph{Doubled graphs.} For every relevant block $B$ of
+$G_i$ and \emph{every} $v\in V(B)$ take a tree $T_B(v)=\Theta_B(v)$ of colour
+$i$ (all trees pairwise disjoint). $\mathcal D_v$ is the union of the trees
+of both colours at $v$ with one \emph{joining edge} per common dart $h$ at $v$,
+between the leaves of $h$ in its red and its blue tree. $G=\bigsqcup_v\mathcal
+D_v$.
+\item\label{it:v4-K2} \emph{Marked cycles.} For a common cycle $C\ni v$, the
+\emph{anchor path} $\pi^i_C(v)$ is the path of $T_{B_i(C)}(v)$ between the
+leaves of $c_{\mathrm{out}}(C,v)$ and $c_{\mathrm{in}}(C,v)$. The marked cycle
+$C^v$ runs along $\pi^1_C(v)$ from the leaf of $c_{\mathrm{in}}(C,v)$ to that of
+$c_{\mathrm{out}}(C,v)$, along the joining edge of $c_{\mathrm{out}}(C,v)$,
+along $\pi^2_C(v)$ back, and along the joining edge of $c_{\mathrm{in}}(C,v)$.
+$\mathcal M$ consists of all $C^v$, $v\in V(C)$.
+\item\label{it:v4-K3} \emph{Q-cells.} $Q$ is the set of copies of flip
+nodes; $f(\mu_v)=r_\mu$, a fresh variable per flip node $\mu$, and
+$\psi(\mu_v)=\mathcal R_\mu(v)^{(i)}$, read on directions, for $\mu$ of colour
+$i$.
+\item\label{it:v4-K4} \emph{Pipes.} $(\mu_p,\mu_{p'},\varphi_\mu)$ for every
+free P node $\mu$ with poles $p,p'$; there are no others.
+\item\label{it:v4-K5} \emph{Reads.} For every lobe $Y$ of $C$ in colour $i$
+fix an \emph{attachment edge} $a_Yx_Y$ of $B_i(C)$, $a_Y\in V(C)$, $x_Y\in
+V(Y)$, with dart $d_Y$ at $a_Y$. Let $m_Y$ be the median of the leaves of
+$c_{\mathrm{out}}(C,a_Y)$, $d_Y$, $c_{\mathrm{in}}(C,a_Y)$ in
+$T_{B_i(C)}(a_Y)$, and $e_Y$ its dart towards the leaf of $d_Y$. The
+\emph{read} of $Y$ is $(y_Y,\eta_Y)=(\langle(C^{a_Y},m_Y,e_Y)\rangle,0)$ if
+$m_Y$ is a P-vertex and $(f(m_Y),\gap_{\psi(m_Y)}(C^{a_Y},m_Y,e_Y))$ if
+$m_Y$ is a Q-vertex; its \emph{value} under $\alpha$ is
+$\alpha(y_Y)\oplus\eta_Y$.
+\item\label{it:v4-K6} \emph{Sides.} For every common cycle $C$ and
+$Z\in\mathcal Z_C$ containing a lobe of $C$ there is a side variable
+$s_{C,Z}$, and every lobe $Y\subseteq Z$ of $C$ gives the row
+$y_Y\oplus s_{C,Z}=\eta_Y$.
+\end{enumerate}
+$X$ consists of the $r_\mu$, the observers and the side variables; $R$ of the
+rows of~\ref{it:v4-K6}.
+\end{definition}
+
+Every incidence of a vertex and a common cycle is treated alike, including
+cycles that form a component of $H$. A tree $T_B(v)$ with no common dart of
+$B$ at $v$ is a component of $G$ by itself; it is included so that every node
+has all its copies, and as a tree it never obstructs planarity. No pins and no
+rows $x\oplus x=c$ are emitted. Each lobe gives at most one observer and one
+row, and there are at most $2(|E_1|+|E_2|)$ lobes by Lemma~\ref{lem:v4-count}
+and the remark after it (charging each lobe to its own attachment edge could
+give a quadratic bound, as an edge at a vertex on $k$ common cycles may
+attach a lobe of each). See Figure~\ref{fig:v4-doubled}.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[scale=0.85,
+  leaf/.style={circle,fill=black,inner sep=1.0pt},
+  pv/.style={circle,draw=black,fill=white,inner sep=2.1pt},
+  qv/.style={rectangle,draw=black,fill=black!70,inner sep=2.4pt},
+  redt/.style={draw=red!75!black,line width=0.9pt},
+  bluet/.style={draw=blue!75!black,line width=0.9pt},
+  joinedge/.style={draw=black,line width=0.5pt},
+  markcyc/.style={draw=black!18,line width=6pt,line cap=round,line join=round}]
+  \coordinate (m) at (0,1.3);   \coordinate (q) at (0,-0.5);
+  \coordinate (or) at (2,2.3);  \coordinate (ir) at (2,0.9);
+  \coordinate (opr) at (2,-0.5);\coordinate (ipr) at (2,-1.7);
+  \coordinate (dl) at (-1.4,2.4);\coordinate (pl) at (-1.5,1.0);
+  \coordinate (ob) at (3.7,2.3); \coordinate (ib) at (3.7,0.9);
+  \coordinate (b) at (5.3,1.6);  \coordinate (x1) at (6.6,2.2);
+  \coordinate (x2) at (6.6,1.0); \coordinate (opb) at (3.7,-0.5);
+  \coordinate (ipb) at (3.7,-1.7);
+  \draw[markcyc] (ir) -- (q) -- (m) -- (or) -- (ob) -- (b) -- (ib) -- cycle;
+  \draw[redt] (m) -- (or); \draw[redt] (m) -- (pl); \draw[redt] (m) -- (q);
+  \draw[redt] (q) -- (ir); \draw[redt] (q) -- (opr); \draw[redt] (q) -- (ipr);
+  \draw[redt,line width=2pt,-{Stealth[length=2.4mm]}] (m) -- ($(m)!0.62!(dl)$);
+  \draw[redt] ($(m)!0.6!(dl)$) -- (dl);
+  \draw[bluet] (b) -- (ob); \draw[bluet] (b) -- (ib);
+  \draw[bluet] (b) -- (x1); \draw[bluet] (b) -- (x2);
+  \draw[bluet] (opb) .. controls (5.0,-0.5) and (5.0,-1.7) .. (ipb);
+  \draw[joinedge] (or) -- (ob); \draw[joinedge] (ir) -- (ib);
+  \draw[joinedge] (opr) -- (opb); \draw[joinedge] (ipr) -- (ipb);
+  \draw[-{Stealth[length=2mm]},black!60] (2.55,2.55) -- (3.15,2.55);
+  \draw[-{Stealth[length=2mm]},black!60] (-0.3,-0.1) -- (-0.3,0.7);
+  \node[pv] at (m) {}; \node[qv] at (q) {}; \node[pv] at (b) {};
+  \foreach \p in {or,ir,opr,ipr,dl,pl,ob,ib,x1,x2,opb,ipb} \node[leaf] at (\p) {};
+  \node[left=3pt] at (m) {$m$}; \node[left=3pt] at (q) {$q$};
+  \node[right=3pt] at (b) {$b$}; \node[above left=0pt] at (dl) {$d_Y$};
+  \node[above] at (or) {$c_{\mathrm{out}}$}; \node[below=1pt] at (ir) {$c_{\mathrm{in}}$};
+  \node[above=1pt] at (opr) {$c'_{\mathrm{out}}$}; \node[below] at (ipr) {$c'_{\mathrm{in}}$};
+  \node[above] at (ob) {$c_{\mathrm{out}}$}; \node[below=1pt] at (ib) {$c_{\mathrm{in}}$};
+  \node[above=1pt] at (opb) {$c'_{\mathrm{out}}$}; \node[below] at (ipb) {$c'_{\mathrm{in}}$};
+  \node at (-0.22,2.0) {$e_Y$}; \node at (4.6,2.75) {$C^v$};
+\end{tikzpicture}
+\caption{A doubled graph $\mathcal D_v$, $v$ on common cycles $C,C'$ in one
+red block. Left: the red tree, with a P-vertex $m$ (circle) and a Q-vertex
+$q$ (square). Right: the blue tree of $B_2(C)$ and that of $B_2(C')$, a
+single edge. Thin black edges are joining edges; leaves are labelled by
+their darts at $v$. The marked cycle $C^v$ (shaded) runs from $c_{\mathrm{in}}$
+to $c_{\mathrm{out}}$ in red and back in blue; $C'^v$ also passes through $q$.
+The median of $c_{\mathrm{out}},c_{\mathrm{in}},d_Y$ is $m$, so the lobe
+attached by $d_Y$ is read by the observer of $(C^v,m,e_Y)$.}
+\label{fig:v4-doubled}
+\end{figure}
+
+\subsection{Legality}\label{sec:v4-cmp-legal}
+
+\begin{lemma}[anchor paths]\label{lem:v4-anchorpaths}
+Let $C\ni v$ be a common cycle and $B=B_i(C)$. (a) $\pi^i_C(v)$ passes through
+$\mu_v$ if and only if $\mu$ displays $C$, and then uses the directions whose
+expansions contain the edges of $C$ at $v$ (the anchors, for a P node).
+(b) For a common cycle $C'\ne C$ through $v$ with $B_i(C')=B$, the paths
+$\pi^i_C(v)$, $\pi^i_{C'}(v)$ share no edge and no copy of a P node.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:v4-frontier}(a) the leaves behind a direction $e$ are the
+edges of $B_e$ at $v$, and $B_e$ meets the rest of $B$ only in its poles
+by~\ref{it:v4-T1}. (a) The path passes through $\mu_v$ if and only if the
+edges of $C$ at $v$ lie behind distinct directions. If both lie in one $B_e$
+but $C\not\subseteq B_e$, the paths formed by $E(C)\cap E(B_e)$ have two
+distinct ends each, all poles other than $v$, which is impossible; so this
+happens exactly when $\mu$ displays $C$. The anchors are those of
+Lemma~\ref{lem:v4-display}(a). (b) Leaf edges are darts, distinct for
+distinct cycles. An inner edge corresponds to a direction $e$ with poles
+$v,w\ne v$; if $\pi^i_C(v)$ uses it, exactly one edge of $C$ at $v$ lies in
+$B_e$, so $C$ leaves $B_e$ at $w$ and $w\in V(C)$. If both paths used it, $C,C'$
+would share $v,w$. A P node on both would display both,
+contradicting Lemma~\ref{lem:v4-display}(b).
+\end{proof}
+
+\begin{lemma}[legality]\label{lem:v4-legal}
+$\mathcal I$ is a canonical instance; its Q-vertices have degree at least
+three and its pipe ends degree at least four. A copy of a free P node lies on
+a marked cycle if and only if the node displays a common cycle, and then both
+copies do and the pipe is aligned.
+\end{lemma}
+
+\begin{proof}
+$G$ is simple. Copies of P and R nodes have degree at least three
+(Lemma~\ref{lem:v4-frontier}(a)), and a free P node gives a pipe between two
+P-vertices of degree at least four in $\mathcal D_p\ne\mathcal D_{p'}$; every
+copy has one source, so it lies in at most one pipe. \ref{it:v4-M1}: $C^v$
+consists of paths between distinct leaves of a red and of a blue tree and two
+distinct joining edges, so it is a directed simple cycle. \ref{it:v4-M2},~\ref{it:v4-M3}: marked cycles at
+distinct vertices lie in disjoint doubled graphs; at one vertex, distinct
+cycles have distinct leaves and joining edges, and by
+Lemma~\ref{lem:v4-anchorpaths}(b) their anchor paths share only copies of
+flip nodes, which are Q-vertices.
+
+\ref{it:v4-M4}: let $\mu$ be a free P node with poles $p,p'$ in $B$ of colour
+$i$. Marked cycles through $T_B(p)$ use only paths $\pi^i_C(p)$ with
+$B_i(C)=B$, so by Lemma~\ref{lem:v4-anchorpaths}(a) $\mu_p$ is on a marked
+cycle if and only if $\mu$ displays a common cycle. If it displays none, the
+pipe is off. Otherwise it displays exactly one, $C$
+(Lemma~\ref{lem:v4-display}(b)); then $p,p'\in V(C)$ and $B=B_i(C)$, so
+$\mu_p\in C^p$ and $\mu_{p'}\in C^{p'}$, with anchors the darts of
+$\{\varepsilon^{\mathrm{out}}_p,\varepsilon^{\mathrm{in}}_p\}=
+\{\varepsilon^{\mathrm{in}}_{p'},\varepsilon^{\mathrm{out}}_{p'}\}$
+(Lemma~\ref{lem:v4-display}(c)); $\varphi_\mu$ preserves directions, so the
+pipe is aligned.
+
+Reads: $d_Y$ is not a dart of $C$, so by Lemma~\ref{lem:v4-median}(e) $m_Y$ is
+an inner node of $\pi^i_C(a_Y)\subseteq C^{a_Y}$ and $e_Y$ differs from its
+anchors; so the triple is observable, or $\eta_Y$ is defined. Observers arise
+only as $\langle t\rangle$.
+\end{proof}
+
+\subsection{Induced rotation systems and reads}\label{sec:v4-cmp-induced}
+
+For an embedding $\mathcal E$ of a relevant block $B$ of colour $i$, the
+rotation system \emph{induced} on $T_B(v)$ gives $\mu_v$ the rotation
+$\mathcal E_\mu(v)^{(i)}$. For a family $\mathfrak E=(\mathcal E(B))_B$ of
+embeddings of the relevant blocks, $\rho^{\mathfrak E}$ is induced on every
+tree, and $\beta^{\mathfrak E}(r_\mu)=r_\mu(\mathcal E(B))$.
+
+\begin{lemma}[induced rotation systems]\label{lem:v4-induced}
+\leavevmode
+\begin{enumerate}[label=(\alph*),nosep]
+\item $(\rho^{\mathfrak E},\beta^{\mathfrak E})$
+satisfies~\ref{it:v4-W1} and~\ref{it:v4-W2}.
+\item If $\rho$ and an assignment $\beta$ of the $r_\mu$
+satisfy~\ref{it:v4-W1} and~\ref{it:v4-W2}, there is exactly one $\mathfrak E$
+with $\rho=\rho^{\mathfrak E}$, and $\beta=\beta^{\mathfrak E}$; the rotations
+of all $\mathcal E(B)$ are computed in $O(N)$ time.
+\item $\rho^{\mathfrak E}$ is planar on $\mathcal D_v$ if and only if some
+cyclic order $\omega_v$ of the common darts at $v$ restricts to the order of
+the common darts of $B$ in $\mathcal E(B)(v)$ for every relevant block $B$ at
+$v$ and makes both block partitions noncrossing; it is computed by
+Lemma~\ref{lem:v4-partitions}.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) For a P node, $\mathcal E_\mu(p')=\rev\mathcal E_\mu(p)$ on directions
+(\ref{it:v4-T3}), so $\rho^{\mathfrak E}(\mu_{p'})=\rev\varphi_\mu
+(\rho^{\mathfrak E}(\mu_p))$ in both colours, which is~\ref{it:v4-W1} for free
+$\mu$. At a copy of a flip node, $\rho^{\mathfrak E}(\mu_v)$ is $\mathcal
+R_\mu(v)^{(i)}=\psi(\mu_v)$ or its reverse according to $r_\mu$,
+which is~\ref{it:v4-W2}.
+
+(b) Embed every R skeleton by $\mathcal R_\mu$ or its mirror image according
+to $\beta(r_\mu)$, and every P skeleton by the order $\rho(\mu_p)^{(i)}$ at
+$p$. The order at $p'$ is its reverse: for free $\mu$ by~\ref{it:v4-W1}; with
+three skeleton edges because $\psi(\mu_{p'})=\rev\varphi_\mu(\psi(\mu_p))$,
+both copies follow the same colour convention and share the flip $r_\mu$,
+so~\ref{it:v4-W2} gives $\rho(\mu_{p'})=\rev\varphi_\mu(\rho(\mu_p))$.
+So the rotations $\rho(\mu_v)^{(i)}$ are consistent in the sense of
+Lemma~\ref{lem:v4-trees}(b) (at R nodes by~\ref{it:v4-W2}), which gives a
+unique $\mathcal E(B)$ inducing them, with rotation at $v$ the frontier of $T_B(v)$; by (a)
+and~\ref{it:v4-W2}, $\beta(r_\mu)=r_\mu(\mathcal E(B))$ for all flip nodes.
+
+(c) Inner tree nodes have all darts in their tree, and a leaf has at most one
+further dart, a joining edge to a leaf of another tree. The frontier of a red tree under
+$\rho^{\mathfrak E}$ is $\mathcal E(B)(v)$ (Lemma~\ref{lem:v4-frontier}(b)),
+that of a blue tree its reverse (Lemma~\ref{lem:v4-median}(c)). Contracting
+all trees preserves genera (Lemma~\ref{lem:v4-median}(d)) and gives the
+bipartite multigraph of Lemma~\ref{lem:v4-partitions} on the relevant blocks
+at $v$, with rotation $\sigma_B$ at red and $\rev\sigma_B$ at blue blocks,
+$\sigma_B$ the order of the common darts of $B$ in $\mathcal E(B)(v)$, plus
+isolated vertices from trees without joining edges. Apply that lemma.
+\end{proof}
+
+\begin{lemma}[read values]\label{lem:v4-readval}
+Let $Y$ be a lobe of $C$ in colour $i$, $B=B_i(C)$, $\mathcal E$ an embedding
+of $B$, and $(\rho,\alpha)$ satisfy~\ref{it:v4-W2},~\ref{it:v4-W3}, with
+$\rho$ induced by $\mathcal E$ on $T_B(a_Y)$. Then
+\[
+\alpha(y_Y)\oplus\eta_Y=\gap_\rho(C^{a_Y},m_Y,e_Y)
+=\gap_{\mathcal E}(C,a_Y,d_Y)=\side_{\mathcal E}(C,Y).
+\]
+\end{lemma}
+
+\begin{proof}
+Write $a=a_Y$, $m=m_Y$ with source $\mu$, and $e_{\mathrm{out}},
+e_{\mathrm{in}}$ for its darts towards the leaves of $c_{\mathrm{out}}(C,a)$,
+$c_{\mathrm{in}}(C,a)$. First equality: \ref{it:v4-W3} for a P-vertex;
+\ref{it:v4-W2} and Lemma~\ref{lem:v4-gaps}(a) for a Q-vertex, which has
+degree at least three. Second: for $i=1$, $C^a$ leaves $m$ by
+$e_{\mathrm{out}}$ and enters by $e_{\mathrm{in}}$, and $\rho(m)=\mathcal
+E_\mu(a)$, so the gap is $\operatorname{or}_{\mathcal E_\mu(a)}
+(e_{\mathrm{out}},e_Y,e_{\mathrm{in}})$; for $i=2$ the traversal and the
+rotation are both reversed, giving $\operatorname{or}_{\rev\mathcal E_\mu(a)}
+(e_{\mathrm{in}},e_Y,e_{\mathrm{out}})$, the same value. As the frontier of
+$T_B(a)$ under $\mathcal E$ is $\mathcal E(a)$, Lemma~\ref{lem:v4-median}(e)
+turns this into $\operatorname{or}_{\mathcal E(a)}(c_{\mathrm{out}}(C,a),d_Y,
+c_{\mathrm{in}}(C,a))=\gap_{\mathcal E}(C,a,d_Y)$. Third: Lemma~\ref{lem:v4-sector} for the edge $ax_Y$.
+\end{proof}
+
+\subsection{Equivalence, size and construction time}\label{sec:v4-cmp-equiv}
+
+\begin{theorem}[compilation]\label{thm:v4-compile}
+For a normalized instance $(G_1,G_2)$ and its compiled instance $\mathcal I$:
+(a) from every witness of $\mathcal I$ a SEFE is computed in $O(N^2)$ time;
+(b) from every SEFE, given by its embeddings, a witness of $\mathcal I$ is
+computed in $O(N^2)$ time; (c) $|\mathcal I|=O(N)$, and $\mathcal I$ is
+built in $O(N^2)$ time. In particular, $(G_1,G_2)$ has a SEFE if and only if
+$\mathcal I$ is feasible.
+\end{theorem}
+
+\begin{proof}
+(a) Let $(\rho,\alpha)$ be a witness. Lemma~\ref{lem:v4-induced}(b) gives
+$\mathfrak E$ with $\rho=\rho^{\mathfrak E}$: R nodes are embedded by their
+flips, P nodes by the rotation at either copy, reversed in blue trees. Embed
+the other blocks arbitrarily, and let $s(C,Z)=\alpha(s_{C,Z})$ where defined
+and $0$ otherwise. \ref{it:v4-R1}: $\rho$ is planar on every $\mathcal D_v$,
+so Lemma~\ref{lem:v4-induced}(c) gives $\omega_v$; other blocks have no
+common darts. \ref{it:v4-R2}: $x\in V(B_i(C))\setminus V(C)$ lies in a lobe
+$Y$ inside the component $Z\ni x$ of $U-V(C)$, and by
+Lemma~\ref{lem:v4-readval} and the row of $Y$,
+$\side_{\mathcal E(B_i(C))}(C,x)=\alpha(y_Y)\oplus\eta_Y=\alpha(s_{C,Z})=
+s(C,x)$. Theorem~\ref{thm:v4-repair} gives a SEFE restricting to $\mathcal
+E(B)$ on every block. Time: $O(N)$ for $\mathfrak E$, the other
+blocks~\cite{HT74} and all $\omega_v$; $O(N)$ per common cycle for $\mathcal
+Z_C$; $O(N^2)$ for the repair.
+
+(b) By Lemma~\ref{lem:v4-necessary} the block restrictions and the sides of
+the components form a block datum satisfying~\ref{it:v4-R1},~\ref{it:v4-R2}.
+Put $\rho=\rho^{\mathfrak E}$ for the relevant blocks, $\alpha(r_\mu)=
+r_\mu(\mathcal E(B))$, $\alpha(x)=\gap_\rho(\operatorname{obs}(x))$ for
+observers and $\alpha(s_{C,Z})=s(C,Z)$. Then~\ref{it:v4-W1},~\ref{it:v4-W2}
+hold by Lemma~\ref{lem:v4-induced}(a), \ref{it:v4-W3} by definition, planarity
+by~\ref{it:v4-R1} and Lemma~\ref{lem:v4-induced}(c), and the row of a lobe
+$Y\subseteq Z$ by Lemma~\ref{lem:v4-readval} and~\ref{it:v4-R2}. Time: an
+inner node $x$ of $T_B(v)$ is the median of any three leaves behind distinct
+darts of $x$, so by Lemma~\ref{lem:v4-median}(e) $\rho^{\mathfrak E}(x)$ is
+the order in $\mathcal E(B)(v)$ of one leaf behind each dart, reversed in
+blue trees; this is $O(t)$ per node of a tree with $t$ nodes, $O(N^2)$ in
+all. Flips, observers and reads cost $O(N)$ each, and $\alpha(s_{C,Z})$ can
+be taken as the value of any read in $Z$, so the sides need not be computed.
+
+(c) \emph{Size.} $T_B(v)$ has at most $2\deg_B(v)$ nodes
+(Lemma~\ref{lem:v4-frontier}(a)), so the trees have at most
+$4(|E_1|+|E_2|)$ nodes; there are $2|E(H)|$ joining edges. Marked cycles are
+edge-disjoint, and every dart belongs to at most one reference or pipe, so
+cycles, references and bijections have total length $O(|E(G)|)$. There are at
+most $|Q|$ flips, and at most $2(|E_1|+|E_2|)$ lobes, each giving at most one
+observer, side variable and row.
+
+\emph{Time.} Blocks, SPQR trees, reference embeddings and all trees with the
+copies of every node take linear time (\cite{Tar72,HT73,HT74,GM01},
+Lemma~\ref{lem:v4-trees}), and yield the Q-cells and pipes. An anchor path
+takes $O(\deg_{G_i}(v))$ by search, $O(\sum_v\deg_H(v)\deg_U(v))=O(N^2)$ in
+all. For each of at most $N$ common cycles, lobes, attachment edges and
+$\mathcal Z_C$ take $O(N)$. For each of at most $2|E(H)|$ pairs $(C,a)$, $a$
+an attachment vertex, one search of $T_{B_i(C)}(a)$ from $\pi^i_C(a)$ gives
+every leaf its median with the leaves of $C$ and the dart towards it, in
+$O(\deg_{G_i}(a))$; an offset $\eta_Y$ takes $O(\deg m_Y)$. Storing observers
+at the darts of their P-vertices keeps $\mathcal I$ canonical.
+\end{proof}

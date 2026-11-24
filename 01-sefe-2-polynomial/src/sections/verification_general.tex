@@ -1,0 +1,204 @@
+\section{Examples and finite verification}
+\label{sec:verification}
+
+The proof is combinatorial and applies to arbitrary input size. The programs
+included with the supplementary material enumerate finite rotation systems, verify their
+face permutations, and test particular identities used in that proof.
+They do not implement the complete-sector algorithm or certify the theorem
+by experimentation. This section distinguishes these two kinds of evidence.
+
+\subsection{Checks of the new sector and order identities}
+
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.49\linewidth}r >{\raggedright\arraybackslash}p{0.25\linewidth}}
+\toprule
+Check & Cases & Scope \\
+\midrule
+Injective tree-contour transport & 35,240 & Four tree topologies; five or six leaves \\
+Self-pipe sector criterion & 720 & Anchor-preserving permutations on three through seven darts \\
+Whole common-P order enforcement & 11,824 & Cyclic orders through degree eight, both frames \\
+Interval-bundle partitions & 218 & Common P degrees three through seven \\
+Restricted gap predicates & 5,564 & All two-value restrictions in those partitions \\
+Source-to-common-face map & 4,272 & Degrees three through eight, both copy signs and frame gauges \\
+Extra-attachment pullback & 1,755 & Each tested pullback has at most two values \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The contour checks compare the original leaf gap to its image under the
+local tree-corner injection, including independent choices at degree-two
+marked nodes. The self-pipe checks enumerate cyclic orders and compare their
+actual invariant-category assignments with the proposed orbit-and-sector
+criterion. They include nontrivial common orbit lengths and verify both
+reference orientations.
+
+The whole-order check uses the economical chain
+$\operatorname{or}(a_0,a_i,a_{i+1})=r$ for $1\le i\le k-2$.
+Cutting a cyclic order at $a_0$ turns these into a chain of increasing
+comparisons, or decreasing comparisons when $r=1$, so they determine the
+whole reference order. These are exactly the chain rows used by the
+compiler (Lemma~\ref{gen:chain-lemma}). The source-to-face
+check independently verifies the reflected-copy convention and the
+two-anchor equation, including the fact that a two-element cyclic order
+does not constrain its frame parity.
+
+All these checks passed. The underlying proofs are the contour lemma,
+the self-pipe inverse, the source-group lemma, and the two-category lemma;
+the reported counts are not substitutes for those arguments.
+
+\subsection{Earlier face and signature tests retained}
+
+The first investigation enumerated 1,557 rotation systems of six small
+common graphs and 229,372 rotation systems of their attachment-hub
+augmentations. The graphs were a four-cycle, $K_4$, the four-rim-vertex
+wheel, a three-path theta, a two-sum of two $K_4-pq$ graphs, and the
+triangular bipyramid. The 258 attachment-face states checked agree with
+the exact auxiliary-hub lemma. Fixed cycle-basis signatures distinguish
+the faces in all these embeddings. The two-sum example includes four
+different embeddings with changing face eligibility, so this check does
+not silently fix one common embedding.
+
+The local signature construction was also checked on 41,885 face-label
+assignments on connected incidence patterns with at most four blocks.
+These assignments satisfy the connectivity identities used in the proof;
+every resulting signature incidence graph is a tree. The general proof
+uses those identities explicitly through $U-v$ connectivity, rather than
+asserting independent face choices without a consistency argument.
+
+The listed cases directly cover $K_4$, a theta, and a wheel. The repair
+proof additionally covers arbitrary collections of noncycle common blocks
+meeting at a cutvertex and disconnected common components containing such
+vertices. Those unrestricted configurations are covered by the proof, not
+claimed to have been exhaustively enumerated by the small-graph programs.
+
+\subsection{A two-pole obstruction that passes common-rotation consistency}
+\label{ver:two-pole}
+
+The following instance tests the precise extra constraint retained by the
+new compilation. It is not enough to solve two-pole factors separately,
+even after requiring compatible common rotations globally.
+
+Let $K$ have the four common paths $p-a-q,p-b-q,p-c-q,p-d-q$. Take
+\[
+ V=\{p,q,a,b,c,d,w_1,w_2,x,y,r,s,t\}.
+\]
+In addition to $E(K)$, put the following edges in the two colours:
+\begin{center}
+\begin{tabular}{p{0.2\linewidth}p{0.7\linewidth}}
+\toprule
+Type & Edges \\
+\midrule
+Common & $qw_1,\;pw_2,\;px,\;qy$ \\
+Red private & $w_1a,\;w_2c,\;bc,\;da,\;xq,\;py,\;xr,\;ps,\;qt$ \\
+Blue private & $w_1b,\;w_2d,\;xs,\;sq,\;pt,\;ty,\;ry$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Both input graphs are connected and planar and the union is biconnected.
+The core consists of $K$ together with $w_1,w_2$. Its union is planar: use the order
+$a,b,c,d$, place $w_1$ in face $ab$, $w_2$ in $cd$, and the chords $bc,da$
+in their corresponding faces. The external factor on $p,q,x,y,r,s,t$,
+after addition of a common edge $pq$, is also a positive SEFE instance.
+Its nontrivial common component is the path $x-p-q-y$; its rotations
+agree automatically and its only face contains all isolated common vertices.
+Both colours are planar unions of three pole-to-pole paths and pendant
+edges. Thus the common-embedding criterion gives a simultaneous embedding
+of that augmented factor.
+
+For explicit global order consistency, the following are planar spherical
+rotations of the full graphs; every list is cyclic. The script verifies
+them by their face walks.
+\begin{center}
+\begin{tabular}{c l l}
+\toprule
+Vertex & Red & Blue \\
+\midrule
+$p$ & $a,x,s,b,c,w_2,y,d$ & $a,x,b,c,t,w_2,d$ \\
+$q$ & $a,d,y,t,c,b,x,w_1$ & $a,d,y,c,b,w_1,s$ \\
+$a$ & $p,d,q,w_1$ & $p,q$ \\
+$b$ & $p,q,c$ & $p,w_1,q$ \\
+$c$ & $p,b,q,w_2$ & $p,q$ \\
+$d$ & $p,q,a$ & $p,w_2,q$ \\
+$w_1$ & $q,a$ & $q,b$ \\
+$w_2$ & $p,c$ & $p,d$ \\
+$x$ & $p,q,r$ & $p,s$ \\
+$y$ & $p,q$ & $t,r,q$ \\
+$r$ & $x$ & $y$ \\
+$s$ & $p$ & $x,q$ \\
+$t$ & $q$ & $p,y$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Their common restrictions agree at every vertex. In particular, they give
+condition (O) for their prescribed block embeddings.
+
+Nevertheless, the full instance has no SEFE. The mixed paths $a-w_1-b$
+and $c-w_2-d$, and the red links $bc,da$, force the common P-order
+$a,b,c,d$ up to reversal. They put $w_1$ in face $ab$ and $w_2$ in $cd$.
+The set $Z=\{x,y,r,s,t\}$ is connected in $U-V(K)$, so it must occupy
+one $K$-face $F$. The red pole-to-pole paths through $x$ and $y$ cannot
+use faces $bc$ or $da$, since the red crosscuts there separate $p$ from
+$q$. Hence $F\in\{ab,cd\}$.
+
+If $F=ab$, consider the common germ $qy$. The red triangle $qw_1aq$
+forces it into the corner between $w_1$ and $b$ at $q$, because the
+red $p-y-q$ path cannot enter the cap bounded by that triangle.
+The blue triangle $qw_1bq$ forces the same germ into the other corner,
+between $a$ and $w_1$, because of the blue $p-t-y-q$ path. The common
+rotations cannot agree. If $F=cd$, the red triangle $pw_2cp$ and blue
+triangle $pw_2dp$ force the common germ $px$ into opposite corners,
+using the red $p-x-q$ and blue $p-x-s-q$ paths. This is again impossible.
+
+These arguments take place within one closed face disk and use only
+same-colour noncrossing and the common boundary. They permit crossings
+between private edges of different colours. In the displayed compatible
+rotations, $r$ is in face $ab$ in red and $cd$ in blue, so equality of
+common rotations alone indeed fails.
+
+The general compiler retains one variable $t_{K,Z}$ for the whole face of
+this component. Every pinned lobe must equal that same value. It therefore
+keeps exactly the constraint that the independent-factor shortcut loses.
+The example is a negative test of that shortcut, not a hardness reduction.
+
+\subsection{Other refuted simplifications and the parity check}
+
+An eight-vertex theta example already refutes gluing an arbitrary
+common-ended two-pole factor independently; a nine-vertex positive example
+shows that its common germs need not form one interval among all germs at
+the pole. Another positive example distinguishes which colour blocks
+contain the common germs, rather than merely recording the set of poles
+with common ends. Their full edge lists and rotation certificates are in
+the accompanying verification notes and programs.
+
+The four-dart triple-orientation relation has six possible values, so it
+is not the projection of an XOR system. This remains a valid obstruction
+to the unrestricted affine-reader proposal. The present proof uses complete
+categories and injective maps, and converts predicates to affine equations
+only after proving that their domain has at most two values.
+
+A separate exploratory enumeration used a theta with a common pendant edge
+and one isolated common vertex. It examined 3,413,220 individual rotation
+systems and 13,761 pairs of connected planar colour graphs in its prescribed
+finite family. Of the pairs, 4,803 admit a SEFE and 8,958 do not; 5,073 of
+the negative pairs nevertheless have compatible common rotations. A basic
+independently-even linear system happened to agree with the exact results
+on this family. This gives no general sufficiency result: the
+counterexamples of Gutwenger, Mutzel and Schaefer~\cite{gms2014} to
+Schaefer's Conjecture~6.20~\cite{schaefer} already rule one out (see
+also~\cite[p.~6]{fkmp2015} and~\cite[p.~137]{fps2017}). That experiment
+plays no role in the algorithm.
+
+\subsection{Scope of the checks}
+
+The recorded scripts test finite rotation and contour identities and the
+listed counterexample certificates.  They do not implement the entire
+algorithm and are not used in place of any general proof.  The source
+package contains the test programs and their recorded outputs.  Separate
+independent checks compared the face-list criterion of
+Section~\ref{rep:section} and the compiled constraints of
+Section~\ref{gen:section} with an exhaustive \SEFE{} oracle on small
+instances, and compared the exact feasible variable relations before and
+after individual engine operations of Section~\ref{cse:section}; they
+found no disagreement.  Like the checks above, they are evidence on small
+instances, not a proof.

@@ -1,0 +1,156 @@
+\section{Introduction}\label{sec:intro}
+
+The input to \sefe{} (\emph{simultaneous embedding with fixed edges} of two
+graphs) consists of finite simple planar graphs $G_1=(V,E_1)$ and
+$G_2=(V,E_2)$ on the same vertex set. The question is whether there are
+planar drawings $\Gamma_1$ of $G_1$ and $\Gamma_2$ of $G_2$ such that every
+vertex is drawn at the same point in both and every \emph{common} edge
+$e\in E_1\cap E_2$ is drawn as the same curve in both. Edges of
+$E_1\setminus E_2$ may cross edges of $E_2\setminus E_1$. We call
+$H=(V,E_1\cap E_2)$ the \emph{common graph}, its edges \emph{common}, and all
+other edges \emph{private}; $G_1$ is the red graph and $G_2$ the blue graph,
+and $U=G_1\cup G_2$ is their union.
+
+Simultaneous embeddings were introduced to visualize several related graphs
+on one vertex set; see the survey of Bl\"asius, Kobourov and
+Rutter~\cite{BKR13}. Gassner, J\"unger, Percan, Schaefer and
+Schulz~\cite{GJPSS06} showed that the problem is NP-complete for three input
+graphs, and hardness persists when the union has pathwidth at most
+five~\cite{DF26}. For two graphs the complexity has remained open. J\"unger
+and Schulz~\cite{JS09} showed that a simultaneous embedding exists if and
+only if the two inputs have embeddings that induce the same embedding of
+$H$: the same cyclic order of common edges around every vertex and the same
+relative positions of the components of $H$.
+
+\paragraph{Known tractable cases.}
+\sefe{} is polynomial when $H$ is biconnected~\cite{ADFPR12,HJL13}. For
+connected $H$, Fulek and T\'oth~\cite{FT22} gave a polynomial algorithm via
+atomic embeddability, and Bl\"asius, Fink and Rutter~\cite{BFR21} a
+quadratic one via \emph{Synchronized Planarity}. Schaefer~\cite{Sch13}
+showed tractability when every component of $H$ is biconnected or has
+maximum degree three. Bl\"asius and Rutter~\cite{BR15} solved the case where
+the embedding of every component of $H$ is fixed but the relative positions
+are free, which includes disjoint cycles. Bl\"asius, Karrer and
+Rutter~\cite{BKR18} gave a cubic algorithm for connected inputs in which
+the P-nodes and the simultaneous cutvertices (cutvertices of both inputs but
+not of their union) have common degree at most three; they also solve
+Schaefer's case in cubic time~\cite[Corollary~1(i)]{BKR18}, which covers
+cactus common graphs of maximum degree three.
+Parameterized algorithms appear in~\cite{FPR25,DF25,DF26}, and Carmesin and
+Turner~\cite{CT25} solve a 2-connected version for temporal sequences of
+graphs.
+
+These results leave open the combination of a disconnected common graph,
+which forces the drawing to decide which face of one component contains
+another, with common vertices of high degree whose cyclic order of common
+edges is determined by neither input. Bl\"asius, Karrer and Rutter identify
+edge orderings at cutvertices as the central difficulty in this
+regime~\cite{BKR18}, and Fink~\cite[Section~6.7]{Fin24} asks whether
+Synchronized Planarity can be extended to enforce consistent relative
+positions when the common graph is disconnected.
+Pfretzschner~\cite[Chapter~8]{Pfr22} carried out such an extension when
+both inputs are biconnected and have maximum degree four. He augments
+Synchronized Planarity with triples consisting of two edges of a
+cycle-basis cycle and an attached edge, whose orientations are linked by
+parity constraints, shows how the triples transform under the operations,
+and obtains a quadratic algorithm~\cite[Theorem~8.16]{Pfr22}; this covers
+cactus common graphs, including disconnected ones, when both inputs are
+biconnected of maximum degree four. Our local gap observations and their
+transport through PropagatePQ follow the same idea. Unbounded degree
+requires three further ingredients: new pipes that carry observations, an
+inverse for joining two stars that works component by component, and a
+permutation of parallel bonds that preserves all gaps.
+
+\paragraph{Our result.}
+A \emph{cactus} is a graph in which every block is a single edge or a simple
+cycle; equivalently, two cycles share at most one vertex. We allow a
+disconnected common cactus with isolated vertices, bridges, and any number
+of cutvertices of any degree. $N$ denotes the number of vertices and edges
+of the input.
+
+\begin{theorem}\label{thm:main}
+\sefe{} can be decided in $O(N^3)$ time for instances whose common graph is
+a cactus. For a positive instance, a pair of compatible combinatorial
+embeddings, including the relative positions of all components, is
+constructed within the same time bound.
+\end{theorem}
+
+Time is counted in operations of a word RAM with words of $\Theta(\log N)$
+bits. Combined with a reduction of Bl\"asius, Karrer and
+Rutter~\cite{BKR18}, the same bound holds when every component of the common
+graph is a cactus or $2$-connected (Corollary~\ref{cor:v4i-mixed}).
+
+\subsection{Overview}\label{sec:intro-overview}
+The proof has four steps; each section begins by stating its input and
+output.
+
+\paragraph{Normalization.}
+Using known reductions we make both inputs connected, replace every common
+bridge by a common triangle, and split at cutvertices of the union
+(Theorem~\ref{thm:v4-normalize}). In the resulting factors $U$ is
+biconnected, both colours are connected, and $H$ is a bridgeless cactus plus
+isolated vertices.
+
+\paragraph{Repairing block placements.}
+For a common cycle $C$ and a component $Z$ of $U-V(C)$, every simultaneous
+embedding draws all of $Z$ on one side of $C$, because $Z$ is connected in
+$U$ and the curve of $C$ is common. The repair theorem
+(Theorem~\ref{thm:v4-repair}) shows that a weak, block-level form of this
+condition suffices. It asks only for embeddings of the blocks of both
+colours whose common edge orders at every vertex fit together, and in which
+the vertices of the block containing $C$ lie on sides of $C$ that depend
+only on their component $Z$. The block embeddings are kept, and only the
+attachments at cutvertices are rebuilt. The key fact is that at a vertex on
+several common cycles the vectors of side bits form a tree with one edge per
+cycle, for every choice of the side bits; so the face structure of the
+common graph at that vertex is forced.
+
+\paragraph{Compilation.}
+Inside a block, the side of a vertex with respect to a common cycle is the
+orientation of a triple of directions at one node of an embedding tree: a
+rigid reflection, or the gap of a parallel skeleton between the two
+directions carrying the cycle (Lemma~\ref{lem:v4-frontier}(c)). We represent all
+blocks by their complete families of embedding trees, which have linear
+total size (Lemma~\ref{lem:v4-trees}), glue the red and blue trees at every
+vertex along common edges, and obtain an instance of Synchronized Planarity
+augmented by marked cycles and parity constraints on local gap observations.
+It has linear size (Theorem~\ref{thm:v4-compile}).
+
+\paragraph{Local-gap Synchronized Planarity.}
+Rigid reflections are native to Synchronized Planarity, whose Q-vertices
+are grouped into consistently oriented cells; gap observations are not. We
+run the operations of Bl\"asius, Fink and Rutter, unchanged up to
+subdivided edges, and show how each
+transforms the observations by explicit parity updates
+(Theorem~\ref{thm:eng4-main}). The pipe-free instance at the end is solved
+in linear time by reading all observations off the embedding trees of its
+blocks (Theorem~\ref{thm:eng4-terminal}).
+
+\paragraph{Where the cactus property is used.}
+That common rotations and side bits determine the embedding of $H$ does not
+need the cactus property: in every connected plane graph the faces are
+distinguished by their sides with respect to the cycles, since two faces are
+separated by a minimal edge cut of the dual graph, which is a cycle
+(compare~\cite[Theorem~8]{BKR18}). The property that
+two common cycles share at most one vertex is used in two places. First,
+the common cycles through a vertex form a flower, which gives the forced
+tree of side vectors in the repair theorem. Second, a parallel skeleton
+displays at most one common cycle (Lemma~\ref{lem:v4-display}), so all gap
+observations at a P-vertex refer to a single pair of anchors, and for one
+anchor pair every assignment of gap bits is realizable. For a common block
+that is neither an edge nor a cycle both properties can fail. Arbitrary
+families of gap observations at one vertex need not be describable by
+parity constraints (Remark~\ref{rem:eng4-anchors}); this limits a direct
+extension of our bookkeeping, but does not show that every extension beyond
+cacti must fail.
+
+\subsection{Organization}
+Section~\ref{sec:v4-prelim} collects preliminaries and the normalization,
+Section~\ref{sec:v4-repair} proves the repair theorem,
+Section~\ref{sec:v4-lang} defines the target language,
+Section~\ref{sec:v4-compile} recalls SPQR and embedding trees and compiles
+normalized instances into it, and
+Section~\ref{sec:eng4} solves the compiled instances.
+Section~\ref{sec:v4i-conclusion} assembles the running time and discusses
+open questions. The appendix proves a variant of a normalization lemma
+of Bl\"asius and Rutter~\cite{BR15}.

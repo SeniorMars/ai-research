@@ -1,0 +1,377 @@
+\section{The repair theorem}\label{sec:v4-repair}
+
+Throughout this section $(G_1,G_2)$ is a normalized instance
+(Definition~\ref{def:v4-normalized}). Every common edge lies on exactly one
+common cycle, the common darts at a vertex $v$ are the darts
+$c_{\mathrm{out}}(C,v),c_{\mathrm{in}}(C,v)$ of the common cycles $C$ through
+$v$, and $U-v$ is connected for every vertex $v$. Every common cycle $C$
+carries one fixed traversal, used in both colours; as a cycle of $G_i$ it
+lies in a unique block $B_i(C)$ of $G_i$. Let $\mathcal Z_C$ be the set of
+components of $U-V(C)$. Blocks are taken with their colour: a block of $G_1$
+and a block of $G_2$ are different objects even if they have the same edges.
+
+\begin{definition}\label{def:v4-datum}
+A \emph{block datum} consists of a planar embedding $\mathcal E(B)$ of every
+block $B$ of $G_1$ and of $G_2$, and a \emph{side assignment} $s$, a bit
+$s(C,Z)$ for every common cycle $C$ and $Z\in\mathcal Z_C$. We write
+$s(C,x)=s(C,Z)$ for $x\in Z$, and $s(C,Y)$ for the common value on a
+connected subgraph $Y$ of $U-V(C)$.
+\end{definition}
+
+\begin{theorem}[repair]\label{thm:v4-repair}
+A normalized instance $(G_1,G_2)$ has a SEFE if and only if it has a block
+datum such that
+\begin{enumerate}[label=(R\arabic*),leftmargin=3em]
+\item\label{it:v4-R1} at every vertex $v$ there is a cyclic order $\omega_v$
+of the common darts at $v$ that restricts, for every block $B$ of either
+colour at $v$, to the order of the common darts of $B$ in $\mathcal E(B)(v)$,
+and in which, for $i=1,2$, the partition of the common darts by the blocks
+of $G_i$ is noncrossing;
+\item\label{it:v4-R2} $\side_{\mathcal E(B_i(C))}(C,x)=s(C,x)$ for every
+common cycle $C$, colour $i$ and $x\in V(B_i(C))\setminus V(C)$.
+\end{enumerate}
+Moreover, from such a datum a SEFE is computed in $O(N^2)$ time; its colour
+embeddings restrict to $\mathcal E(B)$ on every block $B$, and every vertex
+$x\notin V(C)$ lies on side $s(C,x)$ of every common cycle $C$.
+\end{theorem}
+
+The orders $\omega_v$ certify compatibility of the block orders; they need
+not be the common rotations of the final embedding.
+
+By Lemma~\ref{lem:v4-partitions}, \ref{it:v4-R1} at $v$ is a planarity
+condition on a bipartite map on the blocks at $v$, and $\omega_v$ is computed
+in linear time.
+
+\emph{Intuition.} The side assignment fixes on which side of every petal at
+$v$ every other petal lies, hence the face tree $T_v$ of the common flower at
+$v$ (Figure~\ref{fig:v4-flower}). By~\ref{it:v4-R2} each block's own flower
+is a subtree of $T_v$; the old order $\omega_v$ only orders the petals around
+each node of $T_v$, the contour of this plane tree is the new common
+rotation, and the other darts of each block are attached to it.
+
+\begin{lemma}[necessity]\label{lem:v4-necessary}
+Let $(\Gamma_1,\Gamma_2)$ be a SEFE, $C$ a common cycle and $Z\in\mathcal
+Z_C$. All vertices of $Z$ lie on one side of $C$, the same in both drawings.
+The restrictions of $\Gamma_i$ to the blocks and these sides form a block
+datum satisfying~\ref{it:v4-R1} and~\ref{it:v4-R2}, with $\omega_v$ the
+common rotation at $v$.
+\end{lemma}
+
+\begin{proof}
+$C$ is the same closed curve in both drawings. The vertices of $Z$ with the
+edges of both colours between them form a connected set avoiding this
+curve. The common rotation at $v$ restricts to the order of the common
+darts of every block, and the partitions are noncrossing by
+Lemma~\ref{lem:v4-assembly}(a); \ref{it:v4-R2} holds since sides do not
+change under restriction.
+\end{proof}
+
+\subsection{Centres and signature trees}\label{sec:v4-sigtree}
+
+A \emph{centre} is a vertex on at least one common cycle; the common cycles
+through a centre $v$ are its \emph{petals}, forming the set $F_v$. They
+pairwise share only $v$. For a block $B$ of $G_i$ at $v$ let
+\[
+J_v(B)=\{C\in F_v: B_i(C)=B\};
+\]
+these are the petals whose darts at $v$ are darts of $B$, so $B$ has a
+common dart at $v$ if and only if $J_v(B)\neq\emptyset$. If $C\in F_v\setminus
+J_v(B)$, then $V(B)\cap V(C)=\{v\}$, as distinct blocks share at most one
+vertex; moreover $C-v$ lies in the component $D_{B_i(C)}\neq D_B$ of $G_i-v$
+(Section~\ref{sec:v4-assembly}). So $D_B$ is connected and disjoint from
+$V(C)$, and $s(C,B-v)=s(C,D_B)$ is defined.
+
+Fix a side assignment $s$ and a centre $v$. For a petal $E$ and $b\in\Ftwo$
+let $q(E,b)\in\Ftwo^{F_v}$ have $q(E,b)_E=b$ and $q(E,b)_C=s(C,E-v)$ for
+$C\neq E$ (the path $E-v$ is connected and disjoint from $V(C)$). The
+\emph{signature tree} $T_v(s)$ has the distinct vectors $q(E,b)$ as its
+vertices and, for every petal $E$, an edge $E$ joining its \emph{ends}
+$q(E,0)\neq q(E,1)$. For a connected subgraph $Y$ of $U-v$ disjoint from
+all petals let $q(Y)_C=s(C,Y)$.
+
+\begin{lemma}[signature tree]\label{lem:v4-sigtree}
+For every side assignment $s$ and centre $v$, $T_v(s)$ is a tree with
+$|F_v|$ edges. For every petal $C$ the two components of $T_v(s)-C$ consist
+of the vertices with $C$-coordinate $0$ and $1$, and contain $q(C,0)$ and
+$q(C,1)$. For every connected subgraph $Y$ of $U-v$ disjoint from all
+petals, $q(Y)$ is a vertex of $T_v(s)$.
+\end{lemma}
+
+\begin{proof}
+\emph{Forest.} The coordinate $C$ changes along the edge $C$ and along no
+other edge, so along a cycle of $T_v(s)$ it would change exactly once.
+\emph{Connected.} Call petals $E\neq F$ \emph{adjacent} if a path $P$ in
+$U-v$ without inner vertices on petals joins $E-v$ to $F-v$. Cutting a path
+of the connected graph $U-v$ at its vertices on petals shows that the
+adjacency graph is connected. For adjacent $E,F$ and $C\notin\{E,F\}$ the
+set $(E-v)\cup P\cup(F-v)$ is connected and avoids $V(C)$, so
+$s(C,E-v)=s(C,F-v)$; hence $q(E,s(E,F-v))=q(F,s(F,E-v))$, and the edges
+$E,F$ share an end. So $T_v(s)$ is a tree, the coordinate $C$ is constant on
+the components of $T_v(s)-C$, and the ends of $C$ lie in different ones.
+\emph{Signatures.} A path in $U-v$ from $Y$ to the petals first meets them
+at $w\in E-v$; as the path avoids all other petals before $w$,
+$q(Y)_C=s(C,E-v)$ for $C\neq E$, and $q(Y)\in\{q(E,0),q(E,1)\}$.
+\end{proof}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[scale=0.8,
+  vtx/.style={circle,fill,inner sep=1.2pt},
+  lab/.style={font=\scriptsize}]
+\begin{scope}
+\node[vtx,label={[lab]below:$v$}] (v) at (0,0) {};
+\draw[thick] (0,0) to[out=-40,in=-90] node[vtx,pos=0.55]{} (3,0)
+  to[out=90,in=40] node[vtx,pos=0.45]{} (0,0);
+\draw[thick] (0,0) to[out=-22,in=-90] node[vtx,pos=0.55]{} (1.4,0)
+  to[out=90,in=22] node[vtx,pos=0.45]{} (0,0);
+\draw[thick] (0,0) to[out=140,in=90] node[vtx,pos=0.55]{} (-1.9,0)
+  to[out=-90,in=-140] node[vtx,pos=0.45]{} (0,0);
+\draw[-{Stealth[length=5pt]}] (3,-0.12) -- (3,0.12);
+\draw[-{Stealth[length=5pt]}] (1.4,-0.1) -- (1.4,0.12);
+\draw[-{Stealth[length=5pt]}] (-1.9,0.12) -- (-1.9,-0.12);
+\node[lab] at (3.25,0.35) {$E_1$};
+\node[lab] at (1.62,0.3) {$E_2$};
+\node[lab] at (-2.15,0.35) {$E_3$};
+\node[lab] at (0.7,0) {$001$};
+\node[lab] at (2.1,0) {$011$};
+\node[lab] at (-1.05,0) {$110$};
+\node[lab] at (0.6,1.15) {$111$};
+\end{scope}
+\begin{scope}[xshift=4.4cm]
+\node[vtx,label={[lab]below:$110$}] (a) at (0,0) {};
+\node[vtx,label={[lab]below:$111$}] (b) at (1.2,0) {};
+\node[vtx,label={[lab]below:$011$}] (c) at (2.4,0) {};
+\node[vtx,label={[lab]below:$001$}] (d) at (3.6,0) {};
+\draw[thick] (a) -- node[lab,above] {$E_3$} (b)
+  -- node[lab,above] {$E_1$} (c) -- node[lab,above] {$E_2$} (d);
+\end{scope}
+\end{tikzpicture}
+\caption{A flower with petals $E_1,E_2,E_3$ at $v$, all traversed
+counter-clockwise, so that the inside of a petal is its left side $0$
+(left), and its signature tree (right). Vectors list the coordinates of
+$E_1,E_2,E_3$; for example $q(E_2,0)=001$ because $E_2-v$ lies inside $E_1$
+and outside $E_3$. The counter-clockwise order of the six petal darts at $v$
+is the contour of the tree (Lemma~\ref{lem:v4-flower}).}
+\label{fig:v4-flower}
+\end{figure}
+
+\subsection{Flowers inside blocks}\label{sec:v4-flowers}
+
+A \emph{flower} with centre $v$ is a union of directed cycles, its petals,
+pairwise sharing exactly $v$. In a planar drawing of a flower $F$ with petal
+set $J$, the \emph{face tree} $S(F)$ has the faces as nodes and, for every
+petal $P$, an edge $P$ joining the face on side $0$ of $P$ along the edges of
+$P$, the end $(P,0)$, to the face on side $1$, the end $(P,1)$.
+
+\begin{lemma}[flowers]\label{lem:v4-flower}
+For a planarly drawn flower $F$ with centre $v$, $S(F)$ is well defined and
+is a tree; distinct faces have distinct side vectors. The rotation at $v$,
+with $c_{\mathrm{out}}(P,v)$ read as the traversal of $P$ from $(P,1)$ to
+$(P,0)$ and $c_{\mathrm{in}}(P,v)$ as the reverse, is the contour of $S(F)$
+for exactly one rotation system, and the rotation at a node $t$ is then the
+restriction of the rotation at $v$ to the darts $c_{\mathrm{out}}(P,v)$ of
+the edges $P$ at $t$.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:v4-faces} $F$ has $|J|+1$ faces with distinct side
+vectors. Points near an edge of $P$ on side $b$ of $P$ lie, for $P'\neq P$,
+on the side of $P'$ containing $P-v$; so all edges of $P$ have the same face
+on side $b$, and the two ends differ. Every face is bounded by an edge of
+some petal, so it is an end and touches $v$. A small counter-clockwise
+circle around $v$ crosses $c_{\mathrm{out}}(P,v)$ from side $1$ to side $0$
+of $P$ and $c_{\mathrm{in}}(P,v)$ the other way; it is a closed walk in
+$S(F)$ that visits every node and uses every edge once in each direction, so
+$S(F)$ is connected with $|J|+1$ nodes and $|J|$ edges, a tree. Let
+$\rho(t)$ map each edge along which the walk enters $t$ to the edge along
+which it leaves next. If $\rho(t)$ had several cycles, splitting $t$
+accordingly would disconnect the tree, while the walk is a single orbit of
+the successor map of the split graph using all edges. So $\rho$ is a
+rotation system with the walk as its contour, and it is determined by the
+contour. The last statement is Lemma~\ref{lem:v4-median}(b).
+\end{proof}
+
+For a block $B$ of $G_i$ at a centre $v$ with $J_v(B)\neq\emptyset$, the
+petals in $J_v(B)$ form a flower $F_B\subseteq B$ drawn by $\mathcal E(B)$;
+let $S_B=S(F_B)$ with the rotation system of Lemma~\ref{lem:v4-flower}. For
+a face $f$ of $F_B$ let $\varphi_B(f)_C$ be the side of $C$ containing $f$ if
+$C\in J_v(B)$, and $s(C,B-v)$ otherwise.
+
+\begin{lemma}[block subtrees]\label{lem:v4-subtree}
+Assume~\ref{it:v4-R2}. Then $\varphi_B$ is an isomorphism from $S_B$ onto the
+subtree $T_B$ of $T_v(s)$ formed by the edges $J_v(B)$ and their ends, mapping
+the end $(E,b)$ to $q(E,b)$; every vertex of $T_B$ has $C$-coordinate
+$s(C,B-v)$ for $C\notin J_v(B)$.
+\end{lemma}
+
+\begin{proof}
+Let $f$ be the end $(E,b)$; then $\varphi_B(f)_E=b$. For $C\in J_v(B)$,
+$C\neq E$, points near the edges of $E$ lie on the side of $C$ containing
+$E-v$, which is $s(C,E-v)$ by~\ref{it:v4-R2}, since $V(E-v)\subseteq
+V(B)\setminus V(C)$ and $B=B_i(C)$. For $C\notin J_v(B)$,
+$s(C,B-v)=s(C,E-v)$ as $E-v\subseteq B-v$. So $\varphi_B(f)=q(E,b)$. Every
+face is an end, so $\varphi_B$ maps nodes to vertices and the edge $E$ to the
+edge $E$; it is injective since distinct faces of $F_B$ have distinct side
+vectors over $J_v(B)$. An injective map of a tree that sends edges to edges
+is an isomorphism onto its image.
+\end{proof}
+
+\subsection{Orders at a centre}\label{sec:v4-centre}
+
+\begin{lemma}[private runs]\label{lem:v4-runs}
+Let $\mathcal B$ be a set of pairwise disjoint finite sets with cyclic orders
+$\theta_B$, and $\emptyset\ne M\subseteq\bigcup\mathcal B$ a set of
+\emph{marked} elements. Let $\omega$ be a cyclic
+order of $M$ that restricts to $\theta_B|_{M\cap B}$ for every $B$ and in
+which the sets $M\cap B$ are noncrossing. Replace every marked $d\in B$ by
+$d$ followed by the \emph{run} of unmarked elements that follow $d$ in
+$\theta_B$ before the next marked one, and insert every $B$ with $M\cap
+B=\emptyset$, cut anywhere, into the corner after the last element of the
+run of some marked $d$ (several sets one after another). The result $\omega^+$ restricts to every $\theta_B$, the
+sets $B$ are noncrossing in it, and every unmarked element of a set with a
+marked element, or inserted after the run of $d$, lies between $d$ and its
+successor in $\omega$.
+\end{lemma}
+
+\begin{proof}
+The runs of $B$ appear in the order of their marked elements, which is
+$\theta_B|_{M\cap B}$, so $\omega^+$ restricts to $\theta_B$; inserted sets
+are intervals. Suppose sets $B,B'$ with marked elements interleave via
+$a,b,a',b'$. Delete the inserted sets; the runs are intervals, and $a,a'$
+lie in different runs since an interval containing both would contain $b$
+or $b'$. By Lemma~\ref{lem:v4-intervals}(a) the marked heads of the runs of
+$a,b,a',b'$ interleave in $\omega$, a contradiction.
+\end{proof}
+
+\begin{lemma}[orders at a centre]\label{lem:v4-centre}
+Let a block datum satisfy~\ref{it:v4-R1} and~\ref{it:v4-R2}, and let $v$ be a
+centre. There are cyclic orders $\omega^1_v,\omega^2_v$ of the darts of $G_1$
+and of $G_2$ at $v$ such that
+\begin{enumerate}[label=(\roman*),nosep]
+\item $\omega^i_v$ restricts to $\mathcal E(B)(v)$ for every block $B$ of
+$G_i$ at $v$, and the dart sets of distinct such blocks do not interleave;
+\item $\omega^1_v$ and $\omega^2_v$ restrict to the same order of the common
+darts;
+\item for every block $B$ of $G_i$ at $v$ and $C\in F_v\setminus J_v(B)$,
+$\gap_{\omega^i_v}(C,v,d)=s(C,B-v)$ for every dart $d$ of $B$ at $v$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+Let $T=T_v(s)$ and $\omega_v$ as in~\ref{it:v4-R1}. For a node $t$ of $T$
+with edge set $J_t$ let $\rho_t$ be the restriction of $\omega_v$ to the
+darts $c_{\mathrm{out}}(E,v)$, $E\in J_t$, read as an order of $J_t$. Let
+$\omega'_v$ be the contour of the plane tree $(T,\rho)$, read as an order of
+the common darts as in Lemma~\ref{lem:v4-flower}. Let $B$, $B'$ be distinct
+blocks of $G_i$ at $v$ with common darts.
+
+(1) \emph{$\omega'_v$ restricts to $\mathcal E(B)(v)$ on the common darts of
+$B$.} By Lemma~\ref{lem:v4-flower} and~\ref{it:v4-R1}, the rotation of
+$T_B$ at $t$ transported from $S_B$ by Lemma~\ref{lem:v4-subtree} is the
+restriction of $\omega_v$, hence of $\rho_t$. So $T_B$ with the restricted
+rotations is $S_B$, and by Lemma~\ref{lem:v4-median}(c) the restriction of
+$\omega'_v$ is the contour of $S_B$, which is the order of the petal darts
+in $\mathcal E(B)(v)$ (Lemma~\ref{lem:v4-flower}).
+
+(2) \emph{The common darts of $B$ and $B'$ do not interleave in $\omega'_v$.}
+The subtrees $T_B,T_{B'}$ are edge-disjoint, so they share at most one node.
+If they share none, let $e$ be the edge by which the path from $T_B$ to
+$T_{B'}$ leaves $T_B$; by Lemma~\ref{lem:v4-median}(a) the traversals behind
+$e$ form an interval containing the darts of $B'$ and none of $B$. If they
+share $t$, every edge of $T_B$ is at $t$ or behind an edge of $T_B$ at $t$,
+and no edge of $T_{B'}$ is behind one; so the darts of $B$ and $B'$ lie in
+the excursions (Lemma~\ref{lem:v4-median}(b)) along $J_v(B)\cap J_t$ and
+$J_v(B')\cap J_t$, which do not interleave in $\rho_t$ by~\ref{it:v4-R1}, and
+Lemma~\ref{lem:v4-intervals}(a) applies.
+
+(3) \emph{Let $C\in F_v$ and let $T^C_b$ be the component of $T-C$ with
+$C$-coordinate $b$. For a common dart $q$ whose traversal ends in $T^C_b$,
+$\lambda_{\omega'_v}(C,v,q)=b$.} By Lemma~\ref{lem:v4-median}(a) for the
+traversal $c_{\mathrm{out}}(C,v)$, from $q(C,1)$ to $q(C,0)$, the open
+interval $(c_{\mathrm{out}}(C,v),c_{\mathrm{in}}(C,v))_{\omega'_v}$ consists
+of the traversals of the edges of $T^C_0$; a traversal of an edge of $T^C_b$
+ends in $T^C_b$, $c_{\mathrm{out}}(C,v)$ ends in $T^C_0$ and
+$c_{\mathrm{in}}(C,v)$ in $T^C_1$.
+
+\emph{Completion.} Fix $i$. A block $Y$ of $G_i$ at $v$ without common darts
+has $Y-v$ disjoint from all petals, so $q_Y=q(Y-v)$ is a vertex of $T$
+(Lemma~\ref{lem:v4-sigtree}); choose a common dart $d_Y$ whose traversal
+ends at $q_Y$. Apply Lemma~\ref{lem:v4-runs} to $\omega'_v$, the rotations
+$\mathcal E(B)(v)$ of the blocks of $G_i$ at $v$ and the common darts as
+marked elements (there are some, as $v$ is a centre, and each is a dart of a
+block of $G_i$ at $v$), inserting every such $Y$ after the run of $d_Y$; let
+$\omega^i_v$ be the result. Its hypotheses hold by (1) and (2), which gives
+(i), and (ii) holds by construction. For (iii) let $b=s(C,B-v)$. If $B$ has
+common darts, $T_B$ avoids the edge $C$ and its vertices have
+$C$-coordinate $b$ (Lemma~\ref{lem:v4-subtree}), so $T_B\subseteq T^C_b$; a
+common dart $d$ of $B$ is not a dart of $C$, so
+$\gap_{\omega^i_v}(C,v,d)=\lambda_{\omega'_v}(C,v,d)=b$ by (3), and every
+private dart of $B$ lies in the corner after a common dart of $B$
+(Lemma~\ref{lem:v4-runs}). If $B=Y$ has none, its darts lie in the corner
+after $d_Y$, whose traversal ends at $q_Y\in T^C_b$, and (3) applies.
+\end{proof}
+
+\subsection{Proof of the repair theorem}\label{sec:v4-global}
+
+\begin{proof}[Proof of Theorem~\ref{thm:v4-repair}]
+Necessity is Lemma~\ref{lem:v4-necessary}. Let a block datum
+satisfy~\ref{it:v4-R1} and~\ref{it:v4-R2}. For $i=1,2$ let $\mathcal E'_i$ be
+the rotation system of $G_i$ with rotation $\omega^i_v$
+(Lemma~\ref{lem:v4-centre}) at every centre $v$, the rotation of
+$\mathcal E(B)$ at every other vertex that lies in one block $B$, and at every
+other cutvertex the concatenation of the rotations of its blocks, each cut
+anywhere. By Lemma~\ref{lem:v4-centre}(i) and
+Lemma~\ref{lem:v4-assembly}(c), $\mathcal E'_i$ is planar and restricts to
+$\mathcal E(B)$ on every block $B$ of $G_i$; it is an embedding since $G_i$
+is connected. Every common dart is at a centre, so by
+Lemma~\ref{lem:v4-centre}(ii) the common rotations agree.
+
+\emph{Sides.} Let $C$ be a common cycle, $x\notin V(C)$ and $B=B_i(C)$. We
+show $\side_{\mathcal E'_i}(C,x)=s(C,x)$. If $x\in V(B)$ this
+is~\ref{it:v4-R2}, as $\mathcal E'_i$ restricts to $\mathcal E(B)$.
+Otherwise the path in the block-cut tree of $G_i$ from $B$ to $x$ leaves $B$
+at a cutvertex $w\in V(B)$, and $x$ lies in a component $D$ of $G_i-w$ with
+$V(D)\cap V(B)=\emptyset$; $D=D_{B'}$ for a block $B'\neq B$ at $w$.
+If $w\notin V(C)$, $D\cup\{w\}$ is connected and avoids $V(C)$, so $x$ has
+the side of $w$, which is $s(C,w)=s(C,x)$ by the first case. If $w\in V(C)$,
+then $w$ is a centre, $C\in F_w\setminus J_w(B')$, and by
+Lemma~\ref{lem:v4-centre}(iii) and Lemma~\ref{lem:v4-sector}
+$\side_{\mathcal E'_i}(C,D)=s(C,B'-w)=s(C,x)$, since $D$ is connected in
+$U-V(C)$ and contains $B'-w$ and $x$. By Lemma~\ref{lem:v4-charact},
+$\mathcal E'_1,\mathcal E'_2$ are the embeddings of a SEFE with the stated
+properties.
+
+\emph{Time.} Labelling the components of all $U-V(C)$ takes $O(N^2)$ time.
+At a centre $v$ with $k_v=|F_v|\le\delta_v=\deg_{G_1}(v)+\deg_{G_2}(v)$,
+$\omega_v$ takes $O(\delta_v)$ time (Lemma~\ref{lem:v4-partitions}),
+$T_v(s)$ takes $O(k_v^2)$ by radix sort of the vectors $q(E,b)$, locating the
+$q_Y$ takes $O(k_v\delta_v)$ with a binary trie, and the contour and runs
+take $O(\delta_v)$; in all $O(N^2)$, and the assembly is linear.
+\end{proof}
+
+\subsection{Lobes}\label{sec:v4-lobes}
+
+\begin{lemma}[counting]\label{lem:v4-count}
+Let $W$ be a biconnected loopless multigraph with at least three vertices
+and $\mathcal C$ a set of cycles of $W$ whose union is a cactus. Then
+$\sum_{C\in\mathcal C}\operatorname{cc}(W-V(C))\le2|E(W)|$, where
+$\operatorname{cc}$ counts components.
+\end{lemma}
+
+\begin{proof}
+Each $C\in\mathcal C$ is a block of the cactus $\bigcup\mathcal C$. Root
+every component of its block-cut tree at a block, and let $r_C$ be the
+parent cutvertex of $C$, or any vertex of $C$ if $C$ is a root. The sets
+$V(C)\setminus\{r_C\}$ are pairwise disjoint: a vertex $u$ on several members
+is a cutvertex of the cactus, and all blocks at $u$ except its parent are
+children of $u$. Let $Y$ be a component of $W-V(C)$. If $Y$ had at most one
+neighbour on $C$, this neighbour would be a cutvertex of $W$, or $W$ would be
+disconnected; so we may charge $Y$ to an edge $yz$ with $y\in Y$ and $z\in
+V(C)\setminus\{r_C\}$. Through its end $z$ an edge is charged at most once,
+since $z$ determines $C$ and $y$ determines $Y$. So every edge is charged at
+most twice.
+\end{proof}
+
+Hence $\sum_C|\mathcal Z_C|\le2|E(U)|$ ($W=U$), and, applied to the
+blocks of $G_1,G_2$ containing common cycles, the graphs $B_i(C)-V(C)$ have
+at most $2(|E_1|+|E_2|)$ components in all.

@@ -1,0 +1,807 @@
+\section{Assembling prescribed block embeddings}
+\label{rep:section}
+
+This section gives an exact assembly criterion for arbitrary common graphs.
+The criterion takes the embeddings of the blocks of the two input graphs as
+part of its input.  It does not choose those embeddings.  Its purpose is to
+separate that remaining choice from the problem of assembling blocks and
+placing disconnected common components.  For a common cycle the criterion
+reduces to the side condition in the repair theorem of the cactus
+manuscript~\cite{cactus}.  For a general common block it contains an additional,
+necessary requirement: the chosen face must be incident with every attachment
+of the component placed there.
+
+\subsection{The face-list criterion}
+\label{rep:criterion}
+
+Throughout this section, $G_1$ and $G_2$ are connected simple planar graphs on
+the same vertex set, and their union $U=G_1\cup G_2$ is biconnected and has at
+least three vertices.  Their common graph $H=G_1\cap G_2$ is arbitrary.  In
+particular, $H$ may have bridges, isolated vertices, and disconnected
+components.  A \emph{block} with an edge is either a maximal biconnected
+subgraph with at least three vertices or a bridge together with its ends.
+Blocks of different colours are treated as different objects, even when their
+edge sets coincide.
+
+Prescribe an oriented planar embedding $\mathcal E_B$ of every block $B$ of
+each colour.  Write $\rho_B(v)$ for its rotation at $v$.  Embeddings are on an
+oriented sphere; no outer face is distinguished, and a prescribed embedding
+is not silently allowed to be reflected.  Every common block $K$ is contained
+in a unique block $B_i(K)$ of colour $i$.  For a common bridge this is the
+unique colour block containing its edge.
+
+For a vertex $v$, let $D_H(v)$ be its set of common darts, and let $D_B(v)$
+be its dart set in a colour block $B$.  The first condition
+on the prescribed embeddings is
+\begin{equation}
+\tag{O}\label{rep:eq:order}
+\begin{gathered}
+\text{there is a cyclic order $\omega_v$ of $D_H(v)$ that restricts to}
+\\[-1mm]
+\rho_B(v)|_{D_H(v)\cap D_B(v)}\text{ for every colour block $B$ at $v$,}
+\\[-1mm]
+\text{and makes the partition by blocks of each colour noncrossing.}
+\end{gathered}
+\end{equation}
+Empty parts are ignored.  Here two disjoint parts interleave if four distinct
+elements, two from each part, occur alternately in the cyclic order.
+
+If~\eqref{rep:eq:order} holds, the embeddings induced on a common block $K$
+from $\mathcal E_{B_1(K)}$ and $\mathcal E_{B_2(K)}$ have the same rotation at
+every vertex of $K$.  They therefore define the same oriented embedding of
+the connected graph $K$.  Denote it by $\kappa_K$ and its set of faces by
+$\mathcal F(K)$.  Faces may be identified by their oriented facial walks.
+The two faces of a cycle remain distinct under this convention, although
+their unoriented boundary edge sets are equal.  A bridge block has one face.
+The faces $F_i(K,Y)$ and the entries of the lists $L(K,Z)$ below are faces of $\kappa_K$, so
+they are defined only when~\eqref{rep:eq:order} holds.  Accordingly, in
+Theorem~\ref{rep:thm:repair} the condition $L(K,Z)\ne\varnothing$ is
+evaluated under~\eqref{rep:eq:order}, and the algorithm of
+Section~\ref{rep:algorithm} forms the lists only after
+checking~\eqref{rep:eq:order}.
+
+For $Z\in\cc(U-V(K))$, put
+\[
+ A_K(Z)=N_U(Z)\cap V(K).
+\]
+A \emph{colour-$i$ lobe of $K$} is a component
+$Y\in\cc(B_i(K)-V(K))$.  Its prescribed embedding places $Y$ in a unique
+face of $\kappa_K$, denoted by $F_i(K,Y)$.  Every such $Y$ is contained in a
+unique component $Z$ of $U-V(K)$.  Define
+\begin{equation}
+\label{rep:eq:face-list}
+\begin{split}
+ L(K,Z)={}&\{F\in\mathcal F(K):A_K(Z)\subseteq V(\partial F)\}
+ \\
+ &{}\cap
+ \bigcap_{\substack{i\in\{1,2\},\;Y\in\cc(B_i(K)-V(K))\\Y\subseteq Z}}
+ \{F_i(K,Y)\}.
+\end{split}
+\end{equation}
+If there is no lobe in the displayed intersection, only the attachment
+condition in the first line is imposed.
+
+\begin{theorem}[Face-list repair]
+\label{rep:thm:repair}
+There is a \SEFE{} whose colour embeddings restrict to every prescribed
+$\mathcal E_B$ if and only if~\eqref{rep:eq:order} holds and
+$L(K,Z)\ne\varnothing$ for every common block $K$ and every
+$Z\in\cc(U-V(K))$.
+
+Moreover, after independently choosing
+\[
+ F(K,Z)\in L(K,Z)
+\]
+for every such pair, one can construct a \SEFE{} that preserves all
+$\mathcal E_B$ and places $Z$ in $F(K,Z)$ relative to $K$.  The conditions can
+be checked, and compatible combinatorial embeddings constructed, in
+deterministic $O(N^3)$ time.
+\end{theorem}
+
+For a common cycle, both faces contain every attachment vertex.  Thus its
+attachment condition is automatic, and the face-list test asks exactly that
+the prescribed lobe sides agree on each union component.  For a common
+bridge, its unique face contains both ends, and its whole face-list condition
+is automatic.  The theorem therefore extends the structural repair step
+without a bridgelessness assumption on $H$.
+
+\subsection{Two elementary embedding facts}
+\label{rep:elementary}
+
+We first record how to check~\eqref{rep:eq:order} and how block faces distinguish
+faces of a connected common component.
+
+\begin{lemma}[Two noncrossing partitions]
+\label{rep:lem:two-partitions}
+Let a finite set $D$ have a red partition and a blue partition, with a cyclic
+order $\sigma_A$ prescribed on every part $A$.  Form the bipartite multigraph
+$M$ whose vertices are the parts and whose edge labelled $d$ joins the two
+parts containing $d$.  Give a red vertex $A$ rotation $\sigma_A$ and a blue
+vertex $A$ rotation $\rev\sigma_A$.
+
+This rotation system is planar if and only if there is a cyclic order of $D$
+that restricts to every $\sigma_A$ and makes both partitions noncrossing.
+Such an order can be constructed in $O(|D|)$ time.
+\end{lemma}
+
+\begin{proof}
+Suppose the cyclic order exists.  Place its elements on a circle.  Draw the
+red parts as disjoint stars in the interior and the blue parts as disjoint
+stars in the exterior.  Noninterleaving parts admit these disjoint stars:
+one may use their convex hulls on each side, with arbitrarily small
+perturbations at boundary points.  Joining the two half-edges at each labelled
+point gives the required planar rotation system of $M$; the exterior stars
+have the reversed cyclic order.
+
+Conversely, consider one connected component of the prescribed plane map
+$M$, and subdivide every edge $d$ at a point $m_d$.  At each corner of a blue
+vertex, draw an arc between the red ends of its two incident edges, running
+along those edges and through the corner.  The arcs can be chosen mutually
+disjoint except at red endpoints: use disjoint narrow ribbons beside the
+edges and disjoint small sectors inside each corner.  Around a red endpoint,
+an arc using an edge leaves on its specified side, so these choices are
+consistent there as well.  The auxiliary multigraph formed by these arcs on
+the red vertices is connected, because the arcs around each blue vertex
+connect all its red neighbours and $M$ is connected.  Choose a spanning tree
+of these arcs.
+
+Together with the red halves of all original edges, the chosen arcs form an
+embedded tree $T$ whose leaves are the points $m_d$.  Take a sufficiently thin
+closed neighbourhood of $T$.  It is a disk, and its boundary crosses each
+original edge exactly once near $m_d$ and no other original edge.  All red
+stars lie inside this disk and all blue stars lie outside.  The cyclic order
+of the crossing labels therefore restricts to the red rotations and to the
+reverses of the blue rotations.  Stars on the same side cannot interleave:
+two interleaving pairs of boundary attachments would force their connecting
+arcs to cross.  This is the desired order.  For a disconnected $M$, concatenate
+the orders obtained for its components.
+
+The construction uses one auxiliary arc per blue corner, a spanning-tree
+search, and one traversal of the resulting tree.  All have linear size and
+take $O(|D|)$ time.  Planarity of the prescribed rotation system is checked
+by tracing its face walks and applying Euler's formula separately to each
+connected component.
+\end{proof}
+
+Apply this lemma at $v$ with the parts given by its colour blocks and the
+elements given by its common darts.  The total size of all these maps is
+$O(N)$.
+
+\begin{lemma}[Block faces distinguish faces]
+\label{rep:lem:face-signatures}
+Let $X$ be a connected plane graph.  A face of $X$ is uniquely determined by
+the faces containing it in the embeddings of the blocks of $X$ that have
+edges.  Bridge coordinates are harmless: each has only one value.  An
+isolated vertex has just one face.
+\end{lemma}
+
+\begin{proof}
+It suffices to show that two distinct faces $f,f'$ of $X$ are separated by a
+simple cycle of $X$.  Choose a curve $\gamma$ from a point of $f$ to a point
+of $f'$, transverse to edges and avoiding vertices.  In the binary edge
+vector of the facial boundary of $f$, edges occurring twice cancel.  This
+vector has even degree at every vertex and hence decomposes into simple
+cycles.  Its intersection parity with $\gamma$ is one: each crossing of an
+edge incident with $f$ on exactly one side changes whether the curve is in
+$f$, and the curve starts in $f$ and ends outside it.  Therefore at least one
+cycle in the decomposition has odd intersection parity with $\gamma$.
+The Jordan curve theorem says that this cycle separates $f$ from $f'$.
+
+Every simple cycle belongs to a single block $K$ of $X$.  Two regions in the
+same face of $K$ lie on the same side of every cycle of $K$, since that face
+is connected and avoids the cycle.  Hence the separating cycle implies that
+$f$ and $f'$ have different $K$-face coordinates.
+\end{proof}
+
+We will also use the following block-assembly fact.  At a cutvertex of a
+planar graph, distinct block dart sets do not interleave.  Conversely,
+prescribed planar block rotations can be assembled using any noncrossing
+cyclic merge at each cutvertex.  To verify the converse, first merge pieces
+sharing just one vertex.  A noncrossing partition has an innermost part that
+is an interval in the restriction to its parts.  To see this, if no part
+were an interval, choose a nonempty gap between consecutive elements of
+one part with minimum cardinality.  Every other part meeting that gap
+lies wholly in it, or the two parts would interleave.  Such a part, being
+noninterval, has a nonempty gap of its own inside the chosen gap, a
+contradiction.  Insert the interval piece in a
+corner of the others; this glues two disk faces along the chosen corner and
+preserves genus zero.  Remove the interval and induct.  Finally induct over
+the block-cut tree.  For necessity, two alternating pairs of darts from
+different blocks would yield two crossing connections after deleting the
+cutvertex, contradicting planarity.  These observations also apply when one
+of the pieces is a bridge.
+
+\subsection{The local region tree}
+\label{rep:signature-tree}
+
+Assume~\eqref{rep:eq:order} and choose $F(K,Z)\in L(K,Z)$ for every pair.
+For a connected subgraph $Y$ disjoint from $K$, write $F(K,Y)$ for the
+selected face of the component of $U-V(K)$ containing $Y$.
+
+Fix a vertex $v$ incident with a common edge, and let $\mathcal K_v$ be
+the common blocks containing $v$.  Distinct members meet only at $v$,
+and $K-v$ is connected for every $K\in\mathcal K_v$.  For each such $K$,
+let $\mathcal F_v(K)$ consist of the faces of $\kappa_K$ incident with $v$.
+Each of these faces has a unique corner at $v$; for a bridge its unique
+face has its unique corner.  In particular,
+$|\mathcal F_v(K)|=\deg_K(v)$.
+
+We construct a tree from these corners.  Define an adjacency graph $A_v$
+on $\mathcal K_v$: two blocks $K,J$ are adjacent when a path in $U-v$
+joins $K-v$ to $J-v$ and has no internal vertex in any other member of
+$\mathcal K_v$.  Since $U-v$ is connected, $A_v$ is connected.  If $KJ$
+is an edge of $A_v$ and $M$ is a third common block at $v$, the two
+block interiors and the connecting path avoid $M$.  Hence
+\begin{equation}\label{rep:eq:adjacent-face}
+ F(M,K-v)=F(M,J-v).
+\end{equation}
+
+For each $K$ construct a star with centre $K$ and one \emph{port}~$g$
+for every $g\in\mathcal F_v(K)$; it represents the unique corner of $g$
+at~$v$.  Choose an arbitrary spanning tree
+$T^0_v$ of $A_v$.  For each edge $KJ$ of $T^0_v$, identify the port
+$F(K,J-v)$ of $K$ with the port $F(J,K-v)$ of $J$.  These ports exist:
+the indicated interiors are adjacent to $v$, so the attachment condition
+in~\eqref{rep:eq:face-list} makes the selected faces incident with $v$.
+Let $T_v$ denote the resulting bipartite block--region graph.
+
+\begin{lemma}[Region tree and its face coordinates]
+\label{rep:lem:signature-tree}
+The graph $T_v$ is a tree.  It does not depend, up to its named
+incidences, on the choice of $T^0_v$.  Every region-node $t$ has a
+well-defined vector $q(t)$ with one $J$-face coordinate for each
+$J\in\mathcal K_v$.  The incidence at the $g$-port of $K$ has vector
+\begin{equation}\label{rep:eq:signature}
+ q(K,g)_J=\begin{cases}
+          g,&J=K,\\
+          F(J,K-v),&J\ne K.
+         \end{cases}
+\end{equation}
+Distinct region-nodes have distinct vectors.  After deleting a block-node
+$K$, its component through the $g$-port consists precisely of nodes with
+$K$-coordinate $g$.
+\end{lemma}
+
+\begin{proof}
+Root $T^0_v$ and add its corner-stars in parent-before-child order.  A
+new star meets the existing construction at exactly one port, so the
+result is a tree.
+
+For an edge $KJ$ of $T^0_v$, the two ports identified by the
+construction have the same vector in~\eqref{rep:eq:signature}: their
+$K$- and $J$-coordinates agree by the definition of those ports, and
+all third coordinates agree by~\eqref{rep:eq:adjacent-face}.  Thus the
+vectors descend to region-nodes of $T_v$.
+
+Every incidence not meeting $K$ preserves the $K$-coordinate.  The
+neighbours of $K$ have distinct $K$-coordinates, because the ports of
+$K$ are its distinct corners.  Since $T_v$ is a tree, deleting $K$
+leaves one component per port, and the indicated coordinate is constant
+on each component.  If two distinct region-nodes had equal coordinate
+vectors, their unique connecting path would traverse some block-node
+$K$ through two different ports, forcing different $K$-coordinates.
+
+Finally consider the graph formed by all corner-stars with ports
+identified whenever their vectors agree.  Its distinct region-nodes
+remain separated by the preceding argument, and its named incidence
+edges are those of $T_v$.  Hence it is the same tree and is independent
+of the chosen spanning tree $T^0_v$.
+\end{proof}
+
+The coordinates are only a way to \emph{identify} the regions: the tree
+itself is constructed by a spanning-tree gluing, not by solving a system
+of face-signature equations.
+
+\begin{lemma}[Locating a block without common darts]
+\label{rep:lem:unmarked-block-signature}
+Let $Y$ be connected, disjoint from every $K-v$ with
+$K\in\mathcal K_v$, and contained in $U-v$.  If $Y$ has an edge to $v$,
+then the vector
+\[
+ q(Y)_K=F(K,Y)\qquad(K\in\mathcal K_v)
+\]
+labels a region-node of $T_v$.
+\end{lemma}
+\begin{proof}
+Follow a path in $U-v$ from $Y$ to its first meeting with a local
+common block, say $K-v$.  This path avoids every other $J-v$, so
+$F(J,Y)=F(J,K-v)$ for $J\ne K$.  The edge from $Y$ to $v$ makes
+$F(K,Y)$ incident with $v$.  Consequently $q(Y)$ equals the vector
+$q(K,F(K,Y))$ of an existing region-node.
+\end{proof}
+
+We use the lemma when $Y=B-v$ for a colour-$i$ block $B$ at $v$ with no
+common dart there.  Its hypotheses hold.  The graph $B-v$ is connected
+and has an edge to $v$, since $B$ is a block with an edge at $v$.  For
+$K\in\mathcal K_v$ the block $B_i(K)$ contains the common darts of $K$ at
+$v$, so $B\ne B_i(K)$.  Two distinct colour-$i$ blocks share at most one
+vertex, here $v$, so $B-v$ is disjoint from $B_i(K)-v\supseteq K-v$.  The
+adjacency-to-$v$ hypothesis cannot be dropped for an arbitrary connected
+subgraph of $U-v$.
+
+\subsection{Plane bouquets and the contour representation}
+\label{rep:bouquets}
+
+A \emph{block bouquet at $v$} is a union $W$ of blocks
+$K_1,\ldots,K_t$ that pairwise meet exactly at $v$.  Each block is either
+biconnected or a single edge.  Give $W$ a planar embedding, and consider only
+its faces incident with $v$.
+
+For a face $g$ of a biconnected $K_j$ incident with $v$, the facial boundary
+minus $v$ is a connected path disjoint from every other block.  A sufficiently
+thin strip along the $g$-side of that path lies in a single face $f$ of $W$.
+Both ends of the strip approach the corner $g$ at $v$, so $f$ is incident
+with $v$.  This defines the global face adjacent to the port $g$.  For a
+single-edge block, the edge is dangling in the bouquet, and its two sides
+belong to one face; its unique port is assigned to that face.
+
+Let $S(W,v)$ be the bipartite graph whose nodes are the blocks $K_j$ and the
+faces of $W$ incident with $v$, with one incidence from $K_j$ to the face just
+defined for each port $g\in\mathcal F_v(K_j)$.
+
+\begin{lemma}[Bouquet contour]
+\label{rep:lem:bouquet}
+The graph $S(W,v)$ is a tree.  Its region-nodes have distinct vectors of faces
+of the individual blocks.  Give each block-node $K$ the cyclic order of its
+corners at $v$.  There is exactly one choice of rotations at the region-nodes
+for which the contour of this plane tree recovers the rotation of $W$ at $v$
+as follows: label the outgoing traversal from $K$ through a port $g$ by the
+dart immediately preceding that corner in the rotation of $K$.
+
+Furthermore, choose any distinguished dart $d_K$ of every block at $v$.
+At a region-node $t$, its rotation is the restriction of the resulting dart
+order to the representatives $d_K$ for the block-nodes adjacent to $t$.
+\end{lemma}
+
+\begin{proof}
+Distinct faces of $W$ have distinct block-face vectors by
+Lemma~\ref{rep:lem:face-signatures}.  All ports of a fixed block $K$ have the
+same coordinate for every other block $J$: it is the face of $J$ containing
+$K-v$.  Their $K$-coordinates are their respective ports.  Hence a simple
+cycle in $S(W,v)$ would change one block coordinate exactly once, by the
+same argument as in Lemma~\ref{rep:lem:signature-tree}.  Thus $S(W,v)$ is a
+forest.
+
+Take a small positively oriented circle around $v$.  On crossing a dart of
+$K$, move in $S(W,v)$ from the region before that dart to $K$ and then to the
+region after it.  These are exactly the two ports bordering that dart in
+the rotation of $K$.  The strip construction above ensures that the region
+on each side is the one assigned to the corresponding port, even if other
+blocks have darts between consecutive $K$-darts.  As the circle makes one
+turn, it gives a single closed walk using every incidence once in each
+direction.  Every region-node is visited, because a face incident with $v$
+has a sector bordered by a dart at $v$.  Thus $S(W,v)$ is connected and is
+a tree.
+
+The circle walk prescribes a successor for each incoming incidence at every
+region-node.  This successor permutation has a single cycle.  Otherwise,
+splitting that node according to its several successor cycles would
+disconnect the tree, while the circle walk would remain one closed walk
+using all its directed incidences, which is impossible.  Hence these
+successors are rotations.  At a block-node the successor is the prescribed
+cyclic order of its corners.  The walk is therefore precisely the contour
+of this plane tree, and the indicated labels are the original darts in
+their original order.  The walk determines every successor, proving
+uniqueness.
+
+Finally, fix a region-node $t$ and a neighbouring block-node $K$.  The contour
+excursion beginning with $t\to K$ and ending with $K\to t$ contains every
+outgoing traversal from $K$, including that final traversal.  Thus it
+contains all labels of $K$, including the chosen $d_K$, and no labels of
+another block-node adjacent to $t$.  The order of the representatives is
+therefore exactly the order of the excursions at $t$.
+\end{proof}
+
+For a colour block $B$ at $v$, put
+\[
+ J_v(B)=\{K\in\mathcal K_v:K\subseteq B\}.
+\]
+These are exactly the common blocks contributing darts of $B$ at $v$.
+If $K\notin J_v(B)$, then $B-v$ is connected and disjoint from $K$.
+When $J_v(B)\ne\varnothing$, restrict $\mathcal E_B$ to the bouquet
+\[
+ W_B=\bigcup_{K\in J_v(B)}K
+\]
+and let $S_B=S(W_B,v)$ be its plane incidence tree from
+Lemma~\ref{rep:lem:bouquet}.
+
+\begin{lemma}[Colour blocks occupy subtrees]
+\label{rep:lem:block-subtree}
+The tree $S_B$ is naturally isomorphic to the subtree $T_B$ of $T_v$ consisting
+of all incidences at the block-nodes in $J_v(B)$, together with their ends.
+Every region-node of $T_B$ has $K$-coordinate $F(K,B-v)$ whenever
+$K\notin J_v(B)$.
+\end{lemma}
+
+\begin{proof}
+Map each block-node to the identically named block-node of $T_v$.  For a
+region $f$ of $S_B$, define a full signature by taking, for
+$K\in J_v(B)$, the face of $K$ containing $f$, and, for
+$K\notin J_v(B)$, the value $F(K,B-v)$.
+
+Consider the port $g$ of a block $J\in J_v(B)$.  For
+$K\in J_v(B)\setminus\{J\}$, points in the boundary strip of that port
+lie in the face of $K$ containing $J-v$.  The connected graph $J-v$ is
+contained in $B-V(K)$, hence in one lobe of $K$ in this colour.  The
+singleton conditions defining $L(K,Z)$ therefore make that face equal to
+$F(K,J-v)$.  For $K\notin J_v(B)$, the set $B-v$ is connected and disjoint
+from $K$, so $F(K,B-v)=F(K,J-v)$.  The image of the port is consequently
+exactly $q(J,g)$.
+
+Distinct region-nodes of $S_B$ have distinct face coordinates among
+$J_v(B)$, by Lemma~\ref{rep:lem:bouquet}.  The map is therefore injective
+on region-nodes, as well as on block-nodes, and maps incidences to
+incidences.  Its image contains exactly all incidences at the nodes in
+$J_v(B)$ and their ends.  It is a connected subgraph of the tree $T_v$,
+so it is the stated subtree.  The constant-coordinate assertion follows
+from the definition of the map.
+\end{proof}
+
+\subsection{Constructing the repaired order at a vertex}
+\label{rep:local-construction}
+
+Choose an order $\omega_v$ witnessing~\eqref{rep:eq:order}, and choose one
+distinguished common dart $d_K$ of each $K\in\mathcal K_v$.  Give the
+block-node $K$ of $T_v$ the corner order of $\kappa_K$ at $v$.  At a
+region-node $t$, give its incident block-nodes the restriction of
+$\omega_v$ to their representatives $d_K$.  Let $\omega'_v$ be the cyclic
+order obtained from the contour of this plane tree by labelling an outgoing
+traversal $K\to q(K,g)$ with the common dart immediately preceding $g$ in
+$\kappa_K$.  This is a cyclic order of exactly $D_H(v)$.  The contour
+traverses each incidence $K\to q(K,g)$ exactly once, and the corners of $K$
+at $v$ correspond bijectively to the darts of $K$ at $v$, each corner to the
+dart preceding it.  Every common dart at $v$ belongs to exactly one block
+in $\mathcal K_v$.
+
+\begin{lemma}[Properties of the repaired common order]
+\label{rep:lem:common-order}
+The order $\omega'_v$ has the following properties.
+\begin{enumerate}
+\item For every colour block $B$ at $v$, its restriction to the common darts
+of $B$ equals the restriction of $\rho_B(v)$.
+\item For each colour, the common dart sets of its distinct blocks at $v$
+are noncrossing in $\omega'_v$.
+\item If $K\in\mathcal K_v\setminus J_v(B)$, all common darts of $B$
+lie in the corner of $K$ corresponding to $F(K,B-v)$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+For the first claim, use the subtree $T_B$ of
+Lemma~\ref{rep:lem:block-subtree}.  Its block-node rotations agree with
+those of $S_B$.  At a region-node, the order of its neighbouring block-node
+representatives obtained from $\omega_v$ equals their order obtained from
+$\rho_B(v)$, since~\eqref{rep:eq:order} gives equality on all the common
+darts of $B$.  By the representative assertion in
+Lemma~\ref{rep:lem:bouquet}, this is precisely the region-node rotation of
+$S_B$.  Thus $T_B$, with the inherited rotations, is the plane tree $S_B$.
+Restricting a tree contour to a connected subtree deletes the excursions
+outside that subtree and leaves its contour.  Also, every incidence at a
+block-node of $T_B$ belongs to $T_B$, so no dart label of that block-node is
+lost.  Lemma~\ref{rep:lem:bouquet} now gives the first claim.
+
+For the second claim, let $B,B'$ be distinct blocks of one colour, both
+having common darts at $v$.  Their subtrees $T_B,T_{B'}$ have disjoint
+incidence edges and disjoint block-nodes.  As subtrees of a tree they meet
+in at most one node, necessarily a region-node.  If they are disjoint,
+consider the first edge on the path from $T_B$ towards $T_{B'}$.  The
+contour excursion beyond this edge contains all labels of $B'$ and no
+label of $B$, so the two sets do not interleave.  If they meet at a
+region-node $t$, their labels occur in the excursions through two disjoint
+sets of neighbours of $t$.  These neighbour sets do not interleave in the
+rotation at $t$: their representatives belong to the common dart sets of
+$B,B'$, which do not interleave in $\omega_v$.  Replacing each neighbour
+by its contour excursion cannot introduce interleaving.  More explicitly,
+an interleaving of labels in disjoint excursion intervals would yield an
+interleaving of their four excursion indices, contradicting the preceding
+statement.
+
+For the third claim, Lemma~\ref{rep:lem:block-subtree} puts $T_B$ in the
+component of $T_v-K$ whose $K$-coordinate is $F(K,B-v)$.  By the contour
+rule, all labels in that component occur between the two consecutive
+$K$-darts bordering that corner.  If $K$ is a bridge, this is its unique
+corner and the statement has the same meaning.
+\end{proof}
+
+The common order must now be extended to all darts without changing any
+prescribed block rotation.  We state the elementary insertion argument
+explicitly.
+
+\begin{lemma}[Insertion of private runs]
+\label{rep:lem:private-runs}
+Let disjoint finite sets $D_B$ carry cyclic orders $\theta_B$, and let some
+elements be marked.  Suppose a cyclic order $\omega$ of the marked elements
+restricts to each $\theta_B$ on its marked elements and makes the nonempty
+marked parts noncrossing.  Replace each marked element $d\in D_B$ by $d$
+followed by the run of unmarked elements following $d$ in $\theta_B$ before
+the next marked element of $D_B$.  Insert each set with no marked element,
+cut arbitrarily into a linear order, after one of these whole runs; several
+sets at the same place are concatenated.
+
+The result restricts to every $\theta_B$, and the full sets $D_B$ are
+noncrossing.  Every inserted element remains in the gap of $\omega$ after
+the marked head of the run to which it was assigned.
+\end{lemma}
+
+\begin{proof}
+The runs of a marked set occur in the order of its marked heads, giving the
+correct restriction.  A set with no marked element is inserted as one
+interval, so it cannot interleave with another set.  If two marked sets
+interleaved after their runs were expanded, the two witnessing elements
+of either set would have to lie in different runs: a run is an interval
+containing no element of the other set.  Replacing those runs by their
+heads would give four alternating marked heads in $\omega$, a
+contradiction.  The assertion about gaps follows directly from the order
+of the insertions.
+\end{proof}
+
+Apply this lemma separately to each colour, with the common darts marked
+and with $\omega'_v$ as their order.  For a colour block $B$ at $v$ having
+no common dart there, Lemma~\ref{rep:lem:unmarked-block-signature} gives the
+region-node $q(B-v)$.  Choose any incidence
+$K\to q(B-v)$, and let $d$ be its contour label.  Insert the rotation
+$\rho_B(v)$, cut anywhere, after the entire run headed by $d$.
+
+\begin{lemma}[Complete local rotations]
+\label{rep:lem:local-rotations}
+This construction gives rotations $\rho_1(v),\rho_2(v)$ with the following
+properties.
+\begin{enumerate}
+\item Each $\rho_i(v)$ restricts to $\rho_B(v)$ for every colour-$i$ block
+$B$ at $v$, and distinct such block dart sets do not interleave.
+\item Both rotations restrict to $\omega'_v$ on their common darts.
+\item For every common block $K$ through $v$ and every colour block $B$
+at $v$ not containing $K$, all darts of $B$ enter the face
+$F(K,B-v)$ of $K$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+The first two claims follow from Lemmas~\ref{rep:lem:common-order} and
+\ref{rep:lem:private-runs}.  For the third, first suppose $B$ has a common
+dart at $v$.  Its common darts lie in the required corner of $K$ by
+Lemma~\ref{rep:lem:common-order}.  Every private dart of $B$ is inserted
+after one of those common darts and before the next common dart of the
+whole order.  No $K$-dart is crossed, so its $K$-corner remains the same.
+
+Now suppose $B$ has no common dart at $v$.  It is inserted after a dart
+whose contour traversal ends at $q(B-v)$.  Immediately after that
+traversal, the contour is at the region-node with $K$-coordinate
+$F(K,B-v)$.  If the labelled dart itself belongs to $K$, its succeeding
+corner is exactly that coordinate.  Otherwise its block-node and this
+region-node lie in the corresponding component of $T_v-K$, and the same
+conclusion follows from Lemma~\ref{rep:lem:signature-tree}.  The run
+following the dart contains no common dart and therefore does not change
+the corner.  Inserting $B$ after the run puts all of its darts into the
+claimed face.
+\end{proof}
+
+At a vertex with no common edge, concatenate the rotations of its blocks
+in each colour, with arbitrary cuts.  This satisfies the block-assembly
+conditions and imposes no common-dart requirement.  Such a vertex lies in
+no common block, so the third claim of Lemma~\ref{rep:lem:local-rotations}
+is not needed there; the global argument below uses that claim only at
+vertices of common blocks.
+
+\subsection{Global reconstruction and relative positions}
+\label{rep:global}
+
+\begin{proof}[Proof of Theorem~\ref{rep:thm:repair}, apart from the time bound]
+Necessity follows from a \SEFE{}.  Its common rotation at each vertex gives
+\eqref{rep:eq:order}.  For a common block $K$ and
+$Z\in\cc(U-V(K))$, the drawings of the vertices and edges of $U[Z]$ form a
+connected set disjoint from the common drawing of $K$.  Private edges of
+different colours may cross one another, but this does not affect that
+connectedness.  Neither colour can cross an edge of $K$, since every such
+edge belongs to both colours.  Hence all of $Z$ lies in one face $F$ of $K$.
+Every attachment edge approaches $K$ from $F$, so
+$A_K(Z)\subseteq V(\partial F)$.  Every colour lobe contained in $Z$ lies
+in that same face.  Thus $F\in L(K,Z)$.
+
+For sufficiency, make the independent face selections in the theorem and
+construct the local rotations above.  By
+Lemma~\ref{rep:lem:local-rotations} and the block-assembly fact, they give
+planar rotation systems of both connected input graphs.  They preserve
+every $\mathcal E_B$, and their restrictions to common darts agree.
+
+We prove that every vertex $x\notin V(K)$ lies in the chosen face
+$F(K,x)$ of every common block $K$ in both colour embeddings.  Fix a
+colour $i$ and set $B=B_i(K)$.  If $x\in V(B)$, the lobe containing $x$
+has that face by the defining singleton condition in
+\eqref{rep:eq:face-list}; the reconstruction preserves $\mathcal E_B$.
+
+Otherwise the path in the block-cut tree of $G_i$ from $B$ towards $x$
+leaves $B$ at a cutvertex $w$.  The vertex $x$ lies in a component $D$ of
+$G_i-w$ disjoint from $V(B)$, and $D$ contains $B'-w$ for the first block
+$B'\ne B$ of that branch at $w$.  If $w\notin V(K)$, the connected set
+$D\cup\{w\}$ avoids $K$.  It lies in the face of $K$ containing $w$,
+which is $F(K,w)=F(K,x)$ by the preceding case and the fact that both
+vertices belong to one component of $U-V(K)$.
+
+If $w\in V(K)$, Lemma~\ref{rep:lem:local-rotations} puts every dart of
+$B'$ at $w$ into the corner $F(K,B'-w)$.  The connected graph $D$ avoids
+$K$, so all of $D$ lies in that face.  Since $D$ contains $x$ and $B'-w$,
+this face is $F(K,x)$.  This proves the asserted face position for all
+vertices.
+
+It remains to check the embedding of the disconnected common graph,
+rather than merely its rotations.  Let $X,X'$ be distinct connected
+components of $H$, and choose a vertex $x\in V(X')$.  In each colour,
+$X'$ is contained in the face of $X$ containing $x$.  For every block $K$
+of $X$, that face has the same $K$-coordinate in the two embeddings, namely
+$F(K,x)$.  The rotations of $X$ already agree.  By
+Lemma~\ref{rep:lem:face-signatures}, the containing face of $X$ is therefore
+the same.  If $X$ is an isolated vertex, its unique face makes the assertion
+immediate.  Thus all relative positions of common components agree,
+including isolated common vertices.
+
+Rotations and these relative positions specify the oriented embedding of
+a finite planar graph.  We recall the standard facts behind this
+statement.  (T1) Janiszewski's theorem: if compact sets
+$A,A'\subset S^2$ have connected or empty intersection and neither
+separates two points $x,y$, then $A\cup A'$ does not separate
+them~\cite{newman}.  (T2) The Jordan--Schoenflies theorem: a simple closed
+curve bounds a closed disk on each side, and a homeomorphism between two
+simple closed curves extends to a homeomorphism of the
+sphere~\cite[Chapter~2]{mohar}.  By (T2), an orientation-preserving
+homeomorphism between the boundaries of two spheres with the same number
+of holes that respects a given bijection of their boundary curves extends
+to an orientation-preserving homeomorphism between them: cut both along
+disjoint arcs joining the boundary curves in the same pattern, which
+reduces the extension to closed disks.
+
+For a component $X$ of $H$ and a component $X''\ne X$, let $f_{X''}(X)$
+be the face of $X''$ containing $X$, and put $A_{X''}=S^2\setminus
+f_{X''}(X)$.  Each $A_{X''}$ is compact and connected, and its complement
+is connected.  For a face $f$ of $X$, put $A_X=S^2\setminus f$.  These
+sets form a laminar family: if $X_2$ lies in a face $g$ of $X_1$ with
+$g\ne f_{X_1}(X)$, then the connected set $S^2\setminus g$ avoids $X_2$
+and contains $X$, so every face of $X_2$ other than $f_{X_2}(X)$ lies in
+$g$, and $A_{X_2}\subseteq A_{X_1}$; if neither component separates the
+other from $X$, the same argument shows $A_{X_1}\cap A_{X_2}=\varnothing$.
+The case of $A_X$ is identical.  The union of the family is therefore a
+disjoint union of its maximal members, and (T1) shows that
+\[
+ R(X,f)=f\cap\bigcap_{X''\ne X}f_{X''}(X)
+\]
+is connected.  It avoids $H$ and contains the points of $f$ near the
+facial walk of $f$, so it is the face of $H$ along that walk.  It follows
+that $R(X,f)=R(X',f')$ if and only if $X'\subseteq f$, $X\subseteq f'$,
+and no third component separates $X$ from $X'$.  Thus the faces of $H$,
+and the facial walks of components bordering each of them, are determined
+by the rotations and the pairwise relative positions, which agree in the
+two colours.
+
+Now take thin ribbon neighbourhoods of the components in a polygonal model
+of each drawing.  Equal rotations identify each component's neighbourhood,
+orientation-preservingly, with boundary curves corresponding to faces.  By
+the preceding paragraph each complementary region is a sphere with holes
+bounded by the same boundary curves in both drawings, and (T2) extends the
+boundary identification over it.  Gluing gives an orientation-preserving
+homeomorphism of the sphere identifying the two drawings of $H$.  Apply
+this homeomorphism to one of the colour drawings.  The resulting drawings
+form a \SEFE{} and preserve the prescribed oriented colour-block
+embeddings.
+\end{proof}
+
+\subsection{Algorithm and complexity}
+\label{rep:algorithm}
+
+The proof is constructive.  The following steps specify the resulting
+algorithm for the prescribed-block problem.
+\begin{enumerate}
+\item Compute the block-cut trees of both colours and of $H$.  Check each
+prescribed rotation system by face tracing and Euler's formula.
+\item At every vertex form the bipartite map of
+Lemma~\ref{rep:lem:two-partitions}.  Reject if its prescribed rotation system
+is nonplanar; otherwise extract $\omega_v$.
+\item Restrict the block embeddings to every common block $K$, trace its
+faces, and compute the components of $U-V(K)$, their attachment sets, and
+the colour lobes.  Form the lists~\eqref{rep:eq:face-list}.  Reject if any
+list is empty; otherwise select any one face from each list.
+\item Construct the signature trees $T_v$, their rotations, and their
+labelled contours.  Insert private runs and the blocks with no common
+dart at $v$ as above.  Output the resulting rotations of $G_1,G_2$.
+\end{enumerate}
+
+All face pins are computable from rotations.  For example, to locate a
+lobe $Y$ relative to $K$, choose an attachment edge $ay$, with $a\in K$
+and $y\in Y$.  In $\rho_{B_i(K)}(a)$, find the preceding $K$-dart before
+$ay$.  The corresponding corner of the restricted $K$-rotation identifies
+the face containing $Y$.  For a bridge block there is only one face.
+Planarity and connectedness of $Y$ guarantee that every attachment gives
+the same answer.
+
+For completeness, the number of components and lobes has a useful linear
+bound.  Root each component of the block-cut forest of $H$.  For a common
+block $K$, let $r_K$ be its parent cutvertex, or choose any vertex of $K$
+if it is a root block.  The sets
+\[
+ V(K)\setminus\{r_K\}
+\]
+are pairwise disjoint.  Every $Z\in\cc(U-V(K))$ has at least two
+attachment vertices, since zero attachments disconnects $U$ and one
+attachment is a cutvertex of $U$.  Charge $Z$ to an attachment edge whose
+$K$-endpoint is not $r_K$.  An endpoint determines at most one common
+block under this rule, and the other endpoint determines the component
+$Z$.  Each edge of $U$ is therefore charged at most once per endpoint,
+giving
+\[
+ \sum_K |\cc(U-V(K))|\le 2|E(U)|.
+\]
+The same argument inside each biconnected colour block counts its lobes
+for the common blocks contained in it.  A colour block that is a bridge
+has no lobe of its common edge.  Summing over colour blocks gives $O(N)$
+lobes in total.
+
+There are $O(N)$ common blocks, so recomputing components and relevant
+face information once per block takes $O(N^2)$ time.  Each face list has
+at most $O(N)$ entries, and the straightforward attachment-incidence
+checks and singleton intersections take at most $O(N^3)$ time overall.
+No succinct or implicit face representation is needed for this bound.
+
+At $v$, put $h_v=\deg_H(v)$ and $k_v=|\mathcal K_v|$.  The candidate
+signatures $q(K,g)$ have $h_v$ incidences and $k_v$ coordinates.  Let $b_v$
+be the number of colour-block incidences at $v$.  Including the signatures
+needed for blocks with no common dart, the explicit vector length is
+\[
+ O\!\left(\sum_v k_v(h_v+b_v)\right)=O(N^2),
+\]
+because each of $\sum_v h_v$, $\sum_v k_v$, and $\sum_v b_v$ is $O(N)$.
+Lexicographic sorting of these vectors identifies equal region-nodes and
+looks up the private-block signatures in $O(N^2\log N)$ time.  The trees
+themselves have $\sum_v h_v=O(N)$ incidences.  Ordering their region-node
+neighbours by the positions of the distinguished darts in $\omega_v$,
+tracing the contours, and inserting the private runs all fit within the
+$O(N^3)$ bound.  This proves the time claim in
+Theorem~\ref{rep:thm:repair}.
+
+The returned rotation systems specify the full embeddings because both
+colours are connected.  If explicit common-component positions are
+desired, they can also be produced in polynomial time: for each common
+component $X$, search the components of $G_i-V(X)$ and read their faces
+of $X$ from attachment corners in the same way.  An isolated $X$ has one
+face.  This requires at most $O(N^2)$ additional work and includes every
+isolated common vertex.
+
+\subsection{Why the attachment condition cannot be omitted}
+\label{rep:counterexample}
+
+\begin{proposition}[A six-vertex obstruction]
+\label{rep:prop:incidence-counterexample}
+Replacing cycle side bits by arbitrary face labels, while retaining only
+common-order consistency and colour-block lobe equalities, gives an
+incorrect repair criterion even when the nontrivial common block is
+3-connected.
+\end{proposition}
+
+\begin{proof}
+Let $K$ have vertices $a,b,c,p,q$, the triangle edges $ab,bc,ca$, and the
+six edges joining each of $p,q$ to each of $a,b,c$.  Thus $K=K_5-pq$ is
+the triangular bipyramid.  Let $H$ be $K$ together with an isolated
+vertex $x$, and set
+\[
+ G_1=H+px,\qquad G_2=H+qx.
+\]
+Each colour is planar and connected.  The union is obtained by
+subdividing the missing edge $pq$ of $K_5$, so it is biconnected.
+
+Prescribe the same embedding of $K$ in both colours.  Their common orders
+agree, and the blocks containing $K$ are exactly $K$ itself.  Consequently
+there are no colour lobes of $K$, and every lobe equality is vacuous.
+Nevertheless, the six faces of $K$ have boundaries
+\[
+ pab,\quad pbc,\quad pca,\quad qab,\quad qbc,\quad qca.
+\]
+No face contains both $p$ and $q$.  In a \SEFE{}, the vertex $x$ and the
+interiors of $px,qx$ would form a connected set disjoint from $K$, placing
+$x$ in a face incident with both vertices, which is impossible.  Equivalently,
+for $Z=\{x\}$ the attachment set is $A_K(Z)=\{p,q\}$ and
+$L(K,Z)=\varnothing$.
+\end{proof}
+
+The obstruction is already present with a fixed embedding of $K$; it is
+not an artefact of changing face names while an embedding varies.  In the
+valid repair theorem, the new ingredient is precisely the attachment-face
+condition.  Once it is imposed, the tree used by the cactus proof survives
+as the block--region incidence tree $T_v$.

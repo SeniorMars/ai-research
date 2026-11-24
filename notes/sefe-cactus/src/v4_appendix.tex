@@ -1,0 +1,46 @@
+\section{Connecting the colours}\label{sec:v4-app-connect}
+
+The following lemma is used in step~(2) of the proof of
+Theorem~\ref{thm:v4-normalize}. It is a variant of~\cite[Lemma~1]{BR15}; we
+include a self-contained proof in the form used here, with an explicit
+choice of the nested components (the set $\mathcal Y$ below).
+
+\begin{lemma}\label{lem:v4-connect}
+Let $(G_1,G_2)$ have a SEFE, let $i\in\{1,2\}$, and let $v_1v_2$ be a
+private edge of colour $3-i$ whose ends lie in different components $Q_1\ni
+v_1$ and $Q_2\ni v_2$ of $G_i$. Then $(G_1,G_2)$ has a SEFE in which $v_1$
+and $v_2$ lie on a common face of the drawing of $G_i$.
+\end{lemma}
+
+\begin{proof}
+Let $(\Gamma_1,\Gamma_2)$ be a SEFE and $\lambda=\Gamma_{3-i}(v_1v_2)$. Its
+interior avoids the drawing of $H$, so it lies in one face $f$ of that
+drawing; near $v_j$ it lies in a face $g_j$ of $\Gamma_i$, and
+$g_1,g_2\subseteq f$, since $\Gamma_i$ contains the drawing of $H$. If
+$g_1=g_2$ we are done. Otherwise let $b$ be the face of $\Gamma_i(Q_2)$
+containing $\Gamma_i(Q_1)$, and let $\mathcal Y$ be the set of components of
+$G_i$ drawn in $S\setminus b$, including $Q_2$. Choose small disks
+$\Delta'\subset g_2$ near $v_2$ and $\Delta\subset g_1$ near $v_1$, and an
+orientation-preserving homeomorphism $h$ of $S$ with
+$h(S\setminus\operatorname{int}\Delta')=\Delta$. Redraw the components in
+$\mathcal Y$ by $h\circ\Gamma_i$ and keep the others. The new drawing
+$\Gamma'_i$ is planar, since $\Delta$ meets no other component, and has the
+same rotation system. In it $v_1$ and $v_2$ share a face: $g_1\setminus\Delta$
+is connected and joins $v_1$ to $\partial\Delta$, and
+$h(g_2\setminus\operatorname{int}\Delta')$ joins $\partial\Delta$ to $h(v_2)$
+inside $\Delta$, avoiding all components.
+
+$\Gamma'_i$ induces the same embedding of $H$ as $\Gamma_i$. Only pairs of
+components $X\not\subseteq\bigcup\mathcal Y$ and $X'\subseteq\bigcup\mathcal
+Y$ of $H$ need to be checked. Before and after the move,
+$\operatorname{pos}_X(X')$ is the face of $X$ containing $f$: before, the set
+$S\setminus b$ together with a small disk at $v_2$ is connected, avoids $X$,
+contains $X'$ and meets $\lambda$; after, $X'$ lies in $\Delta\subseteq f$.
+Likewise $\operatorname{pos}_{X'}(X)$ is the face of $X'$ containing $f$
+(transported by $h$ afterwards): before, $b$ (if $X'\subseteq Q_2$) or
+$b\cup\Gamma_i(Q_2)$ (otherwise) is connected, avoids $X'$, contains $X$ and
+meets $g_1\subseteq f$; after, $X$ lies in $h(\operatorname{int}\Delta')$ and
+$\Delta'\subseteq f$. By~\cite[Theorem~4]{JS09}
+(Section~\ref{sec:v4-emb}), $\Gamma'_i$ and $\Gamma_{3-i}$ yield the required
+SEFE.
+\end{proof}
