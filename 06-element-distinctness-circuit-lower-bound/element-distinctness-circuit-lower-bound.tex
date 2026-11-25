@@ -18,6 +18,7 @@
 \newcommand{\SIZE}{\mathsf{SIZE}}
 \newcommand{\USIZE}{\mathsf{USIZE}}
 \newcommand{\NSIZE}{\mathsf{NSIZE}}
+\newcommand{\ModSIZE}[1]{\mathsf{Mod}_{#1}\mathsf{SIZE}}
 \newcommand{\NTIME}{\mathsf{NTIME}}
 \newcommand{\coNTIME}{\mathsf{coNTIME}}
 \newcommand{\Lclass}{\mathsf{L}}
@@ -27,7 +28,7 @@
   pdfkeywords={circuit lower bounds, element distinctness, tensor networks, volume, superlinear lower bounds, Boolean circuits}}
 \title{Superlinear Lower Bounds for Element Distinctness and\\Unambiguous Verification of Collision from a Tensor-Network Volume Bound}
 \author{Charlie Cruz}
-\date{November 24, 2026, revised November 25, 2026}
+\date{24 November 2026, revised 25 November 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -49,8 +50,10 @@ $\delta<\sigma$. The deduction is short: a circuit converts into a tensor
 network of linear volume. All of the difficulty lies in the imported
 theorem, and we state which parts of its proof we have checked.
 Its complement, collision, witnesses the strict inclusion
-$\USIZE[O(n)]\subsetneq\NSIZE[O(n)]$. More generally, verifier size
-plus one, times maximum ambiguity, is $\Omega(n(\log n)^\sigma)$.
+$\USIZE[O(n)]\subsetneq\NSIZE[O(n)]$, and more strongly
+$\NSIZE[O(n)]\not\subseteq\ModSIZE{p}[O(n)]$ for every fixed prime $p$.
+More generally, verifier size plus one, times maximum ambiguity, is
+$\Omega(n(\log n)^\sigma)$.
 For exact Clifford+$T$ circuits the corresponding exponent is the one
 for characteristic three. Two case-specific volume bounds also give a
 language in nearly linear modular counting time that requires
@@ -72,7 +75,7 @@ These bounds come from gate elimination, and they are far from even
 $n\log\log n$.
 
 \subsection{Results}
-The November 24, 2026 release on matrix multiplication \cite{OAI}
+The November 2026 release on matrix multiplication \cite{OAI}
 contains a statement strong enough to give a superlinear bound. The
 statement we use is Theorem~2.2 of \cite{OAI}, an intermediate theorem
 about tensor networks that test whether a list of words has a repeat; we
@@ -116,12 +119,37 @@ where $\sigma_2$ is the exponent of the imported bound over $\F_2$.
 
 The proof in Section~\ref{sec:ambiguity} uses the same gate basis and
 witness convention for both classes. The verifier, batch-threshold
-and exact quantum arguments follow the November 25 research
+and exact quantum arguments follow the November 2026 research
 note~\cite{VerificationNote}. Guessing two equal records proves
 collision. When at most one witness accepts, summing over witnesses
 already gives the Boolean answer in $\F_2$, so the tensor bound applies.
 Collision already lies in $\mathsf P$, hence in $\mathsf{UP}$.
 The strict inclusion concerns the linear size budget.
+
+Modular acceptance, where a verifier accepts when its number of accepting
+witnesses is nonzero modulo a fixed prime $p$, gives a stronger
+statement. Write $\ModSIZE{p}[O(n)]$ for the corresponding class, so that
+$\ModSIZE{2}=\oplus\mathsf{SIZE}$.
+
+\begin{corollary}[Modular linear size]\label{cor:modular-class}
+Fix a prime $p$ and assume Theorem~\ref{thm:import} over $\F_p$, with
+exponent $\sigma_p$. Then
+\[
+                  \NSIZE[O(n)]\ \not\subseteq\ \ModSIZE{p}[O(n)] .
+\]
+At every sufficiently large length, every verifier with modulo-$p$
+acceptance for total collision, or for element distinctness, has
+$\Omega_p(n(\log n)^{\sigma_p})$ gates.
+\end{corollary}
+
+A count in $\{0,1\}$ is nonzero modulo $p$ exactly when it is $1$, so
+$\USIZE[O(n)]\subseteq\ModSIZE{p}[O(n)]$ for every $p$. The case $p=2$ of
+Corollary~\ref{cor:modular-class} therefore contains the lower bound in
+Theorem~\ref{thm:strict-verification}, and the other primes show that
+the separation is not special to characteristic two.
+Section~\ref{sec:ambiguity} proves the corollary using Fermat's little
+theorem, as in the proof that $\mathsf{Mod}_p\mathsf P$ is closed under
+complement for prime $p$ \cite{BG}.
 
 For comparison, the refutation of ETH \cite{ETH} gives an
 $\Omega(n\sqrt{\log n})$ lower bound for a language in $\ENP$, but only at
@@ -378,7 +406,10 @@ $A(x)=|\{y\in\{0,1\}^r:V_n(x,y)=1\}|$. For a total language $L$,
 $\NSIZE[O(n)]$ requires one such circuit per length with $s=O(n)$ and
 $[A(x)>0]=[x\in L]$. In $\USIZE[O(n)]$ require $A(x)=[x\in L]$
 as an integer for every input. Under parity acceptance the answer is
-$A(x)\bmod2$. These are nonuniform definitions.
+$A(x)\bmod2$. More generally, for a fixed prime $p$, a verifier with
+\emph{modulo-$p$ acceptance} accepts $x$ when $A(x)\not\equiv0\pmod p$,
+and $\ModSIZE{p}[O(n)]$ requires one with $s=O(n)$ and
+$[A(x)\not\equiv0\pmod p]=[x\in L]$. These are nonuniform definitions.
 
 For collision guess $w$-bit indices $i<j$ in the unpadded list.
 For each bit position of a record, a tree of $2^w-1$ binary
@@ -448,15 +479,59 @@ form of the imported theorem for $1\le t\le2^w$. For the existential
 problem that at least one list has a collision, the right side of
 the tradeoff becomes $\Omega(t n_w w^\sigma)$.
 
-For fixed prime $p$, the same conversion works for modular verifiers
-whose count $A$ signifies acceptance when $A\ne0\bmod p$. To obtain
-a parity-style \emph{indicator} over $\F_p$, use $p-1$ independent
-copies and conjoin them, giving count $A^{p-1}$. For a collision
-verifier, combine one dummy witness with $p-1$ disjoint copies of this
-last witness set to get count $1-A^{p-1}$ modulo $p$; inactive bits
-are fixed in each branch. Removing an unused bit at odd $p$ divides
-all counts by the unit $2$. This proves the corresponding verifier
-lower bound with the field's exponent and constants.
+\begin{theorem}\label{thm:modular-verifier}
+Fix a prime $p$ and assume Theorem~\ref{thm:import} over $\F_p$, with
+exponent $\sigma_p$. At every sufficiently large length, every verifier
+with modulo-$p$ acceptance for $\mathsf{COL}_n$, or for $\ED_n$, has
+$\Omega_p(n(\log n)^{\sigma_p})$ gates.
+\end{theorem}
+\begin{proof}
+Let $V$ be such a verifier with $s$ gates and $r$ witness bits, deciding
+$f\in\{\mathsf{COL}_n,\ED_n\}$, and let $A(x)$ be its count.
+
+\emph{Pruning.} A witness bit that no gate reads doubles every count. For
+odd $p$, $2$ is a unit modulo $p$, so deleting that bit does not change
+which inputs are accepted. For $p=2$, such a bit makes every count even,
+so $V$ accepts nothing, which is impossible since both functions take the
+value $1$ at large $n$. Either way we may assume that every witness bit is
+read, so $r\le2s$.
+
+\emph{An exact count.} By Fermat's little theorem
+$A^{p-1}\equiv[A\not\equiv0]\pmod p$ for every integer $A$. Let $V_1$
+take $p-1$ witnesses $c_1,\dots,c_{p-1}$ and accept when $V(x,c_k)=1$ for
+all $k$. Its count is $A(x)^{p-1}\equiv f(x)$. For $f=\ED_n$ this is
+already the answer. For $f=\mathsf{COL}_n$, let $V_2$ take in addition a
+branch bit $\beta$ and a $\lceil\log p\rceil$-bit integer $\mu$, and
+accept when either $\beta=0$, $\mu=0$ and all $c_k$ are zero, or
+$\beta=1$, $\mu<p-1$ and $V_1$ accepts. Its count is
+\[
+1+(p-1)A(x)^{p-1}\equiv1-\mathsf{COL}_n(x)=\ED_n(x)\pmod p.
+\]
+At $p=2$ this is the branch construction in the proof of
+Theorem~\ref{thm:ambiguity}. In both cases the new verifier has
+$O_p(s+r+1)=O_p(s+1)$ gates and $O_p(s+1)$ witness bits, and all copies
+share $x$.
+
+\emph{The bound.} Apply Lemma~\ref{lem:convert} over $\F_p$ and close
+every witness bit with the unary all-ones table. The network represents
+the count modulo $p$, which is $\ED_n(x)\in\{0,1\}$, and has volume
+$O_p(n+s+1)$. Pin the padding as in the proof of Theorem~\ref{thm:main}
+to obtain a network for $D_{w(n)}$. Theorem~\ref{thm:import} over $\F_p$
+gives $O_p(n+s+1)>n_ww^{\sigma_p}$, and as there $n<4n_w$ and
+$w>\tfrac14\log n$, so $s=\Omega_p(n(\log n)^{\sigma_p})$.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:modular-class}]
+The two-address verifier places $\mathsf{COL}$ in $\NSIZE[O(n)]$, and
+Theorem~\ref{thm:modular-verifier} excludes it from $\ModSIZE{p}[O(n)]$,
+since $(\log n)^{\sigma_p}\to\infty$. Padding is handled as in the proof
+of Theorem~\ref{thm:strict-verification}.
+\end{proof}
+
+The theorem uses only the single-list case of the imported bound in
+characteristic $p$, with its own exponent $\sigma_p$. Since
+Theorem~\ref{thm:import} does not say how $\sigma_p$ depends on $p$, the
+corollary is stated for each fixed prime separately.
 
 \subsection{Modular verifiers and finite-field tensor volume}
 For a Boolean function $f$ on $n\ge1$ bits, let $M_p(f)$ be its
@@ -847,6 +922,7 @@ two admits ports would remove half of the proof from consideration.
 \end{itemize}
 
 \paragraph{Acknowledgments.}
+AI was used to produce the results, proofs, and text of this note.
 The bound is an immediate corollary of \cite[Theorem~2.2]{OAI}, and all
 credit for the underlying theorem belongs to its authors.
 
@@ -868,7 +944,7 @@ complexity. \href{https://arxiv.org/abs/1509.07789}{Preprint}.
 An explicit $4n-O(\log n)$ size lower bound against general Boolean
 circuits. \href{https://eccc.weizmann.ac.il/report/2026/260/}{ECCC
 TR26-260, revision 1}.
-\bibitem{scope} OpenAI. Formalization scope for the November 24 release.
+\bibitem{scope} OpenAI. Formalization scope for the November 2026 release.
 \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/docs/379.md}{Pinned scope document}.
 \bibitem{AKS}
 M.~Ajtai, J.~Koml\'os, and E.~Szemer\'edi. An $O(n\log n)$ sorting
@@ -913,28 +989,28 @@ problems. In \emph{Proceedings of FOCS 2018}, pages 65--76, 2018.
 
 \bibitem{OAI}
 OpenAI. The matrix multiplication exponent is nine fourths.
-Preprint, November 24, 2026.
+Preprint, November 2026.
 \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf}{Manuscript}.
 
 \bibitem{HC}
 OpenAI. Circuit lower bounds for Hamiltonian cycle and the permanent.
-Preprint, November 24, 2026.
+Preprint, November 2026.
 \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/paper.pdf}{Manuscript}
 and \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/build/model.tex}{exact-batches statement and standing hypothesis}.
 
 \bibitem{Geom}
 OpenAI. Euclidean geometry in the asymptotic spectrum of tensors.
-Preprint, November 24, 2026.
+Preprint, November 2026.
 \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Euclidean-geometry-in-the-asymptotic-spectrum-of-tensors-November-24-2026/paper.pdf}{Manuscript}.
 
 \bibitem{Mult}
 OpenAI. The logarithmic exponent of integer multiplication on tapes.
-Preprint, November 24, 2026.
+Preprint, November 2026.
 \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-logarithmic-exponent-of-integer-multiplication-on-tapes-November-24-2026/paper.pdf}{Manuscript}.
 
 \bibitem{ETH}
 OpenAI. The Exponential Time Hypothesis is False.
-Preprint, October 25, 2026.
+Preprint, October 2026.
 \href{https://github.com/openai/math/tree/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-Exponential-Time-Hypothesis-is-False-October-25-2026}{Manuscript repository}.
 \end{thebibliography}
 \end{document}

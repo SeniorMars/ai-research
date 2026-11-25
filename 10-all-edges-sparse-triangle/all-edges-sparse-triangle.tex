@@ -19,13 +19,14 @@
 \newcommand{\Inc}{\mathrm{Inc}}
 \newcommand{\id}{\mathrm{id}}
 \newcommand{\ind}[1]{[\,#1\,]}
-\hypersetup{pdftitle={Superlinear circuit lower bounds for All-Edges Sparse Triangle, 3SUM, and shortest paths},
+\hypersetup{pdftitle={Superlinear circuit lower bounds for All-Edges Sparse Triangle, 3SUM, shortest paths, and connectivity},
   pdfauthor={Charlie Cruz},
-  pdfkeywords={circuit lower bounds, All-Edges Sparse Triangle, APSP, 3SUM, triangle detection, element distinctness, tensor networks, unambiguous verification, superlinear lower bounds}}
+  pdfkeywords={circuit lower bounds, All-Edges Sparse Triangle, APSP, 3SUM, triangle detection, element distinctness, tensor networks, unambiguous verification, table lookup, connectivity, minimum spanning tree, superlinear lower bounds}}
 \title{Superlinear Circuit Lower Bounds for All-Edges Sparse Triangle,\\
-3SUM, and Shortest Paths, Assuming a Tensor-Network Volume Bound}
+3SUM, Shortest Paths, and Connectivity,\\
+Assuming a Tensor-Network Volume Bound}
 \author{Charlie Cruz}
-\date{November 25, 2026}
+\date{25 November 2026}
 \begin{document}
 \maketitle
 
@@ -46,7 +47,17 @@ $\Omega(n(\log n)^{1+\sigma})$ gates. Each bound is superlinear in the input
 length in bits. The triangle lower bound comes from two simple gadgets: a
 graph whose triangles perform parallel table lookups, and a sorting
 certificate that three lookups can check and that is unique exactly when
-the input list is distinct.
+the input list is distinct. The certificate shows that parallel lookup is
+the hard core: checking $q$ claimed values $x_i=y_{j_i}$ against a table
+of $q$ words needs tensor-network volume more than $\tfrac12q(\log
+q)^{1+\sigma}$. Every graph bound in the paper is a way of computing this
+predicate. Embedding lookup in trees and forests gives the same
+$\Omega(n(\log n)^{1+\sigma})$ bound for single-source distances in
+unweighted trees, connected-component labeling of forests, counting
+connected components, minimum spanning tree weight with weights in
+$\{0,1\}$, the rank over $\F_2$ of a matrix with two nonzero entries per
+row, and $\#$2SAT restricted to equality clauses. All of these problems
+are in logspace.
 \end{abstract}
 
 \section{Introduction}
@@ -140,6 +151,57 @@ $\Omega(n(\log n)^{1+\sigma})$ gates, even if it need only be correct on
 lists of pairwise distinct integers.
 \end{theorem}
 
+All of the graph bounds above go through one intermediate statement,
+about \emph{parallel table lookup}. For $w\ge1$ and $q=2^w$, let
+$R_w$ take an address array $j$, a claimed-value array $x$, and a
+table $y$, each consisting of $q$ words of $w$ bits, and return
+$R_w(j,x,y)=\bigwedge_{i}\ind{x_i=y_{j_i}}$.
+
+\begin{theorem}[Parallel lookup]\label{thm:lookup}
+For every finite field $k$, with $\sigma=\sigma(k)$ the exponent of
+Theorem~\ref{thm:import} over $k$, and all sufficiently large $w$, every
+trivalent network over $k$ representing $R_w$ has volume more than
+$\tfrac12q\,w^{1+\sigma}$. Every circuit computing $R_w$ has more than
+$\tfrac1{33}q\,w^{1+\sigma}$ gates, with $\sigma=\sigma(\F_2)$.
+\end{theorem}
+
+The input of $R_w$ has $3qw$ bits, so this bound is again
+$\Omega(B(\log B)^\sigma)$ for $B$ input bits. Any problem that computes
+$R_w$ after an encoding of linear size inherits it, and triangles are only
+one way to do so. A tree whose shape encodes the table works as well, as
+does a forest whose components do. This gives the following bounds, all
+proved in Section~\ref{sec:connectivity}, where the input formats are
+fixed.
+
+\begin{corollary}\label{cor:connectivity}
+Each of the following requires $\Omega(n(\log n)^{1+\sigma})$ gates, for
+instances with parameter $n$ and $\Theta(n\log n)$ input bits:
+\begin{enumerate}
+\item the distance from a given source to every vertex of an unweighted
+tree on $n$ vertices, given as a sorted edge list, and the depth of every
+vertex of a rooted tree on $n$ vertices given by parent pointers;
+\item labeling the components of a forest on $n$ vertices, where each
+vertex must output the smallest vertex in its component, and answering
+$\Theta(n)$ connectivity queries in a forest on $n$ vertices;
+\item counting the connected components of a graph with $n$ vertices and
+$n$ edges, even on the sorted 2-degenerate graphs of
+Theorem~\ref{thm:main};
+\item the weight of a minimum spanning tree of a connected graph with
+$n+1$ vertices, at most $2n$ edges, and edge weights in $\{0,1\}$;
+\item the rank over $\F_2$ of an $n\times n$ matrix with exactly two
+nonzero entries in every row, given by their column positions; and
+\item the number of satisfying assignments of a 2-CNF with $n$ variables
+and $2n$ clauses, each of the form $(u\lor\neg v)$ or $(\neg u\lor v)$.
+\end{enumerate}
+\end{corollary}
+
+Every problem in Corollary~\ref{cor:connectivity} is in logspace, using
+Reingold's theorem \cite{Rei} for the connectivity questions. The point of
+the corollary is not that these problems are hard in any absolute sense.
+It is that the obstruction behind Theorem~\ref{thm:import} is the routing
+of information to addresses given in the input, and it survives even
+when the graph has extremely simple shape.
+
 In every case the input has $B$ bits for $B$ equal to the stated parameter
 times a logarithm, so each bound reads $\Omega(B(\log B)^{\sigma})$: it is
 superlinear in the input length, by a factor of $(\log B)^\sigma$.
@@ -157,8 +219,9 @@ when $x_i=y_{j_i}$. So $q$ outputs of an $\AEST$ circuit compute $R$. The
 graph has $3q$ vertices and $3q$ edges, its sorted edge order does not
 depend on the data, and writing it down costs no gates at all.
 
-\paragraph{A unique sorting certificate.} The predicate $R$ is easy, so we
-need a way to build a hard function out of a few lookups. The key idea is
+\paragraph{A unique sorting certificate.} Theorem~\ref{thm:import} is
+about distinctness, not lookup, so we need a way to build distinctness
+out of a few lookups. The key idea is
 to use nondeterminism of a kind that tensor networks can absorb. Given a
 list $X_0,\dots,X_{q-1}$, a certificate consists of a rank array $j$, a
 claimed inverse $z$, and a claimed sorted list $Y$. One lookup checks
@@ -173,11 +236,18 @@ linear volume \cite{OAI,R06}. Summing over the certificate wires counts
 the accepting certificates, and because that count is always $0$ or $1$,
 the result is exactly the distinctness indicator, even over $\F_2$. This
 summation is a tensor contraction rather than an enumeration, so it costs
-only the volume of the certificate wires. Comparing with the volume lower
-bound of \cite{OAI} proves Theorem~\ref{thm:main}. For triangle detection
-(Corollary~\ref{cor:variants}), where only one output bit is available, we
-recover $R$ by a second contraction over selector bits that switch
-individual triangles on and off.
+only the volume of the certificate wires.
+
+\paragraph{Lookup is the hard core.} The certificate argument never uses
+triangles. It turns any network for $R$ into a network for distinctness
+with three times the volume plus $O(qw)$, and comparing with the volume
+lower bound of \cite{OAI} gives Theorem~\ref{thm:lookup}. Each graph bound
+is then a way of computing $R$. For $\AEST$ this is the lookup graph. For
+triangle detection (Corollary~\ref{cor:variants}), where only one output
+bit is available, we recover $R$ by a second contraction over selector
+bits that switch individual triangles on and off. For
+Corollary~\ref{cor:connectivity}, the table becomes the shape of a tree,
+or the partition of a graph into components.
 
 \paragraph{Shortest paths and 3SUM.} For Corollary~\ref{cor:apsp}, an edge
 $\{u,v\}$ lies in a triangle exactly when $u$ and $v$ have a common
@@ -219,13 +289,16 @@ hypotheses. We have not independently audited its proof. Result~06
 \cite[Section~6]{R06} describes which parts of it have been checked.
 
 \subsection{Outline}
-In Section~\ref{sec:prelim} we state the imported theorem and show that
-unambiguous verifiers give small tensor networks. Section~\ref{sec:lookup}
-constructs the lookup graph, Section~\ref{sec:certificate} the unique
-sorting certificate, and Section~\ref{sec:proof} combines them to prove
-Theorem~\ref{thm:main}. Section~\ref{sec:decision} proves
+In Section~\ref{sec:prelim} we state the imported theorem, show that
+unambiguous verifiers give small tensor networks, and record three
+operations on networks. Section~\ref{sec:lookup} constructs the lookup
+graph, Section~\ref{sec:certificate} the unique sorting certificate, and
+Section~\ref{sec:hardcore} combines the certificate with the imported
+theorem to prove Theorem~\ref{thm:lookup}. Section~\ref{sec:proof} proves
+Theorem~\ref{thm:main}, Section~\ref{sec:decision} proves
 Corollary~\ref{cor:variants}, Section~\ref{sec:apsp} proves
-Corollary~\ref{cor:apsp}, and Section~\ref{sec:3sum} proves
+Corollary~\ref{cor:apsp}, Section~\ref{sec:connectivity} proves
+Corollary~\ref{cor:connectivity}, and Section~\ref{sec:3sum} proves
 Theorem~\ref{thm:3sum-intro}. We conclude with open problems in
 Section~\ref{sec:open}.
 
@@ -257,8 +330,8 @@ sufficiently large $w$,
 \]
 \end{theorem}
 
-The only other tool we need is the observation that a circuit with a
-unique certificate yields a network for the function it verifies.
+We also need the observation that a circuit with a unique certificate
+yields a network for the function it verifies.
 
 \begin{lemma}[Unambiguous verifiers give networks]\label{lem:verifier}
 Let $V(x,c)$ be computed by a circuit with $s$ gates on $b$ input bits in
@@ -286,6 +359,35 @@ We emphasize that the sum over $c$ is a contraction. We do not claim that a
 circuit can enumerate the certificates within this size;
 Theorem~\ref{thm:import} bounds the volume of every network representing
 $D_w$, however it is evaluated.
+
+We also combine networks directly, using three elementary operations.
+
+\begin{lemma}[Operations on networks]\label{lem:ops}
+Fix a field $k$ and trivalent networks $N_1,N_2$ over $k$ representing
+$T_1,T_2$.
+\begin{enumerate}
+\item \emph{Pinning.} Attaching the unary table $\ind{z=c}$ to an exterior
+bit $z$ of $N_1$ gives a network for $T_1$ with $z$ fixed to $c$, of volume
+$\vol(N_1)+1$.
+\item \emph{Summing.} Attaching the unary all-ones table to an exterior bit
+$z$ of $N_1$ gives a network for $\sum_{z\in\{0,1\}}T_1$, of volume
+$\vol(N_1)+1$.
+\item \emph{Products.} Suppose $N_1$ and $N_2$ share a set $Z$ of exterior
+bit names, and their other exterior names are distinct. Then the product
+$T_1T_2$, as a function of the union of the exterior bits, has a trivalent
+network of volume $\vol(N_1)+\vol(N_2)+2|Z|$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+In parts~1 and~2 the new table closes the exterior wire of $z$, which
+becomes internal; the contraction over its two values gives the stated
+function, and one vertex is added. For part~3, place the networks side by
+side and, for each $z\in Z$, join the exterior wire of $z$ in $N_1$ and
+the one in $N_2$ to a new ternary table $\ind{z_1=z_2=z}$, whose third
+position is the new exterior bit $z$. Summing over $z_1,z_2$ forces both
+copies to agree with $z$, so the network represents $T_1T_2$. Each shared
+bit adds one vertex and one wire.
+\end{proof}
 
 \section{Lookup by triangles}\label{sec:lookup}
 
@@ -392,10 +494,77 @@ the inverse lookup forces a permutation, and the comparator chain checks
 the proposed order. Both existence and uniqueness matter, since we will
 sum over certificates in characteristic two.
 
+\section{Parallel lookup is hard}\label{sec:hardcore}
+
+We now prove Theorem~\ref{thm:lookup}. For $w\ge1$ and $q=2^w$, $R_w$ is
+the predicate $R$ of Section~\ref{sec:lookup} on the $3qw$ bits of
+$(j,x,y)$. Lemma~\ref{lem:unique} says that, as an integer,
+\begin{equation}\label{eq:sum-cert}
+D_w(X)=\sum_{j,z,u,v}R_w(j,\id,z)\,R_w(j,a,u)\,R_w(j,b,v)\,\Inc(u,v),
+\end{equation}
+writing $\Inc(u,v)$ for $\Inc(Y)$ with $Y_c=(u_c,v_c)$. The right side is
+a contraction of three copies of any network for $R_w$, so the lower bound
+for $D_w$ passes to $R_w$.
+
+\begin{proof}[Proof of Theorem~\ref{thm:lookup}]
+Fix $k$ and let $N$ be a trivalent network over $k$ representing $R_w$,
+of volume $v$. The chain $\Inc$ is computed by a circuit with $O(qw)$
+gates on $2qw$ input bits, since each comparison of $2w$-bit words takes
+$O(w)$ gates. By Lemma~\ref{lem:verifier} with an empty certificate, it
+has a network $N_4$ of volume at most $C_0qw$, for an absolute constant
+$C_0$.
+
+Take three copies of $N$. In the first, name the exterior bits
+$(j,\iota,z)$ and pin $\iota$ to the constant array $\id$; in the second,
+name them $(j,a,u)$; in the third, $(j,b,v)$. Here $a,b$ are the two
+halves of the words of $X$, as in Section~\ref{sec:certificate}. Name the
+exterior bits of $N_4$ as $(u,v)$. Now apply Lemma~\ref{lem:ops}. Pinning
+$\iota$ costs $qw$. Multiplying the first copy by the second and then by
+the third, sharing $j$ each time, costs $4qw$. Multiplying by $N_4$,
+sharing $u$ and $v$, costs $4qw$. Summing out $j,z,u,v$ costs $4qw$. The
+result is a trivalent network over $k$ with exterior bits $X=(a,b)$
+representing the right side of \eqref{eq:sum-cert} computed in $k$. That
+sum is the integer $D_w(X)\in\{0,1\}$, so the network represents $D_w$ in
+every characteristic. Its volume is at most $3v+(C_0+13)qw$, so
+Theorem~\ref{thm:import} gives
+\[
+3v+(C_0+13)\,qw>2q\,w^{1+\sigma},
+\qquad\text{so}\qquad
+v>\tfrac23q\,w^{1+\sigma}-\tfrac13(C_0+13)\,qw>\tfrac12q\,w^{1+\sigma}
+\]
+as soon as $w^\sigma>2(C_0+13)$.
+
+For circuits, take $k=\F_2$. A circuit with $s$ gates for $R_w$ gives, by
+Lemma~\ref{lem:verifier} with an empty certificate, a network of volume at
+most $16s+15qw+8$. Hence $16s+15qw+8>\tfrac12q\,w^{1+\sigma}$, and so
+$s>\tfrac1{32}q\,w^{1+\sigma}-qw-1>\tfrac1{33}q\,w^{1+\sigma}$ for large
+$w$.
+\end{proof}
+
+All the remaining graph bounds apply Theorem~\ref{thm:lookup} in the
+following form.
+
+\begin{corollary}[Transfer]\label{cor:transfer}
+Let $P$ be a function, and suppose there are circuits $E$ and $F$, each
+with at most $c$ gates, such that
+$F\bigl(j,x,y,P(E(j,x,y))\bigr)=R_w(j,x,y)$ for all $j,x,y$. Then every
+circuit computing $P$, even one that is correct only on the range of $E$,
+has more than $\tfrac1{33}q\,w^{1+\sigma}-2c$ gates for all large $w$.
+\end{corollary}
+\begin{proof}
+Composing $E$, a circuit for $P$ with $S$ gates, and $F$ computes $R_w$
+with $S+2c$ gates. Apply Theorem~\ref{thm:lookup}.
+\end{proof}
+
+In every application below, $E$ writes down a graph whose edge list is a
+projection of $(j,x,y)$ together with constants, and $F$ makes $O(q)$
+comparisons of $O(w)$-bit numbers, so $c=O(qw)$ and the bound is
+$\Omega(q\,w^{1+\sigma})$.
+
 \section{Proof of Theorem~\ref{thm:main}}\label{sec:proof}
 
 We are now ready to prove our main result. It remains to pad the lookup
-graph to every size $m$ and to account for the cost of the verifier.
+graph to every size $m$.
 
 \paragraph{Padding.} Let $m$ be large and let $q=2^w$ be the largest power
 of two with $3q\le m$, so $m/6<q\le m/3$. For arrays $j,x,y$, let
@@ -412,26 +581,14 @@ edge, and the later ones have increasing smaller endpoints. It is still
 before. A pendant path lies on no triangle, so the outputs on
 $e_0,\dots,e_{q-1}$ are unchanged. Since $L_m\ge w+2$, every name fits.
 
-\paragraph{The verifier.} Let $C$ be a circuit with $S$ gates computing
-$\AEST$ on $m$ edges, correct on the promised graphs. We build a verifier
-for $D_w$: on input $X$ and certificate $(j,z,u,v)$, run $C$ on
-$G_m(j,\id,z)$, $G_m(j,a,u)$ and $G_m(j,b,v)$, AND the outputs on the
-designated edges, and AND the result with a comparator chain for
-$\Inc(Y)$. The three edge lists are projections of the input bits plus
-constants, and each comparison of $2w$-bit words takes $O(w)$ gates. The
-verifier therefore has $s\le 3S+O(qw)$ gates and $b=2qw+4qw=6qw$ input
-bits. By Lemma~\ref{lem:graph} it computes $V$, and by
-Lemma~\ref{lem:unique} each $X$ has exactly $D_w(X)$ accepting
-certificates.
-
-\paragraph{Conclusion.} By Lemma~\ref{lem:verifier} over $\F_2$,
-$D_w$ has a trivalent network of volume at most
-$16(3S+O(qw))+30qw+8$. Theorem~\ref{thm:import} gives
-\[
-48S+O(qw)>2q\,w^{1+\sigma}.
-\]
-Since $w^\sigma\to\infty$, we get $S\ge q\,w^{1+\sigma}/48$ for large $w$.
-As $q>m/6$ and $w=\log q\ge\log m-3$, this is
+\paragraph{Conclusion.} Let $C$ be a circuit with $S$ gates computing
+$\AEST$ on $m$ edges, correct on the promised graphs. Let $E$ write down
+the edge list of $G_m(j,x,y)$, a projection of the input bits plus
+constants, and let $F$ take the AND of the outputs of $C$ on
+$e_0,\dots,e_{q-1}$. By Lemma~\ref{lem:graph} this computes $R_w$, with
+$c=O(qw)$ in Corollary~\ref{cor:transfer}. So
+$S>\tfrac1{33}q\,w^{1+\sigma}-O(qw)\ge\tfrac1{34}q\,w^{1+\sigma}$ for
+large $w$. As $q>m/6$ and $w=\log q\ge\log m-3$, this is
 $\Omega(m(\log m)^{1+\sigma})$. Finally $\log B_m=\Theta(\log m)$, which
 gives the bound in terms of input bits. \qed
 
@@ -444,8 +601,9 @@ more contraction.
 \paragraph{Counting and per-edge witnesses.} By Lemma~\ref{lem:graph}(2),
 $G_m(j,x,y)$ has exactly $\sum_i\ind{x_i=y_{j_i}}$ triangles, so
 $R(j,x,y)=1$ exactly when the count equals $q$. A counting circuit
-therefore replaces $C$ in the verifier, with $O(\log m)$ extra gates per
-copy. A circuit that returns, for each edge, a triangle through it or a
+followed by a comparison with $q$, which takes $O(\log m)$ gates,
+therefore computes $R_w$, and Corollary~\ref{cor:transfer} applies. A
+circuit that returns, for each edge, a triangle through it or a
 marker determines every $\AEST$ output after $O(m\log m)$ gates of
 decoding, which the bound absorbs. This proves parts~1 and~2.
 
@@ -473,16 +631,15 @@ indicator is therefore $Q(s)=\prod_i(1-s_ih_i)$, and over every field
 \]
 Over $\F_2$ the signs disappear. So if $T$ is a decision circuit with $S$
 gates, the network of $\neg T$ on $G^s$, with its $q$ selector bits closed
-by all-ones tables, represents $R$ with volume $O(S+qw)$. It uses one copy
-of $T$, not $2^q$.
-
-We use three such networks in place of the three lookups, sum over the
-certificate as before, and include the comparator chain. Summing over the
-selectors and over the certificate are both contractions, so the result
-represents $\sum_{j,z,u,v}V=D_w$ with volume $O(S+qw)$. For general $m$,
+by all-ones tables (Lemma~\ref{lem:ops}), represents $R_w$ with volume
+$O(S+qw)$. It uses one copy of $T$, not $2^q$. Here the transfer happens
+at the level of networks rather than circuits, which is why
+Theorem~\ref{thm:lookup} is stated for networks:
+it gives $O(S+qw)>\tfrac12q\,w^{1+\sigma}$, so
+$S=\Omega(q\,w^{1+\sigma})$. For general $m$,
 attach the padding path at $B_0$ through the new vertices $3q+1,\dots,m$.
 This gives $m$ edges on vertex set $[m+1]$ and preserves all the
-properties above. Theorem~\ref{thm:import} then gives part~3. A circuit
+properties above, which gives part~3. A circuit
 that returns a triangle or a marker decides existence after $O(m\log m)$
 gates of checking against the edge list, which gives part~4.
 
@@ -511,6 +668,182 @@ inherited bound is below the $\Omega(m^2)$ gates needed just to write the
 output, and the informative statement is the one about $m$ queries. The
 APSP hypothesis itself concerns dense weighted graphs, which we do not
 address.
+
+\section{Trees, forests, and connectivity}\label{sec:connectivity}
+
+We now prove Corollary~\ref{cor:connectivity} by embedding $R_w$ in other
+graph problems. A graph on vertex set $[n]$ is given as a list of edges,
+each a pair of endpoints written in $L_n=\lceil\log n\rceil$ bits, and
+numbers in the output are written in binary. Throughout, $q=2^w$ is the
+largest power of two with $3q\le n$, so $q>n/6$, $w\ge\log n-3$, and
+$L_n\ge w+2$. The vertices of $[3q]$ fall into three classes of size $q$,
+and we write $I_i,A_a,B_b$ for $i,a,b\in[q]$. In each construction the
+name of a vertex is two fixed class bits followed by the $w$ bits of its
+index, padded with leading zeros to $L_n$ bits. So every edge list below is
+a projection of $(j,x,y)$ together with constants. By
+Corollary~\ref{cor:transfer}, each part then needs
+$\Omega(q\,w^{1+\sigma})=\Omega(n(\log n)^{1+\sigma})$ gates, and the
+input has $\Theta(n\log n)$ bits. In every case the bound holds even for
+circuits that are correct only on the instances constructed.
+
+\subsection{Distances in trees}
+
+Name the vertices $I_i=i$, $A_a=q+a$, and $B_b=2q+b$, and call the
+vertices $3q,\dots,n-1$ \emph{padding}. Let $T(j,y)$ be the graph with the
+$n-1$ edges
+\[
+e_i=(i,\;q+j_i)\ \ (i\in[q]),\qquad
+g_a=(q+a,\;2q+y_a)\ \ (a\in[q]),\qquad
+p_t=(t,\;t+1)\ \ (2q\le t\le n-2),
+\]
+listed in this order and written with the smaller endpoint first. The
+first endpoints are $0,1,\dots,n-2$ in increasing order, so the list is
+sorted for every input. Every vertex $t<n-1$ has an edge to a larger
+vertex, so following these edges from any vertex reaches $n-1$. A
+connected graph with $n$ vertices and $n-1$ edges is a tree. The
+$B$-vertices and the padding form a path $2q,2q+1,\dots,n-1$, each
+$A_a$ hangs from $B_{y_a}$, and each $I_i$ hangs from $A_{j_i}$.
+
+\begin{corollary}\label{cor:tree}
+For all large $n$, each of the following has
+$\Omega(n(\log n)^{1+\sigma})$ gates:
+\begin{enumerate}
+\item a circuit that, given a tree on $[n]$ as a sorted edge list and a
+source $s$, outputs $d(s,v)$ for every vertex $v$; and
+\item a circuit that, given a tree on $[n]$ rooted at $n-1$ by the parent
+pointers $\mathrm{par}(t)$ for $t<n-1$, outputs the depth of every
+vertex. This holds even if $\mathrm{par}(t)>t$ for every $t$.
+\end{enumerate}
+\end{corollary}
+\begin{proof}
+For part~1, use $T(j,y)$ with source $s=B_0=2q$. The path from $I_i$ to
+$B_0$ goes through $A_{j_i}$ and $B_{y_{j_i}}$ and then $y_{j_i}$ steps
+along the path, so
+\[
+d(B_0,I_i)=2+y_{j_i}.
+\]
+Hence $R_w(j,x,y)=\bigwedge_i\ind{d(B_0,I_i)=2+x_i}$, which $F$ computes
+with $O(q\log n)$ gates. For part~2, set $\mathrm{par}(t)$ to be the larger
+endpoint of the edge of $T(j,y)$ whose smaller endpoint is $t$. This is a
+projection, $\mathrm{par}(t)>t$, and the root is $n-1$. The depth of $I_i$
+is $2+(n-1-2q-y_{j_i})$, which again determines $y_{j_i}$, and
+$R_w=\bigwedge_i\ind{\mathrm{depth}(I_i)=n+1-2q-x_i}$. Apply
+Corollary~\ref{cor:transfer}.
+\end{proof}
+
+\subsection{Forests}
+
+Delete the path from $T(j,y)$. What is left is a forest in which every
+component contains exactly one $B$-vertex, and $I_i$ lies in the
+component of $B_{y_{j_i}}$. A query about the component of $I_i$ is then
+a lookup.
+
+\begin{corollary}\label{cor:forest}
+For all large $n$, each of the following has
+$\Omega(n(\log n)^{1+\sigma})$ gates:
+\begin{enumerate}
+\item a circuit that, given a forest on $[n]$ as an edge list, outputs for
+every vertex the smallest vertex in its component; and
+\item a circuit that, given a forest on $[n]$ as a sorted edge list and
+$q>n/6$ query pairs $(s_k,t_k)$, decides for each $k$ whether $s_k$ and
+$t_k$ lie in the same component.
+\end{enumerate}
+\end{corollary}
+\begin{proof}
+For part~2, keep the names of $T(j,y)$ and take the $2q$ edges $e_i,g_a$,
+which are sorted as before. The padding vertices are isolated. Each
+$A_a$ has exactly one edge to a $B$-vertex and each $I_i$ exactly one edge
+to an $A$-vertex, so the graph is a forest and the component of $B_b$ is
+$\{B_b\}\cup\{A_a:y_a=b\}\cup\{I_i:y_{j_i}=b\}$. Every component of the
+core contains exactly one $B$-vertex, so with the queries
+$(s_i,t_i)=(I_i,B_{x_i})$, which are projections of $x$, the answer to
+query $i$ is $\ind{x_i=y_{j_i}}$. So $R_w$ is the AND of the answers.
+
+For part~1, rename so that the $B$-vertices come first: $B_b=b$,
+$A_a=q+a$, $I_i=2q+i$, with the same edges. The smallest vertex in the
+component of $I_i$ is then $B_{y_{j_i}}=y_{j_i}$, so
+$R_w=\bigwedge_i\ind{\ell(I_i)=x_i}$, where $\ell$ is the output label.
+Apply Corollary~\ref{cor:transfer}.
+\end{proof}
+
+Part~1 needs a canonical label. A circuit that may output any labeling
+constant exactly on components does not obviously give $R_w$, since
+comparing the label of $I_i$ with that of $B_{x_i}$ is itself a lookup.
+Part~2 avoids labels altogether by asking the queries directly.
+
+\subsection{Counting components}
+
+Here we return to the graphs of Theorem~\ref{thm:main}. Let $c(G)$ be the
+number of connected components of $G$.
+
+\begin{lemma}\label{lem:components}
+For all $j,x,y$, $c(G_m(j,x,y))\le q$, with equality if and only if
+$R_w(j,x,y)=1$. Every component of $G_m(j,x,y)$ contains a $B$-vertex.
+\end{lemma}
+\begin{proof}
+The padding path is attached at $B_0$, so it suffices to treat
+$G=G(j,x,y)$ from Lemma~\ref{lem:graph}. Let $H$ be the subgraph of $G$
+induced by the $A$- and $B$-vertices. Its edges are the $g_a$, so its
+components are $C_b=\{B_b\}\cup\{A_a:y_a=b\}$ for $b\in[q]$, exactly $q$
+of them, each containing one $B$-vertex. In $G$, the vertex $I_i$ is
+adjacent to $A_{j_i}\in C_{y_{j_i}}$ and to $B_{x_i}\in C_{x_i}$ and to
+nothing else. So the components of $G$ are the unions of the $C_b$ over
+the classes of the equivalence relation on $[q]$ generated by
+$y_{j_i}\sim x_i$, with each $I_i$ joining its class. There are $q$ classes
+exactly when every generator is trivial, that is, when $x_i=y_{j_i}$ for
+all $i$.
+\end{proof}
+
+\begin{corollary}\label{cor:count}
+For all large $m$, each of the following has
+$\Omega(m(\log m)^{1+\sigma})$ gates:
+\begin{enumerate}
+\item a circuit that counts the connected components of a graph with $m$
+vertices and $m$ edges, even if it need only be correct on simple,
+2-degenerate graphs given as sorted edge lists;
+\item a circuit that outputs the weight of a minimum spanning tree of a
+connected graph with $m+1$ vertices, at most $2m$ edges, and weights in
+$\{0,1\}$;
+\item a circuit that outputs the rank over $\F_2$ of an $m\times m$ matrix
+with exactly two ones in each row, given by their column positions; and
+\item a circuit that outputs the number of satisfying assignments of a
+2-CNF with $m$ variables and $2m$ clauses, each of the form $(u\lor\neg
+v)$ or $(\neg u\lor v)$.
+\end{enumerate}
+\end{corollary}
+\begin{proof}
+Let $q$ and $G_m=G_m(j,x,y)$ be as in Section~\ref{sec:proof}, so $q>m/6$.
+In each part, $F$ compares a number of $O(m)$ bits with a constant,
+using $O(m)=O(q)$ gates, and Corollary~\ref{cor:transfer} applies.
+
+\emph{Part 1.} $G_m$ is simple, 2-degenerate, and sorted, and
+$R_w=\ind{c(G_m)=q}$ by Lemma~\ref{lem:components}.
+
+\emph{Part 2.} Give the edges of $G_m$ weight $0$, add a vertex $r=m$, and
+join it to $B_0,\dots,B_{q-1}$ by edges of weight $1$. This graph is
+connected, since every component of $G_m$ contains a $B$-vertex. A
+spanning tree must join the $c(G_m)+1$ components of the weight-$0$
+subgraph, which needs at least $c(G_m)$ edges of weight $1$. Joining $r$
+to one $B$-vertex in each component of $G_m$, together with a spanning
+forest of $G_m$, achieves this. So the minimum weight is $c(G_m)$.
+
+\emph{Parts 3 and 4.} Let $M$ be the $m\times m$ incidence matrix of
+$G_m$ over $\F_2$, with one row per edge and a one in the columns of its
+two endpoints; its column positions are the edge list. A vector
+$\zeta\in\F_2^{[m]}$ lies in the kernel of $M$ exactly when
+$\zeta_u=\zeta_v$ for every edge $\{u,v\}$, that is, when $\zeta$ is
+constant on each component. So the kernel has dimension $c(G_m)$ and
+$\operatorname{rank}M=m-c(G_m)$. For part~4, write the two clauses
+$(u\lor\neg v)$ and $(\neg u\lor v)$ for each edge $\{u,v\}$ of $G_m$, a
+projection with constant signs. They say $u=v$, so the satisfying
+assignments are the kernel of $M$, and there are $2^{c(G_m)}$ of them.
+Thus $R_w=\ind{\operatorname{rank}M=m-q}=\ind{\#\mathrm{SAT}=2^q}$.
+\end{proof}
+
+Part~4 applies a fortiori to $\#$2SAT and $\#$SAT in general, and the
+count in part~4 is also the number of solutions of the linear system
+$\zeta_u+\zeta_v=0$ over $\F_2$. The hard instances, however, are only
+component counting in disguise, and that is in logspace.
 
 \section{3SUM}\label{sec:3sum}
 
@@ -641,27 +974,45 @@ detection, or for 3SUM?
 \item \emph{Dense inputs.} The hard instances are sparse. Is there a
 superlinear-in-input bound, that is, $\Omega(v^2(\log v)^{\varepsilon})$
 gates, for triangle detection from a $v\times v$ adjacency matrix, or for
-APSP on dense weighted graphs?
-\item \emph{Lookup as the hard core.} Our proof shows that three parallel
-lookups plus a comparator chain suffice to verify distinctness
-unambiguously. Which other problems embed parallel lookup at linear cost,
-and so inherit the bound in the same way?
+APSP on dense weighted graphs? One route is a lookup in which many
+payloads share one permutation. For a list $p$ of $v$ words in $[v]$ and
+Boolean $v\times v$ matrices $X,Y$, let $W_v(p,X,Y)=1$ exactly when $p$ is
+a permutation and $Y=PX$, where $P$ is its permutation matrix. Given that
+$p$ is a permutation, $Y\ne PX$ exactly when some $i,a,j$ has
+$P_{ia}X_{aj}(1-Y_{ij})=1$ or $P_{ia}(1-X_{aj})Y_{ij}=1$, and each
+condition is a triangle in a tripartite graph on $3v$ vertices whose
+adjacency matrix takes $O(v^2)$ gates to write down from $(p,X,Y)$.
+Checking that $p$ is a permutation also takes $O(v^2)$ gates. So
+$\vol_{\F_2}(W_v)=\Omega(v^2(\log v)^{\varepsilon})$ would give
+$\Omega(v^2(\log v)^{\varepsilon})$ gates for dense triangle detection
+and for Boolean matrix multiplication. The batch form of
+\cite[Theorem~2.2]{OAI} does not seem to give this, since its lists
+carry independent permutations, while here all $v$ columns share one.
+\item \emph{Arbitrary labels.} Corollary~\ref{cor:forest} needs a
+canonical label. Does labeling the components of a forest, with any
+labeling that is constant exactly on components, require superlinear
+circuits?
 \end{itemize}
 
 \paragraph{Acknowledgments.}
+AI was used to produce the results, proofs, and text of this note.
 All bounds here are corollaries of \cite[Theorem~2.2]{OAI}, and all
 credit for the underlying theorem belongs to its authors.
 
 \begin{thebibliography}{9}
 \bibitem{OAI}
 OpenAI. The matrix multiplication exponent is nine fourths.
-Preprint, November 24, 2026.
+Preprint, November 2026.
 \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf}{Manuscript}.
 
 \bibitem{R06}
 C.~Cruz. Superlinear lower bounds for element distinctness and unambiguous
 verification of collision from a tensor-network volume bound. Result~06 in
 this collection, November 2026.
+
+\bibitem{Rei}
+O.~Reingold. Undirected connectivity in log-space. \emph{Journal of the
+ACM}, 55(4):17:1--17:24, 2008.
 
 \bibitem{VWX}
 V.~Vassilevska Williams and Y.~Xu. Monochromatic triangles, triangle
