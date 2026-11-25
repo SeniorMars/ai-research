@@ -14,12 +14,12 @@
 \newcommand{\DSPACE}{\mathsf{DSPACE}}
 \newcommand{\NTIME}{\mathsf{NTIME}}
 \newcommand{\SAT}{\textup{\textsc{CNF-SAT}}}
-\hypersetup{pdftitle={Simulating time T with a space-s oracle in space O(s(T)+T/log T)},
+\hypersetup{pdftitle={Simulating time T with a space-s oracle in space O(s(T)+sqrt(T log T))},
   pdfauthor={Charlie Cruz},
   pdfkeywords={time-space simulation, oracle machines, relativization, space complexity, multitape Turing machines, CNF-SAT}}
-\title{Simulating Time $T$ with a Space-$s$ Oracle\texorpdfstring{\\}{ }in Space $O(s(T)+T/\log T)$}
+\title{Simulating Time $T$ with a Space-$s$ Oracle\texorpdfstring{\\}{ }in Space $O(s(T)+\sqrt{T\log T})$}
 \author{Charlie Cruz}
-\date{November 24, 2026}
+\date{November 24, 2026, revised November 25, 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -30,14 +30,18 @@ every query is short. We treat long queries. An oracle machine makes
 step, on a query tape that is erased after the answer arrives. We show
 that a deterministic machine running in time $T$, with adaptive fresh
 queries to an oracle $A$ decidable in space $s$, can be simulated without
-any oracle in space $O(s(T)+T/\log T)$. The simulation stores neither the
-machine's tapes nor its queries. It keeps a table of the answers to all
-short queries and a transcript of the answers to the long ones. Whenever
-the algorithm for $A$ asks for a bit of a long query, the simulation
-regenerates that bit by replaying the whole computation inside
-Williams's simulation. For example, \SAT{} with binary variable names is
+any oracle in space $O(s(T)+\sqrt{T\log T})$. A linear-time replay
+asks the oracle only short queries and takes previously computed long
+answers from a transcript. Williams's length-restricted oracle theorem
+then regenerates each bit of the next long query. In particular, linear
+space contains a language outside time $o(n^2/\log n)$ with fresh queries
+to any fixed $\mathsf{NL}$ or $\mathsf{BPL}$ language.
+For another example, \SAT{} with binary variable names is
 in space $O(N/\log N)$, so linear space is not contained in time
-$o(n\log n)$ with fresh queries to a \SAT{} oracle.
+$o(n\log n)$ with fresh queries to a \SAT{} oracle. An oracle that
+returns the full binary model count on a read-only response tape
+admits a simulation in $O(T/\log\log T)$ space under the same
+occurring-variable encoding.
 \end{abstract}
 
 \section{Introduction}
@@ -78,6 +82,20 @@ from scratch on a query tape that is erased after the answer arrives,
 paying one step per symbol. Some convention of this kind is necessary;
 see Remark~\ref{rem:fresh}.
 
+\begin{theorem}\label{thm:short-replay}
+Let $A$ be a fixed decision oracle in deterministic space $s(m)$,
+where $s$ is nondecreasing, $s(m)\ge\log(m+2)$ up to a constant
+factor, and $s(2m)=O(s(m))$. For every $T(n)\ge n$,
+\[
+ \DTIME_{\rm fresh}^{A}[T]\ \subseteq\
+ \DSPACE\bigl[O\bigl(s(T)+\sqrt{T\log(T+2)}\bigr)\bigr].
+\]
+\end{theorem}
+The proof in Section~\ref{sec:short-replay} uses the length-restricted
+form of Williams's theorem. The next bound uses the ordinary simulation
+and a table for short queries. Its proof also supplies the replay
+used later for oracles that return strings.
+
 \begin{theorem}\label{thm:main}
 Let $A\subseteq\{0,1\}^*$ be decidable in space $s(m)$, where
 $s(m)\ge\log m$ is nondecreasing and $s(2m)=O(s(m))$. Then for every
@@ -88,7 +106,7 @@ with fresh queries to $A$ in time $T$ is in
 \]
 \end{theorem}
 
-The two terms have a direct interpretation. The term $s(T)$ is the cost
+In the table-based bound, the term $s(T)$ is the cost
 of answering a single query of length up to $T$. The term $T/\log T$ is
 the number of \emph{long} queries the machine can afford to write. Their
 answers are the only information in the computation that we cannot
@@ -139,7 +157,8 @@ Long queries cause difficulty only because we cannot afford to store
 them, so we do not store them. When the algorithm for $A$ asks for bit
 $i$ of the current query, we rerun the whole computation from the
 beginning, feeding in the stored answers, and stop when bit $i$ of that
-query is written. The rerun is a long deterministic computation. It is
+query is written. In Theorem~\ref{thm:short-replay} this rerun takes
+$O(T)$ time with short oracle queries. In the table-based proof it is
 slightly longer than the original, because short queries are answered by
 scanning a table, but it uses no oracle, so Williams's simulation runs it
 in roughly the square root of its time. The older bound of \cite{HPV}
@@ -150,6 +169,9 @@ $T$. The argument works because Williams's simulation regenerates a bit in
 space polynomially smaller than $T$.
 
 \subsection{Status of imported results}
+Theorem~\ref{thm:short-replay} uses Williams's published length-restricted
+oracle theorem~\cite[Theorem~5.1]{Wil25}. Its $\mathsf{BPL}$ corollary
+uses the classical deterministic simulation of Saks and Zhou.
 The proof of Theorem~\ref{thm:main} uses Williams's simulation
 (Theorem~\ref{thm:williams}) as a black box, and Corollary~\ref{cor:sat}
 also uses the space hierarchy theorem \cite{SHL}. Corollary~\ref{cor:ntime}
@@ -178,7 +200,7 @@ the input head as a counter, and recompute $y_j$ whenever it is read.
 For every $t(n)\ge n$, $\DTIME[t]\subseteq\DSPACE[O(\sqrt{t\log t})]$.
 \end{theorem}
 
-\section{The simulation}
+\section{Replay with a table of short answers}
 \begin{proof}[Proof of Theorem~\ref{thm:main}]
 Let $M$ be an oracle machine with fresh queries running in time $T(n)$,
 and fix an input $x$ of length $n$. We first suppose that we are given a
@@ -262,6 +284,87 @@ convention that charges at least $h$ steps per long query works as
 well.
 \end{remark}
 
+\section{Replay with short oracle queries}\label{sec:short-replay}
+\begin{proof}[Proof of Theorem~\ref{thm:short-replay}]
+Fix a dyadic cap $U\ge\max(n,2)$ on the simulated number of steps.
+Take $b=\lfloor\sqrt U\rfloor$, and call a completed query long if its
+length exceeds $b$. Because the query tape is written afresh, at most
+$U/(b+1)$ long queries can finish within the cap. Store their one-bit
+answers in chronological order as they become known. Denote the
+already computed prefix by $\beta$.
+
+For fixed $\beta$, consider the following oracle machine on a padded
+input $y$ encoding $x,\beta,1^U$, a report selector, and an index
+$i\le U$. Use delimiters over a fixed alphabet. On well-formed data
+$|y|=\Theta(U)$. Replay the first $U$ steps of the original machine.
+Accumulate its current query on an ordinary private tape. When a
+query finishes, submit it to the actual oracle only if it has length
+at most $b$. For a longer query consume the next bit of $\beta$.
+If there is no such bit, stop and report the requested bit of the
+query or its length. The other reports distinguish acceptance,
+rejection and timeout. An empty query is a short query.
+
+This replay takes $O(|y|)$ time even for a false transcript. Here the
+time bound matters because it is the argument of a square root.
+Use a unary track marked at positions $b+1$ and $i$, moving its head
+once per emitted symbol and rewinding with the private query head.
+Copying a short query to the actual oracle tape, rewinding and clearing
+the private buffer cost $O(m+1)$ per completed query of length $m$.
+Freshness charges the sum to $O(U)$. A head reads $\beta$ in one
+forward pass and another advances along $1^U$ once per simulated step.
+Only the first unanswered long query needs a binary length, obtained
+by one scan with amortized binary carries. Initialization checks the
+delimiters, field lengths and bounds in linear time before starting
+the replay. Constructing the two marks costs $O(U)$ on valid inputs
+after computing the indices in binary. On every input that passes
+the checks, $U\le |y|$ and every actual oracle query has length at
+most $\sqrt U$.
+
+Williams's Theorem~5.1~\cite{Wil25} applies to each report-bit
+language. It simulates a time-$t$ machine with queries of length at
+most $\sqrt{t\log t}$ in space $O(\sqrt{t\log t})$ with oracle
+queries bounded by the same order. Here $t=O(|y|)=O(U)$ on the valid
+virtual inputs. During this simulation explicitly store each of its
+short oracle queries and run the decider for $A$ on it. Set
+$q=O(\sqrt{U\log(U+2)})$ for the simulator's query bound. Reading
+$y$ virtually from $x,\beta$ and counters adds $O(\log U)$ work
+space. A report therefore costs $O(q+s(q))$ space apart from $\beta$.
+The short-query evaluator reads a materialized input and terminates
+without invoking the replay.
+
+Whenever there is a first unanswered long query $z$, determine its
+length from the reports. Run the space-$s$ decider on $z$, supplying
+each requested input symbol with another report at the same fixed
+$\beta$. This uses $O(s(U)+q+s(q))$ space plus the transcript. Append
+one bit only after the decider returns. Induction on $|\beta|$ shows
+that every completed answer agrees with the actual run. There are
+$O(\sqrt U)$ transcript bits and $q\le U$ at sufficiently large $U$.
+The total space is $O(s(U)+\sqrt{U\log(U+2)})$. On timeout discard
+the transcript and double $U$, starting at the least dyadic cap
+above or equal to $\max(n,2)$. The final cap is $O(T)$, and
+$s(2m)=O(s(m))$ absorbs the constant.
+\end{proof}
+
+\begin{corollary}\label{cor:small-oracles}
+For either $\mathcal A=\mathsf{NL}$ or $\mathcal A=\mathsf{BPL}$,
+\[
+ \bigcup_{A\in\mathcal A}\DTIME_{\rm fresh}^A[o(n^2/\log n)]
+ \ \subseteq\ \DSPACE[o(n)]\ \subsetneq\ \DSPACE[n].
+\]
+For any fixed $1/2<\alpha<1$ and $A\in\DSPACE[m^\alpha]$, the same
+strict separation holds at fresh-query time $o(n^{1/\alpha})$.
+\end{corollary}
+\begin{proof}
+Savitch's theorem~\cite{Savitch} gives $O(\log^2 m)$ space for
+$\mathsf{NL}$. For polynomial-time bounded-error probabilistic
+logspace, Saks and Zhou~\cite{SaksZhou} give $O(\log^{3/2}m)$
+deterministic space. Both costs are absorbed by the square-root
+term, which is $o(n)$ for $T=o(n^2/\log n)$. For the power-space
+oracle, $\sqrt{T\log T}=o(T^\alpha)$ and $T^\alpha=o(n)$.
+Smaller clocks may first be raised to $n$. The deterministic
+space hierarchy gives one witness against the whole union.
+\end{proof}
+
 \section{Applications}
 \begin{lemma}\label{lem:sat}
 Encode a CNF formula as a list of clauses, each literal given by a sign
@@ -296,6 +399,126 @@ $O(t/\sqrt{\log t})=o(n)$ for $t=o(n\sqrt{\log n})$, and we conclude as
 before.
 \end{proof}
 
+\subsection{Quantified formulas and bits of a count}\label{sec:formula-oracles}
+Use prenex TQBF with a closed propositional matrix and distinct,
+explicit binary identifiers for the bound variables. For counting,
+use the same CNF encoding as Lemma~\ref{lem:sat}, counting assignments
+to the occurring variables. Define $\textsc{Bit-\#SAT}$ to take
+$(F,j)$ and return bit $j$ of this count. Define $\textsc{MajSAT}$ by
+strict majority over all assignments.
+
+\begin{corollary}
+For each $A\in\{\textup{\textsc{TQBF}},\textup{\textsc{Bit-\#SAT}},\textup{\textsc{MajSAT}}\}$
+and $n\le t(n)=o(n\log n)$, fresh one-bit queries satisfy
+\[
+ \DTIME^A[t]\subsetneq\DSPACE[n].
+\]
+\end{corollary}
+\begin{proof}
+An input of length $m$ contains $v=O(m/\log m)$ distinct identifiers
+by Lemma~\ref{lem:sat}. For TQBF traverse the assignment tree depth
+first, keeping a constant number of bits per prefix variable for its
+value, traversal state, and partial AND or OR. Recover the quantifier
+at a given level by rescanning the prefix. At a leaf, evaluate the
+fully parenthesized Boolean matrix in $O(\log m)$ extra space. For
+example, push negations to leaves logically by tracking their parity,
+and short-circuit each effective AND or OR. The current node, the
+child just returned, and its truth value suffice, since a visit to a
+second child determines the parent's result. Find parents and
+matching delimiters by rescans with position and depth counters.
+Variable lookups use the assignment bits and rescans of the prefix.
+Syntax and identifier checks also fit in this space.
+
+For the counting queries, enumerate assignments and increment a
+$(v+1)$-bit counter for each satisfying one. Compare with
+$2^{v-1}$ (handle $v=0$ directly), or read the indicated bit,
+returning zero for positions above $v$. The space in each case is
+$O(v+\log m)$. Apply Theorem~\ref{thm:main} and the space hierarchy
+as in Corollary~\ref{cor:sat}.
+\end{proof}
+The query convention matters at this time scale. A unit-cost
+function oracle returning an entire $\#\mathrm{SAT}$ value could
+return $\Theta(v)$ bits per call. The transcript proof budgets one
+bit per long query. Similarly, polynomial-time completeness of TQBF
+does not preserve a query length in this bound.
+
+The parity of the same counter, or its residue modulo any fixed
+integer, gives the identical decision-oracle bound for parity-SAT and
+fixed-modulus SAT.
+
+\subsection{Full binary answers on a response tape}\label{sec:full-answers}
+\begin{theorem}\label{thm:full-answers}
+Let a fixed total function $F$ have output length and deterministic
+evaluation workspace $O(1+m/\log(m+2))$ on $m$-bit queries.
+Each freshly written query replaces the entire read-only response
+tape and resets its head to the first symbol. Reading the response
+uses ordinary sequential tape steps. For $T\ge n$,
+\[
+ \DTIME_{\rm fresh}^{F}[T]\subseteq
+ \DSPACE[O(T/\log\log(T+4))].
+\]
+In particular, full binary $\#\mathrm{SAT}$ answers on the
+occurring-variable encoding give a proper subclass of $\DSPACE[n]$
+at every $n\le t=o(n\log\log n)$.
+\end{theorem}
+\begin{proof}
+Use the cap $U$ and $h=\lfloor(\log U)/3\rfloor$ from
+Theorem~\ref{thm:main}. Tabulate complete short answers in
+$O(2^h\operatorname{poly}(h+1))$ bits. For long queries of lengths
+$m_i>h$, freshness gives $\sum_i m_i\le U$. Store their answers
+in order. Their total length is $O(U/\log h)$, and self-delimiting
+length headers add $O(\sum_i\log(m_i+2))=O(U\log(h+2)/h)$ bits.
+These bounds include empty answers. A transcript ends at a header
+boundary, so the replay can recognize the next unanswered query.
+
+In the ordinary replay machine, scan the short table on each short
+query and read the long transcript in one forward pass. Copy the
+current answer to a private response tape. Rewinding and clearing
+it on replacement costs its written length plus the head movement
+since the preceding replacement. Over the whole replay the long
+answers cost $O(U)$ to copy, and the simulated head moves cost $O(U)$.
+Charge all short-answer scans and copies to
+$U2^h\operatorname{poly}(h+1)$. Check header boundaries and lengths
+against the input length, and impose this polynomial replay clock
+also on malformed inputs. The padded replay input has length
+$\Theta(U)$ on valid data. Williams's simulation therefore regenerates
+a requested bit of the next query in $U^{2/3}\operatorname{polylog}U$
+space. Run the evaluator for $F$ on that virtual query, counting
+the output length on a first pass and appending the answer on a second.
+Keep the old transcript endpoint fixed for both passes, so regeneration
+uses only previously completed responses. The short table, replay
+space and $O(U/\log U)$ evaluator workspace all fit beside the
+$O(U/\log\log U)$ transcript. Doubling the cap gives the time-dependent
+bound as in Theorem~\ref{thm:main}.
+
+For $\#\mathrm{SAT}$, exhaustive enumeration in Lemma~\ref{lem:sat}
+stores the assignment and a $(v+1)$-bit counter. The full binary
+answer fits the same bound; assign a fixed answer to malformed strings.
+At $t=o(n\log\log n)$ the simulation uses $o(n)$ space, so strictness
+follows by the space hierarchy.
+\end{proof}
+
+\subsection{Linear-time nondeterministic and counting oracles}
+\label{sec:linear-oracles}
+Take $A$ from $\NTIME[m]$ or $\mathsf{PPTIME}[m]$, where $m$ is
+query length. Result~04~\cite{AS} gives a random-access alternating
+decision in time $O(m/\sqrt{\log m})$ in either case. For PP use its
+sum over all head schedules and its strict-majority test. The linear
+clock is computable from binary $m$. Simulate the alternating machine
+in space $O(m/\sqrt{\log m})$ by \cite{CKS}, recovering input bits
+by rescans with an $O(\log m)$-bit position. Theorem~\ref{thm:main}
+now gives, for either choice of $\mathcal A$ and $n\le t=o(n\sqrt{\log n})$,
+\[
+ \bigcup_{A\in\mathcal A}\DTIME^A[t]\ \subseteq\
+ \DSPACE[o(n)]\ \subsetneq\ \DSPACE[n].
+\]
+The hierarchy witness is independent of $A$. This is the deterministic
+second-level oracle bound when the inner verifier takes linear time
+in the query length. For a deterministic linear-time oracle, directly
+simulating freshly written queries takes $O(t)$ total time, since
+their total length is at most $t$. Williams's ordinary simulation
+then gives $O(\sqrt{t\log t})$ space.
+
 \section{Discussion}
 \paragraph{Related work.}
 Theorem~5.1 of \cite{Wil25} covers the case where all queries
@@ -309,12 +532,12 @@ against a space-bounded oracle. A search of the follow-ups to
 
 \paragraph{Open problems.}
 \begin{itemize}
-\item \emph{Can the transcript be compressed?} The $T/\log T$ term is the
-only place where adaptivity costs anything. Is
+\item \emph{Can formula queries be answered in less space?} For the
+binary encoding of \SAT{}, the $O(t/\log t)$ evaluation space
+dominates the replay term in Theorem~\ref{thm:short-replay}. Is
 $\DTIME^{\SAT}[t]\subseteq\DSPACE[o(t/\log t)]$? This would push
-Corollary~\ref{cor:sat} beyond time $n\log n$. A lower bound for this
-kind of simulation would also be interesting, since the answer bits
-look incompressible but we see no proof that they are.
+Corollary~\ref{cor:sat} beyond time $n\log n$. The known upper bound
+for evaluating a query leaves its optimal space open.
 \item \emph{Nondeterministic outer machines.} For $\NTIME^A$ the
 simulator must check guessed answers. When $A$ has certificates for both
 answers, for instance $A\in\NTIME[n]\cap\mathsf{coNTIME}[n]$, the standard
@@ -327,9 +550,18 @@ Theorem~\ref{thm:main} extend in the same way?
 \end{itemize}
 
 \begin{thebibliography}{99}
+\bibitem{Savitch}
+W.~J. Savitch. Relationships between nondeterministic and deterministic
+tape complexities. \emph{Journal of Computer and System Sciences},
+4(2), 177--192, 1970.
+\bibitem{SaksZhou}
+M.~Saks and S.~Zhou. $\mathsf{BP_HSPACE}(S)\subseteq
+\mathsf{DSPACE}(S^{3/2})$. \emph{Journal of Computer and System Sciences},
+58(2), 376--403, 1999.
 \bibitem{AS}
-C.~Cruz. Alternating speedups for nondeterministic computations. Note,
-November 2026, Theorem~1.1.
+C.~Cruz. Simulating nondeterministic time $t\sqrt{\log t}$ in alternating
+time $O(t)$. Result~04, clocked simulation and section on hierarchy and
+counting consequences, November 2026.
 
 \bibitem{BD26}
 S.~Ben Daniel. Randomized, quantum and postselected multitape time in
@@ -376,6 +608,7 @@ In \emph{Structure in Complexity Theory}, LNCS 223, pages 347--361, 1986.
 
 \bibitem{Wil25}
 R.~R. Williams. Simulating time with square-root space. In
-\emph{Proceedings of STOC 2025}, 2025. arXiv:2502.17779.
+\emph{Proceedings of STOC 2025}, 2025.
+\href{https://arxiv.org/pdf/2502.17779}{arXiv:2502.17779}, Theorem~5.1.
 \end{thebibliography}
 \end{document}

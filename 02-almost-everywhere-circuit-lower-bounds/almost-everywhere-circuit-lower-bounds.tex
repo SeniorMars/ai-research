@@ -12,7 +12,7 @@
 \newcommand{\bits}{\{0,1\}}
 \title{Almost-everywhere circuit lower bounds for \(\ENP\)\\from sparse 3-SAT algorithms}
 \author{Charlie Cruz}
-\date{23 November 2026}
+\date{23 November 2026, revised 25 November 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -29,6 +29,9 @@ bounded-witness refuter of Chen, Lyu and Williams to select a hard accepting
 computation at each address length. Its verifier reads the occupied part of
 the initial tape directly, so the number of variables in its SAT query grows
 linearly with the gate budget and the address length.
+For sparse SAT time $2^{O(V^\alpha)}$, $0<\alpha<1$, the gate lower
+bound is $\Omega(n^{1/\alpha})$. With exact 3-CNF counting we also
+obtain an every-length bound for a basis including unbounded AND and OR.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -306,6 +309,191 @@ This algorithm defines one language \(W\in\ENP\). At each sufficiently
 large \(n\) its slice \(W_n\) encodes an accepting table for \(x_j\), so
 \(\size(W_n)>s\). This proves Theorem~\ref{thm:transfer}.
 
+\section{Inverse rates and unbounded gates}\label{sec:inverse}
+
+\begin{theorem}[Inverse sparse-SAT rate]\label{thm:inverse}
+Suppose a single deterministic machine decides width-three SAT on
+$V$ declared variables and at most $5V$ clauses in
+$V^{O(1)}2^{O(V^\alpha)}$ time for a fixed real $0<\alpha<1$.
+Then there are $W\in\ENP$ and $c>0$ with
+$\size(W_n)\ge cn^{1/\alpha}$ at every sufficiently large length.
+\end{theorem}
+\begin{proof}
+Use the verifier, admissible-budget search and hard table from
+Sections~\ref{sec:budget}--\ref{sec:hard}. The logarithm of the
+checking time is now at most $A[K(n+s)]^\alpha+O(\log(n+s))$.
+For comparison take the largest dyadic $s\le\eta n^{1/\alpha}$.
+At large $n$ the first term is at most
+$A(2K\eta)^\alpha n$, and the second is $O_\alpha(\log n)$.
+Choose $\eta$ so the sum is less than $n/80$ eventually. Description
+and chain lengths are polynomial in $n$ and pass the size tests.
+Thus this budget is admissible under the existing $2^{\lfloor n/40\rfloor}$
+clock. The search uses only the solver and unary clock, so no code for
+$\alpha$ is required. The root-and-successor proof selects one table
+hard at the chosen budget at each length. For the actual exponent
+$V/\sqrt{\log V}$ the inverse scale is still
+$\Theta(n\sqrt{\log n})$.
+\end{proof}
+
+\begin{theorem}[Including unbounded AND and OR]\label{thm:unbounded}
+Assume exact 3-CNF counting on $V$ variables in time
+$\operatorname{poly}(L+V)\,2^{O(V\log\log V/\sqrt{\log V})}$ for
+bit length $L$. There is a language in $\ENP$ requiring
+$\Omega(n\sqrt{\log n}/\log\log n)$ noninput gates at every large
+length over arbitrary binary gates and unbounded AND and OR. Size
+counts each unbounded gate once.
+\end{theorem}
+\begin{proof}
+Use the signed long-clause construction of Wu and Wang
+\cite[Lemma~7]{wuwang}. Let a circuit have $r$ primary inputs and
+$G$ gates. Introduce a bit for each gate, pin the output to one and
+encode each binary truth table by width-three clauses. For an OR gate
+with output $y$, the implications $\ell_i\to y$ have width two.
+The reverse implication gives one long clause
+$\neg y\lor\bigvee_i\ell_i$. AND is dual. For each long clause
+$D=\bigvee_j d_j$, introduce one bit $q_D$ and use
+\[
+ [D]=\sum_{q_D=0}^1(-1)^{q_D}\prod_j[\neg q_D\lor\neg d_j].
+\]
+When $q_D=0$ the product is one. When $q_D=1$ it subtracts one
+exactly if every literal is false. Multiply these identities and
+sum all circuit variables. Each satisfying primary assignment has
+one consistent evaluation of the original gates. Thus its circuit
+count equals the even-selector count minus the odd-selector count.
+A running XOR of the selectors needs at most one additional variable
+per selector, with width-three definitions and a final parity pin.
+If there are no selectors use the ordinary count directly. Both
+queries have at most $r+3G$ variables. Wires can produce polynomially
+many clauses, which is why the hypothesis uses the variable-count
+rate on general 3-CNFs. Count over the declared variables, multiplying
+by $2^j$ if normalization removed $j$ unused ones.
+
+In Lemma~\ref{lem:checker}, bypass the occupied initial cells by
+direct evaluation as before. The remaining violation circuit has
+$r=O(n)$ inputs and $G=O(n+s)$ gates in the extended basis. Test
+whether the two counts agree to decide absence of violations.
+Use fixed-length descriptions: for each unbounded gate give a mask of
+its predecessors (duplicate inputs can be dropped), and for binary
+gates give their two indices and truth table. Padding with unused
+gates gives a common length $g=\operatorname{poly}(n+s)$ at each
+budget. The chain word also has polynomial length in $n+s$.
+All direct evaluations and count subtractions take polynomial overhead
+outside the counter. The reduction fits the pinned variable-count
+term of the Anthropic statement \cite{anthropicrate}.
+
+Take the dyadic comparison budget just below
+$\eta n\sqrt{\log n}/\log\log n$. Then $\log(n+s)=\Theta(\log n)$,
+the counter exponent is $O(\eta n)+o(n)$, and sufficiently small
+fixed $\eta$ makes this budget admissible. In the chain proof $P_i$
+now means the existence of an extended-basis description passing
+this verifier. The relations $P_0=\bigvee_i d_i$,
+$Q_i=(1-d_i)P_{i+1}$, and $P_i\le Q_i$ only use the exactness and
+clock of the test. The same adjacent transition and canonical-table
+search give the stated lower bound. Every selected description has
+$g\le t$, so the budget tests, $g$ midpoint queries, and subsequent
+table-prefix search still take $2^{O(n)}$ deterministic time with
+an NP oracle. The infinitely-often counting transfer is due to Wu
+and Wang \cite[Theorem~1]{wuwang}.
+\end{proof}
+
+\paragraph{Limits of these transfers.}
+Encoding an arbitrary $s$-gate binary circuit generally costs
+$O(n+s)$ variables. For $s=n^k$, $k>1$, the available sparse exponent
+need not beat exhaustive search on the original $n$ inputs. Nor does
+an ordinary count test whether one of many fibers is empty. Two fibers
+of sizes $(0,2)$ and $(1,1)$ have the same total. If each fiber count
+$c_x$ is at most $B$, then $\prod_{j=1}^B(1-c_x/j)$ is its zero
+indicator and its sum over $x$ can be expressed using counting moments.
+Over characteristic zero such a polynomial must have degree at least
+$B$ because it vanishes at $1,\ldots,B$. Exponential witness ranges
+can therefore make this particular reduction exponential.
+
+Range avoidance illustrates a separate time requirement. Given a circuit
+with more outputs than inputs, count preimages of each extension of the
+current output prefix and keep the less frequent one. The initial
+average number of preimages per output is below one. Each choice
+preserves that inequality, so the final string has no preimage.
+The counter used above can still take exponential time in the circuit
+parameters. The equivalence for exponential circuit hardness in
+$\ENP$ uses a polynomial-time NP-oracle algorithm for general range
+avoidance~\cite{avoid}. Near-maximum almost-everywhere bounds are
+already known for $S_2E$ and $\mathsf{ZPE}^{\mathsf{NP}}$~\cite{li}.
+
+\section{Circuits or faster simulation for E}\label{sec:deterministic}
+Write $\mathrm E=\bigcup_{c>0}\mathrm{DTIME}[2^{cn}]$. The
+almost-everywhere theorem uses an NP oracle to select a hard accepting
+table. For a deterministic computation the table is unique, giving a
+different conclusion from the same sparse SAT hypothesis.
+
+\begin{theorem}\label{thm:winwin}
+Assume the solver in Theorem~\ref{thm:transfer} with
+$a(V)=\sqrt{\log V}$ at large $V$. Either
+$\mathrm E\not\subseteq\mathsf{SIZE}[o(n\sqrt{\log n})]$, or, for
+every fixed $\delta>0$,
+\[
+ \mathrm E\subseteq\mathrm{NTIME}[2^{\delta n}]
+             \cap\mathrm{coNTIME}[2^{\delta n}].
+\]
+In the small-circuit case each language in $\mathrm E$ also has a
+single deterministic decider using $o(n(\log n)^{3/2})$ space.
+\end{theorem}
+\begin{proof}
+Suppose every language in $\mathrm E$ has circuits of the stated size.
+Fix a $2^{O(n)}$-time decider. Simulate it on one tape by sweeps,
+return its head to the origin on halting, record the answer there and
+freeze. Polynomial time overhead still gives $2^{O(n)}$ time. Choose
+a fixed integer $b$ so that a rectangle of $2^{b(n+1)}$ rows and
+twice as many columns contains the computation, including its frozen
+last row. Use the row, column and component addresses of
+Section~\ref{sec:interpreter}. This avoids a separate circuit for the
+last visit of an oblivious head.
+
+The language of bits of this rectangle on $(x,\text{address})$ is in
+$\mathrm E$: simulate until the indicated row and read the specified
+cell. The tuple has a fixed affine length $N=\Theta(n)$, so its fields
+are recoverable from its length. Fixing $x$ in a circuit for that
+slice gives a circuit of size $s_x=o(n\sqrt{\log n})$ for the entire
+table, uniformly as a size bound over $|x|=n$.
+
+Guess a gate list and a proposed final bit. Check the occupied initial
+cells directly. The violation test of Lemma~\ref{lem:checker} uses a
+constant number of copies of the circuit to check blank initial cells,
+each three-cell update, and the final bit. Its SAT query has
+$V=O(s+n)$ declared variables and at most $5V$ clauses for a list
+of $s$ gates. UNSAT certifies the unique table with that bit. The
+construction and reading the $O(s\log(n+s))$ guessed bits take
+polynomial time. Either answer is certified in this way.
+
+For a fixed $\delta$, cap every guess at
+$\lfloor\eta n\sqrt{\log n}\rfloor$ gates. For suitably small fixed
+$\eta>0$ the solver's exponent is at most $\delta n/2$ for large
+$n$, by the estimate in \eqref{eq:cost}. Every branch then finishes
+within $O(2^{\delta n})$, and every sufficiently large input has a
+correct guess under the cap. Hardwire the finitely many remaining
+lengths. Choosing the final bit gives the two time inclusions.
+
+For deterministic space, enumerate descriptions by increasing gate
+count. Test all local conditions by iterating over the binary
+addresses, and halt with the final bit of the first consistent table.
+This needs only the current description, its gate values and $O(n)$
+address bits. If $s$ is the least sufficient size, the space is
+$O(n+(s+1)\log(n+s+2))=o(n(\log n)^{3/2})$, in particular
+$2^{o(n)}$. There is no time requirement for this enumeration.
+\end{proof}
+
+The time assertion quantifies over fixed $\delta$ and the machine may
+depend on $\delta$. A supplied, efficiently computable upper envelope
+$s(n)=o(n\sqrt{\log n})$ for the table circuits gives a single
+all-branches $2^{o(n)}$ time bound by capping guesses at $s(n)$.
+The nonuniform size hypothesis alone supplies no such clock in this
+argument. The alternative applies in particular to
+$\mathrm{DTIME}[2^n]$. Its circuit branch asserts hardness at
+infinitely many lengths, whereas Theorem~\ref{thm:transfer} gives
+hardness at every large length in $\mathrm E^{\mathrm{NP}}$. A
+collapse stated at the $\mathrm{EXP}$ or $\mathrm{NEXP}$ scale permits
+time $2^{n^{O(1)}}$. The linear address length used here relies on
+the $2^{O(n)}$ clock.
+
 \section{Instantiating the decision bound}\label{sec:instantiate}
 
 \paragraph{OpenAI's algorithm.}
@@ -340,6 +528,17 @@ exponent is \(O(V/\sqrt{\log V})\). Either stated sparse bound therefore
 supplies the same almost-everywhere corollary.
 
 \begin{thebibliography}{9}\small
+\bibitem{avoid} S.~Huang, X.~Li and Y.~Zhong. Range avoidance and remote point:
+new algorithms and hardness. ITCS 2026.
+\href{https://doi.org/10.4230/LIPIcs.ITCS.2026.79}{Article}.
+\bibitem{li} Z.~Li. Symmetric exponential time requires near-maximum
+circuit size: simplified, truly uniform.
+\href{https://eccc.weizmann.ac.il/report/2023/156/}{ECCC TR23-156, revision 1}.
+\bibitem{wuwang} M.~Wu and M.~Wang. Circuit lower bounds for extended
+gate bases from subexponential counting.
+\href{https://arxiv.org/abs/2611.02560v1}{Version 1}, 2026.
+\bibitem{anthropicrate} Claude (Anthropic). A $2^{o(n)}$ time algorithm
+for 3-SAT. \href{https://github.com/anthropics/formal-math/blob/11b6c7e3c927df2658f513b6b68ea7f8929c62c5/eth/MainResults.lean}{Pinned exact-count statement}, variable-count term.
 \bibitem{lupanov} O. B. Lupanov. On a method of circuit synthesis.
 \emph{Izvestiya VUZ, Radiofizika} 1(1), 120--140, 1958.
 \href{https://radiophysics.unn.ru/issues/1958/1/120}{Original article}.

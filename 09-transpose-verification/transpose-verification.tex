@@ -1,0 +1,526 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,hmargin=1in,vmargin=0.88in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm,needspace}
+\usepackage[hidelinks,pdftitle={Verifying a matrix transpose on tapes},pdfauthor={Charlie Cruz}]{hyperref}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newcommand{\TrLang}{L_{\mathrm{tr}}}
+\newcommand{\NT}{\mathsf{NTIME}}
+\newcommand{\coNT}{\mathsf{coNTIME}}
+\newcommand{\coRT}{\mathsf{coRTIME}}
+\newcommand{\ENP}{\mathsf E^{\mathsf{NP}}}
+\title{Verifying a Matrix Transpose on Tapes}
+\author{Charlie Cruz}
+\date{November 25, 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Two row-major bit matrices can be checked for transposition in randomized
+linear time on tapes. We show how a sound nondeterministic verifier yields
+a rational tensor network for partial transposition. Its coefficients count
+accepting paths, so the transfer permits arbitrary ambiguity. Under the
+partial-transposition theorem of the integer-multiplication manuscript and
+Weak ETH, every such verifier takes $\Omega(n\sqrt{\log n})$ time at every
+large valid dimension. This would separate nondeterministic and
+co-nondeterministic linear time. A second deduction, using the geometric
+case split and an inverse sparse-SAT rate, gives either the same verifier
+lower bound or an almost-everywhere $\Omega(n^{1+\varepsilon})$ circuit lower
+bound in $\ENP$. We reconstruct the partial-transposition estimate from
+two inequalities in the pinned release. Keeping the dependence on the
+number of correct inputs gives a further conclusion under the same
+assumptions. Below this time bound, a sound machine has a short accepting
+path on at most a $2^{-(1-1/\sqrt2-o(1))N^2}$ fraction of true pairs
+of side length $N$. A row-entropy version also bounds this fraction
+within prescribed products of row sets.
+\end{abstract}
+
+\section{The decision problem}
+Let $k\ge1$, $N=2^k$, and $m_N=k+1+2N^2$. On binary input $1^k0ab$,
+interpret $a,b$ as row-major lists of the entries of $N\times N$ bit
+matrices $A,B$. Define $\TrLang$ to consist of these strings with
+$|a|=|b|=N^2$ and $B=A^\top$. Reject every malformed string. Machines
+have a fixed number of tapes, finite alphabets and heads that move at
+most one cell per step. Time bounds hold on all branches. Nonuniform
+Boolean circuits have unrestricted wiring.
+
+\begin{lemma}\label{lem:upper}
+$\TrLang\in\mathsf L\cap\coNT[O(n)]\cap\coRT[O(n)]$, and its
+$n$-bit slice has a fan-in-two circuit of size $O(n)$.
+\end{lemma}
+\begin{proof}
+Count the input length $n$ and unary prefix length $k$ in binary.
+Amortized carries take linear total tape time. Reject impossible $k$
+by comparison with $\log n$ before forming $2^{2k}$, then check the
+exact length and delimiter. These checks also use $O(\log n)$ space.
+Logspace suffices to compare all pairs $A_{ij},B_{ji}$ by rescanning.
+For the complement, accept malformed strings and otherwise guess the
+two $k$-bit coordinates of a mismatch. The two offsets are obtained
+by concatenating indices in opposite orders and adding the starts of
+the matrices. Sequential scans with decrementing counters take $O(n)$
+time in total.
+
+For the randomized test choose independent uniform $r,c\in\mathbb F_2^N$.
+While scanning $A$ compute $r^\top Ac$ by scanning and rewinding $c$ once
+per row and advancing in $r$ once. Rewind both vectors and use them in
+opposite roles on $B$. This takes $O(N^2)$ steps, including rewinds.
+Transpose pairs always pass. If $D=A-B^\top\ne0$, then $Dc\ne0$ with
+probability at least $1/2$, and conditionally $r^\top Dc=1$ with
+probability $1/2$. Reject on any detected mismatch in four independent
+trials. The false acceptance probability is at most $(3/4)^4<1/3$.
+
+At length $m_N$ the prefix is fixed. A circuit checks it and conjoins
+$N^2$ equality gates on the prescribed pairs. At every other length
+use the constant zero circuit.
+\end{proof}
+
+\section{From accepting paths to a partial transpose}
+\paragraph{Geometric premise.}
+Fix $D_0$ and $0<\rho<1-1/\sqrt2$. Consider a rational tensor network
+of degree at most $D_0$ in bundles of width at most $D_0N$ bits, with
+distinct terminals for all $N$ input rows and $N$ output columns. If
+on a fraction at least $2^{-\rho N^2}$ of the row assignments $A$ its
+output is a nonzero multiple of the basis vector $e_{A^\top}$, the
+network has $\Omega_{D_0,\rho}(N\sqrt{\log N})$ vertices. The source
+states this estimate assuming Weak ETH~\cite{partial}.
+Section~\ref{sec:audit} derives it from graph placement under the
+characteristic-zero no-ports hypothesis and an entropy inequality for
+paired terminals. Weak ETH enters through the implication to no ports.
+Here Weak ETH excludes deterministic $2^{O(v^{1-\delta})}
+\operatorname{poly}(L)$ algorithms for 3-SAT for every fixed
+$0<\delta<1$, in $v$ variables and encoding length $L$.
+
+\begin{lemma}[Verifier network]\label{lem:network}
+Suppose a fixed nondeterministic machine decides $\TrLang$. At a valid
+dimension let $T$ bound its time on all inputs of length $m_N$.
+There is a rational network with $O(N+\lceil T/N\rceil)$ vertices,
+constant bundle degree, and bundle width $O(N)$, whose coefficients
+$K(A,B)$ vanish for $B\ne A^\top$. For at least a
+$2^{-O(1+\lceil T/N\rceil)}$ fraction of $A$, $K(A,A^\top)>0$.
+\end{lemma}
+\begin{proof}
+Pad halting paths to $T$ with one stationary continuation per step.
+Partition time into epochs of at most $N$ steps and each tape into
+blocks of $N$ cells. At each epoch boundary record each head's block.
+Its initial block is fixed and it moves by at most one block per epoch.
+Thus there are at most $3^{h\lceil T/N\rceil}$ schedules for $h$
+heads. Choose one accepting path for each $(A,A^\top)$. Some schedule
+occurs for at least the claimed fraction. Fix it for the rest of
+the construction.
+
+Use one vertex per epoch. Its incident bundles carry the entering and
+leaving control state and head offsets, and the before and after
+contents of the blocks in the three-block window around each starting
+head. The number of blocks per epoch is constant. On a multitape
+alphabet each block needs $O(N)$ bits. A table entry counts the legal
+local paths of this epoch that realize these data and end in the
+scheduled blocks. The first state is fixed and the last must accept.
+Invalid boundary codes have entry zero.
+
+Pass control and offsets to the next epoch. For each visited block,
+connect successive uses in chronological order, including over epochs
+that never visit it. Its contents are preserved in those intervening
+epochs. Initialize work blocks with blank symbols and discard final
+block contents by summation. For the input, attach a separate terminal
+to each row of $A$ and each row of $B$. The latter are the column
+indices of the desired transpose tensor. Each row intersects at most
+two tape blocks even when the prefix shifts the alignment. A terminal
+splits its exterior string into those pieces, and each initial block
+joins its constant number of pieces with the fixed header and any
+endmarkers. Unused pieces are summed against ones. These initial
+tables cost $O(N+\lceil T/N\rceil)$ vertices, including blank blocks
+visited outside the input. All connections preserve bounded degree
+and width $O(N)$.
+
+For fixed $A,B$ and a path following the schedule the boundary data
+are unique. Conversely, for consistent boundary data any choices of
+the local paths concatenate to a genuine path. Multiplication and
+summation therefore give exactly the number of accepting paths with
+that schedule. Soundness gives zero off the transpose relation. On
+the selected inputs at least one path contributes, and its positive
+coefficient survives over $\mathbb Q$. This proves the lemma.
+\end{proof}
+
+\begin{theorem}\label{thm:tape}
+Assume the geometric estimate above. Every nondeterministic decider
+for $\TrLang$ has worst-case time $\Omega(m_N\sqrt{\log m_N})$ at
+every sufficiently large valid length $m_N$.
+\end{theorem}
+\begin{proof}
+If $T>N^2\sqrt{\log N}$ the bound already holds. Otherwise the loss
+in the exponent of the successful fraction in Lemma~\ref{lem:network}
+is $O(N\sqrt{\log N})=o(N^2)$, within the allowance for any fixed
+positive $\rho<1-1/\sqrt2$. Fixing a successful $A$ leaves precisely
+$K(A,A^\top)e_{A^\top}$. The geometric bound now gives
+\[
+ N+\lceil T/N\rceil=\Omega(N\sqrt{\log N}),
+ \qquad T=\Omega(N^2\sqrt{\log N}).
+\]
+Since $m_N=\Theta(N^2)$ the stated estimate follows.
+\end{proof}
+
+Combining the printed geometric theorem with Lemma~\ref{lem:upper}
+gives, under Weak ETH,
+\[
+ \NT[n]\ne\coNT[n],\qquad
+ \mathsf{BPTIME}[n]\not\subseteq\NT[o(n\sqrt{\log n})].
+\]
+The hard lengths here are $m_N$. The linear circuit in Lemma~\ref{lem:upper}
+explains why the tape model matters.
+
+\section{How the bound depends on the number of good arrays}\label{sec:audit}
+
+Let $G$ be any nonempty set of $N\times N$ bit arrays. Suppose that a
+rational network with $P$ vertices, degree at most $D$, and wire widths
+$w_e\le DN$ has $2N$ distinct terminals $a_1,\ldots,a_N,b_1,\ldots,b_N$.
+On each $A\in G$, pinning the row inputs must give
+$c(A)e_{A^\top}$ with $c(A)\ne0$. There is no restriction on its output
+outside $G$. Write $\beta=\log_2|G|/N^2$ and $z_+=\max(z,0)$.
+
+\begin{theorem}\label{thm:density}
+Under the characteristic-zero no-ports placement and the spectral wire
+price comparison, there is a $c_D>0$ such that, for all sufficiently
+large $N$ and every such $G$,
+\[
+       P\ \ge\ c_D N\bigl(1+(\beta-1/\sqrt2)_+\sqrt{\log N}\bigr).
+\]
+Both $c_D$ and the threshold for $N$ are independent of $G$.
+\end{theorem}
+
+\subsection{The three placement estimates}
+
+Measure distances in the common normalization of the placement and set
+$E=K_D P/\ln P$. Write $d_e$ for the distance between the ends of a
+wire, $d_{ij}=d(a_i,b_j)$, and $o$ for the root of the placement.
+The placement result gives the following three estimates simultaneously
+\cite{partial,formalgeom}.
+\begin{align}
+ S=\sum_e w_e d_e &\le DN\sqrt{DP}\sqrt E, \label{eq:supply}\\
+ \sum_{i,j}(d_{ij}-1)^2 &\le 12NE, \label{eq:terminals}\\
+ \sum_v q_v d(v,o)&\le \frac{1}{\sqrt2}\sum_v q_v
+               +\left(\sum_v q_v^2\right)^{1/2}\sqrt E
+               \quad(q_v\ge0). \label{eq:root}
+\end{align}
+Here $P$ is the number of original vertices. The constant $K_D$ absorbs
+the padding used to find a placement.
+
+Two features of these estimates affect the exponent. To see the first,
+pad the graph to $P'$ vertices with $P'=\Theta(P)$ as in the manuscript
+and superimpose a bounded-degree scalar expander. The logarithmic
+Poincar\'e obstruction under no ports~\cite{loggraph} supplies a
+placement of the augmented graph with mean squared edge length
+$O_D(1/\log P)$ and mean squared distance one between independent
+uniform vertices $U,V$. Cauchy--Schwarz gives the supply bound.
+Every real $1$-Lipschitz function on the placement has variance
+$O_D(1/\log P)$ by the scalar expander inequality. This applies to
+$d(U,t)$ for each fixed $t$ and to $g(V)=\mathbb E_U d(U,V)$.
+By total variance, $\mu=\mathbb E d(U,V)=1+O_D(1/\log P)$.
+Restricting $U$ to row terminals increases the mean squared deviation
+from $g(t)$ by at most $P'/N$, uniformly in $t$. Restricting $V$ to
+column terminals increases the mean squared deviation of $g(V)$ from
+$\mu$ by the same factor. Adding the two deviations in $L^2$ incurs
+the density loss $P'/N$ only once in the squared estimate.
+
+The second feature is the coefficient of the root charge. Take $o$
+to be the barycenter of the uniform vertex law in the complete
+$\operatorname{CAT}(0)$ target. Its variance inequality gives
+\[
+ \mathbb E_U d(U,y)^2\ \ge\ \mathbb E_U d(U,o)^2+d(o,y)^2.
+\]
+Averaging $y=V$ yields $2\mathbb E d(U,o)^2\le1$. The mean distance
+to $o$ is therefore at most $1/\sqrt2$. Apply the scalar variance
+bound to $d(U,o)$ and Cauchy--Schwarz to the weighted deviations to
+obtain~\eqref{eq:root} with a degree-dependent error constant.
+
+\subsection{The entropy charged to the row and column terminals}
+
+Draw $W$ uniformly from $G$, order its $N^2$ cells, and let
+$h_{ij}=H(W_{ij}\mid W_{\mathrm{earlier}})$ in bits. Then
+$0\le h_{ij}\le1$ and $\sum_{ij}h_{ij}=\log_2|G|$. The specialized
+paired-terminal inequality is
+\begin{equation}\label{eq:pins}
+       \sum_{i,j}h_{ij}d_{ij}\ \le\ S+N\sum_i d(a_i,o).
+\end{equation}
+Indeed, a pin at $a_i$ specifies row $i$ and copies it to fresh external
+indices there. Each bit is now displayed at both $a_i$ and $b_j$ with
+the single joint coefficient $c(W)$. A row pin costs at most $N$ bits.
+The other vertices have a single possible pin. These are exactly the
+hypotheses of the paired-terminal entropy lemma~\cite{partial,formalent}.
+
+We will also use a sharper version. Set $q_i=H(W_{i,*})$, the entropy
+of the entire $i$th row. Then
+\begin{equation}\label{eq:rowpins}
+       \sum_{i,j}h_{ij}d_{ij}\ \le\ S+\sum_i q_i d(a_i,o).
+\end{equation}
+Here is a direct derivation for these pins. Take $r$ copies with $r$
+divisible by $|G|$, and consider lists
+in which every array of $G$ appears $r/|G|$ times. For cell $j$ in
+the chosen ordering, and every prefix of the prescribed type, the
+number of compatible next bit columns across the $r$ copies is
+\[
+ M_j=\prod_{u}\binom{r\Pr(W_{<j}=u)}
+                        {r\Pr(W_{<j}=u,W_j=1)}.
+\]
+Each prefix extends to a full list by filling the positions of each
+prefix word with its prescribed continuations. The binomial formula
+gives $r^{-1}\log_2 M_j\to H(W_j\mid W_{<j})$. For instance,
+if two cells range uniformly over $00,01,10$ and $r=3k$, the factors
+are $\binom{3k}{k}$ and $\binom{2k}{k}$. Their combined rate is
+$\log_2 3$, accounting for the correlation between the two cells.
+
+For each $j$ color binary $r$-columns with $2^{\ell_j}$ colors, where
+$\ell_j=\max(0,\lfloor\log_2(M_j/r^2)\rfloor)$. For $\ell_j>0$,
+independent uniform colors miss a given color at a given prefix
+with probability at most $\exp(-r^2)$. There are at most
+$N^2 2^{r(N^2+1)}$ choices of cell, prefix and color. With $N$ fixed
+and $r$ large, some coloring therefore offers every color at every
+compatible prefix. A cell with one color already has this property.
+Successively extending prefixes gives one full representative for
+every tuple of colors.
+
+At $o$, supply the sum of the representatives. The stream of row $i$
+has fixed type, so its number of possible values is at most $2^{rq_i}$.
+Indeed, each such stream has probability $2^{-rq_i}$ in $r$ independent
+draws from the row marginal. A $\lceil rq_i\rceil$-bit wire to $a_i$
+therefore suffices, with the index decoded by its local map.
+Their common scalar $\prod_{W\in G}c(W)^{r/|G|}$ is nonzero.
+Divide the root tensor by this scalar.
+The full set of row streams distinguishes the representatives. Apply
+the corresponding cell's color map at both ends. The resulting tensor
+is a product of independent equality wires, one $\ell_j$-bit wire for
+each cell, each joint label appearing with coefficient one. Spectral
+prices add under products and cannot increase under these local maps.
+The $r$ copies cost $rS$ and supplying the rows costs at most
+$\sum_i\lceil rq_i\rceil d(a_i,o)$. Dividing by $r$ and taking the
+limit proves~\eqref{eq:rowpins}, hence also~\eqref{eq:pins}.
+The auxiliary root and its wires enter only this
+price comparison. The degree bound concerns the original network.
+
+\begin{proof}[Proof of Theorem~\ref{thm:density}]
+Put $H=\log_2|G|$ and $R=\sum_i q_i$. By~\eqref{eq:terminals} and
+Cauchy--Schwarz, replacing all $d_{ij}$ by $1$ on the left of
+\eqref{eq:rowpins} incurs error at most $N\sqrt{12NE}$.
+In~\eqref{eq:root} use weight $q_i\le N$ at row terminal $a_i$ and
+zero elsewhere. The root charge is at most $R/\sqrt2+N\sqrt{NE}$.
+By~\eqref{eq:supply},
+\[
+  \frac{H-R/\sqrt2}{N^2}
+     \le C_D\left(\frac{P}{N\sqrt{\log P}}
+                   +\sqrt{\frac{P}{N\log P}}\right).
+\]
+Since $P\ge2N$, the second term is at most the first and
+$\log P\ge\log N$. We have proved the stronger estimate
+\begin{equation}\label{eq:rowgain}
+ H\ \le\ \frac{R}{\sqrt2}+O_D\!\left(\frac{NP}{\sqrt{\log N}}\right).
+\end{equation}
+Using $R\le N^2$ and $P\ge2N$ proves the theorem.
+\end{proof}
+
+For $|G|\ge 2^{(1-\rho)N^2}$ with fixed
+$\rho<1-1/\sqrt2$, Theorem~\ref{thm:density} recovers the printed
+partial-transposition theorem. At $\beta=1/\sqrt2$ this argument
+gives only the linear bound from the terminals.
+
+\begin{corollary}[Fraction of true pairs with a short accepting path]
+\label{cor:coverage}
+Assume the hypotheses of Theorem~\ref{thm:density}. Let a fixed
+nondeterministic machine be sound on transpose pairs, meaning that
+it never accepts a false pair. For $T_N=o(N^2\sqrt{\log N})$, let
+$\pi_N$ be the fraction of matrices $A$ for which some path accepts
+$(A,A^\top)$ within $T_N$ steps. Then
+\[
+                 \pi_N\ \le\ 2^{-(1-1/\sqrt2-o(1))N^2}.
+\]
+The machine may run longer on other paths or fail to accept some
+true pairs altogether.
+\end{corollary}
+\begin{proof}
+Assume $\pi_N>0$ and truncate at $T_N$. The schedule argument of
+Lemma~\ref{lem:network} retains a set of size at least
+$2^{N^2}\pi_N\,3^{-h\lceil T_N/N\rceil}$ for $h$ tape heads.
+Its network has $P=O_M(N+\lceil T_N/N\rceil)=o(N\sqrt{\log N})$.
+Theorem~\ref{thm:density} gives $\log_2|G|/N^2\le1/\sqrt2+o(1)$.
+The schedule costs $O_M(1+T_N/N)=o(N^2)$ bits in the logarithm.
+Rearranging gives the claim. The case $\pi_N=0$ is immediate.
+\end{proof}
+
+\begin{corollary}[Prescribed sets of rows]\label{cor:product}
+For each $N$, let $\mathcal R=\prod_{i=1}^N\mathcal R_i$, where
+$\varnothing\ne\mathcal R_i\subseteq\{0,1\}^N$, and put
+$H_0=\log_2|\mathcal R|$. Under the same hypotheses, the fraction
+$\pi_{\mathcal R}$ of $A\in\mathcal R$ with an accepting path by time
+$T$ satisfies, for all sufficiently large $N$,
+\[
+ \pi_{\mathcal R}\ \le\
+ 2^{-(1-1/\sqrt2)H_0+
+        O_M\bigl((N^2+T)/\sqrt{\log N}+1+T/N\bigr)}.
+\]
+In particular, if $H_0\ge\delta N^2$ for a fixed $\delta>0$ and
+$T=o(N^2\sqrt{\log N})$, the relative fraction is at most
+$2^{-(1-1/\sqrt2-o(1))H_0}$.
+\end{corollary}
+\begin{proof}
+When $\pi_{\mathcal R}>0$, choose one timely accepting path for each
+accepted array in $\mathcal R$. A common schedule retains
+$H=\log_2|G|\ge H_0+\log_2\pi_{\mathcal R}-O_M(1+T/N)$ bits.
+Conditioning on that schedule can correlate the rows. Nevertheless,
+the $i$th row still belongs to $\mathcal R_i$, so
+$R\le\sum_i\log_2|\mathcal R_i|=H_0$. Apply~\eqref{eq:rowgain} with
+$P=O_M(N+\lceil T/N\rceil)$ and rearrange. The same proof only needs
+soundness for pairs $(A,B)$ with $A\in\mathcal R$ and $B$ arbitrary,
+since every pinned $A$ lies in $\mathcal R$.
+\end{proof}
+For example, each row may range over a different codebook of
+$2^{\lfloor N/10\rfloor}$ words. Even accepting every true pair in
+this family covers only a $2^{-0.9N^2+O(N)}$ fraction of all matrices.
+The absolute density theorem alone gives no superlinear bound at that
+density. Corollary~\ref{cor:product} still forces
+$\Omega_M(N^2\sqrt{\log N})$ time for complete coverage of these
+codebooks.
+
+\subsection{What the released proofs cover}
+
+The printed placement proof uses Weak ETH to exclude ports.
+This implication involves the variable count: enumerating the contraction
+of a sparse formula does not by itself give a power saving for a dense
+one. In the source's sunflower branching, $r=\lceil v^\alpha\rceil$,
+the tree has at most $2^{O((v/r)\log v)}$ leaves, and each leaf has
+a bounded-degree network of volume $O(vr^4)$~\cite{expansion}.
+For a contraction exponent $1-\eta$, choose fixed $\alpha>0$ with
+$(1+4\alpha)(1-\eta)<1$. Both terms in the running-time exponent now
+have a power saving in $v$.
+
+The logarithmic factor in the placement requires a quantitative
+obstruction. In the proof of~\cite{loggraph}, suppose a $d$-regular
+$s$-vertex graph has a Poincar\'e bound $\lambda$ throughout the class
+of spectral spaces. Starting from a regular graph of degree $2d$ with
+bound $\gamma$, average the first $t$ powers of its lazy walk. The
+Hadamard walk-smoothing lemma improves the bound for this average to
+$O(1+\gamma/t)$. For even $t$ with $(2d+1)^t\le s/2$, each row of
+the averaged kernel has at most $s/2$ entries in its support. Round
+each entry $p$ to $\lceil sp/2\rceil$ arcs, then complete each row
+to $s$ arcs by adding loops. Symmetry is preserved and the resulting
+transition probabilities dominate half the original ones. Replace
+each old vertex by a copy of the $s$-vertex graph and match vertices
+of these copies according to the rounded arc counts. Comparing within
+copies and between their barycenters gives the recurrence
+$\gamma'\le B\max(1,\lambda)(1+\gamma/t)$ for an absolute $B$.
+If $t\ge2B\max(1,\lambda)$, iteration gives arbitrarily large graphs
+of the same bounded degree with uniformly bounded Poincar\'e constants.
+That is the ports property. Choosing the largest admissible even $t$
+explains the $\Omega_d(\log s)$ obstruction under no ports. Realizability
+is used later, when the resulting metric distances serve as tensor prices.
+
+There is also a route through the precise declarations in the pinned
+Lean sources. In characteristic zero the formal alternative uses
+$\overline{\mathbb Q}$. Embedding our rational coefficients in this field
+preserves every contraction, zero coefficient, and nonzero scalar.
+The theorem \texttt{graph\_geometry} gives
+\eqref{eq:supply}--\eqref{eq:root} under \texttt{PriceZero}, using one
+target, one positive scale and the original vertex count~\cite{formalgeom}.
+Finite realizability applies jointly to the vertices and root. The common
+scale multiplies both sides of the price comparison.
+In \texttt{paired\_entropy\_external\_root}, take the finite law to be
+uniform on $G$, the separating labels to be its individual bits, the two
+terminal maps to be their row and column, and the local maps to be
+the row-pin construction above~\cite{formalent}. The chain-rule
+entropies in that declaration are divided by $\ln2$, hence give bits.
+Finally, \texttt{price\_of\_variable\_weakETH} gives \texttt{PriceZero}
+under the variable-count hypothesis, and \texttt{middle\_count\_bridge}
+gives the decision algorithm under its opposite, \texttt{PortZero}~\cite{formaleth}.
+This states both branches using the same formal definition of ports.
+The released comparison endpoint concerns multiplication on tapes~\cite{scope}.
+The specialization to this decision language and the density calculation
+above are paper proofs. This audit compares the declarations and their
+mathematical hypotheses. A fresh Lean build and Comparator run are
+outside the checks reported here.
+
+\section{A circuit alternative without Weak ETH}\label{sec:cases}
+In the terminology of the tensor manuscripts, ports are an expansion
+property of the spectral spaces of a characteristic. In addition to
+the placement and price hypotheses of Theorem~\ref{thm:density}, assume the enumerable
+contraction estimate in characteristic zero with ports~\cite{expansion}.
+For sparse 3-SAT it gives a deterministic $V^{O(1)}2^{O(V^{1-\eta})}$
+algorithm for some fixed $0<\eta<1$. Indeed a width-three formula on
+$V$ declared variables and at most $5V$ clauses has a closed counting
+network of volume $O(V)$: use a clause predicate per clause and copy
+each repeated variable by a tree of ternary equality tables. Its integer
+contraction counts assignments (unused variables may be omitted for
+decision). Entries are bits and degree is bounded, so the enumerable
+contraction estimate applies directly for large volumes.
+
+\Needspace{6\baselineskip}
+\begin{corollary}
+Under these two geometric hypotheses at least one of the following holds:
+\begin{enumerate}
+\item $\TrLang$ obeys the lower bound of Theorem~\ref{thm:tape}.
+\item For some $\varepsilon,c>0$ there is a language $H\in\ENP$ with
+      $C_{B_2}(H_n)\ge cn^{1+\varepsilon}$ at every sufficiently large $n$.
+\end{enumerate}
+\end{corollary}
+\begin{proof}
+Without ports, apply Theorem~\ref{thm:tape}. With ports, use the sparse
+algorithm above and the inverse-rate theorem of Result~02~\cite{inverse}
+with $\alpha=1-\eta$. A gate budget of order $n^{1/\alpha}$ fits its
+verifier clock, giving $\varepsilon=\eta/(1-\eta)$.
+\end{proof}
+Thus a verifier for this particular transpose language in
+$o(n\sqrt{\log n})$ time would select the circuit alternative.
+
+The choice of the tape problem matters here. A disjunction using only
+$\NT[n]\ne\coNT[n]$ has an elementary proof with a stronger circuit
+alternative. Equality of these linear-time classes would give
+$\mathsf{NP}=\mathsf{coNP}$ by polynomial padding. Put $M=2^n$.
+For sufficiently small fixed $c>0$, counting circuit descriptions gives
+an $M$-bit truth table requiring at least $cM/n$ gates. The question
+whether a given prefix extends to such a table is in $\Sigma_2^{\mathsf P}$
+with $M$ in unary: guess a completion and check that every smaller
+circuit disagrees somewhere by scanning all $M$ entries. Under the
+collapse this predicate lies in $\mathsf{NP}$. Choosing the first
+extendible bit at each step takes polynomial time in $M$ with an NP
+oracle, giving the same hard table for all $n$-bit addresses.
+For randomized linear time, padding a containment in nondeterministic
+polynomial time gives $\mathsf{BPP}\subseteq\mathsf{NP}$ for total languages.
+The near-maximum hardness theorem of Aaronson et al. uses a simulation
+of a particular promise-AM approximate-counting problem~\cite{promise}.
+
+The remaining imported steps are the no-ports placement in a realizable
+spectral target and the ports contraction algorithm. The derivation in
+Section~\ref{sec:audit} checks how the former gives the verifier bound
+and where the SAT hypothesis enters. Historical priority for the
+verifier consequences remains open.
+
+\begin{thebibliography}{9}
+\small
+\bibitem{partial} OpenAI. \emph{The logarithmic exponent of integer
+multiplication on tapes}, 24 November 2026. Theorem on partial
+transposition and lemma on short edges and distant terminals.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-logarithmic-exponent-of-integer-multiplication-on-tapes-November-24-2026/build/lower.tex}{Pinned proof}.
+\bibitem{expansion} OpenAI. Same manuscript, theorem on expansion and
+3-SAT, including its statement of enumerable contraction.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-logarithmic-exponent-of-integer-multiplication-on-tapes-November-24-2026/build/graphs.tex}{Pinned source}.
+\bibitem{loggraph} OpenAI. \emph{Circuit lower bounds for Hamiltonian
+cycle and the permanent}, 24 November 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/build/entropy.tex}{Logarithmic Poincar\'e obstruction}
+and \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/build/compress.tex}{enumerable contraction under ports}.
+\bibitem{formalgeom} OpenAI. \emph{MultitapeWeakETH}, Lean sources at
+revision \texttt{3344da5}. \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/OAI/Computability/MultitapeWeakETH/Padding.lean}{Graph geometry on the original vertex set}.
+\bibitem{formalent} OpenAI. Same revision.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/OAI/Computability/MultitapeWeakETH/ExternalRoot.lean}{Entropy with an external root} and
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/OAI/Computability/MultitapeWeakETH/BitRates.lean}{sum and range of conditional bit entropies}.
+\bibitem{formaleth} OpenAI. Same revision.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/OAI/Computability/MultitapeWeakETH/Price.lean}{Characteristic-zero alternatives} and
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/OAI/Computability/MultitapeWeakETH/MiddleDecision.lean}{variable-count decision theorem}.
+\bibitem{scope} OpenAI. Same revision.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/docs/379.md}{Formalization scope for integer multiplication on tapes}.
+\bibitem{inverse} C.~Cruz. \emph{Almost-everywhere circuit lower bounds
+for $\ENP$ from sparse 3-SAT algorithms}. Result~02, section on inverse
+rates and unbounded gates, revised November 2026.
+\bibitem{promise} S.~Aaronson, B.~Ayd\i nl\i o\u{g}lu, H.~Buhrman,
+J.~Hitchcock and D.~van Melkebeek. \emph{A note on exponential
+circuit lower bounds from derandomizing Arthur--Merlin games},
+Theorem~3. \href{https://www.cs.uwyo.edu/~jhitchco/papers/neclb.pdf}{Paper}.
+\end{thebibliography}
+\end{document}

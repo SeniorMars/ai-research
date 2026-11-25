@@ -16,21 +16,24 @@
 \newcommand{\vol}{\mathrm{vol}}
 \newcommand{\F}{\mathbb{F}}
 \newcommand{\SIZE}{\mathsf{SIZE}}
+\newcommand{\USIZE}{\mathsf{USIZE}}
+\newcommand{\NSIZE}{\mathsf{NSIZE}}
 \newcommand{\NTIME}{\mathsf{NTIME}}
 \newcommand{\coNTIME}{\mathsf{coNTIME}}
 \newcommand{\Lclass}{\mathsf{L}}
 \newcommand{\ENP}{\mathsf{E}^{\mathsf{NP}}}
-\hypersetup{pdftitle={Element distinctness requires superlinear circuits, assuming a tensor-network volume bound},
+\hypersetup{pdftitle={Element distinctness and unambiguous verification of collision from a tensor-network volume bound},
   pdfauthor={Charlie Cruz},
   pdfkeywords={circuit lower bounds, element distinctness, tensor networks, volume, superlinear lower bounds, Boolean circuits}}
-\title{Element Distinctness Requires Superlinear Circuits,\texorpdfstring{\\}{ }Assuming a Tensor-Network Volume Bound}
+\title{Element Distinctness and Unambiguous Verification of Collision
+from a Tensor-Network Volume Bound}
 \author{Charlie Cruz}
-\date{November 24, 2026}
+\date{November 24, 2026, revised November 25, 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
-\emph{Element distinctness} asks whether a list of words contains a
-repeated word. A \emph{tensor network} represents a function as a sum,
+\emph{Element distinctness} asks whether the words in a list are pairwise
+distinct. A \emph{tensor network} represents a function as a sum,
 over the values of its internal wires, of products of small tables, and
 its \emph{volume} counts its vertices and wires. The recent paper
 \emph{The matrix multiplication exponent is nine fourths} \cite{OAI}
@@ -46,6 +49,13 @@ $\Lclass\cap\coNTIME[n]\not\subseteq\SIZE[O(n(\log n)^{\delta})]$ for all
 $\delta<\sigma$. The deduction is short: a circuit converts into a tensor
 network of linear volume. All of the difficulty lies in the imported
 theorem, and we state which parts of its proof we have checked.
+Its complement, collision, witnesses the strict inclusion
+$\USIZE[O(n)]\subsetneq\NSIZE[O(n)]$. More generally, verifier size
+plus one, times maximum ambiguity, is $\Omega(n(\log n)^\sigma)$.
+For exact Clifford+$T$ circuits the corresponding exponent is the one
+for characteristic three. Two case-specific volume bounds also give a
+language in nearly linear modular counting time that requires
+$\Omega(n\sqrt{\log n})$ modular-verifier gates at every large length.
 \end{abstract}
 
 \section{Introduction}
@@ -56,7 +66,9 @@ size is a basic open problem in complexity theory. It has not been ruled
 out that every function in $\mathsf{NP}$ has circuits of size $O(n)$. The
 best lower bound for an explicit function against fan-in-two circuits
 over the full binary basis has improved from $3n-o(n)$ \cite{Blum} to
-$(3+\tfrac{1}{86})n$ \cite{FGHK} and then to about $3.1n$ \cite{LY}.
+$(3+\tfrac{1}{86})n$ \cite{FGHK}, then to about $3.1n$ \cite{LY},
+and to $4n-O(\log n)$ in the revised result of Mishra and Santhanam
+\cite{MS}.
 These bounds come from gate elimination, and they are far from even
 $n\log\log n$.
 
@@ -91,6 +103,27 @@ Moreover, the lower bound holds at every sufficiently large input length,
 not just infinitely often.
 \end{corollary}
 
+\begin{theorem}[Unambiguous and existential linear size]\label{thm:strict-verification}
+Assume Theorem~\ref{thm:import} over $\F_2$. For nonuniform fan-in-two
+Boolean verifier circuits,
+\[
+                  \USIZE[O(n)]\ \subsetneq\ \NSIZE[O(n)] .
+\]
+The separating language is total collision. At every sufficiently
+large length $n$ it admits an $O(n)$-gate existential verifier, and
+every unambiguous verifier has $\Omega(n(\log n)^{\sigma_2})$ gates,
+where $\sigma_2$ is the exponent of the imported bound over $\F_2$.
+\end{theorem}
+
+The proof in Section~\ref{sec:ambiguity} uses the same gate basis and
+witness convention for both classes. The verifier, batch-threshold
+and exact quantum arguments follow the November 25 research
+note~\cite{VerificationNote}. Guessing two equal records proves
+collision. When at most one witness accepts, summing over witnesses
+already gives the Boolean answer in $\F_2$, so the tensor bound applies.
+Collision already lies in $\mathsf P$, hence in $\mathsf{UP}$.
+The strict inclusion concerns the linear size budget.
+
 For comparison, the refutation of ETH \cite{ETH} gives an
 $\Omega(n\sqrt{\log n})$ lower bound for a language in $\ENP$, but only at
 infinitely many input lengths \cite[Corollary~1.4]{ETH}. Its exponent of
@@ -114,8 +147,8 @@ the same conversion in the other direction, against the lower bound of
 \cite[Theorem~2.2]{OAI}.
 
 \subsection{Status of the imported theorem}
-Theorem~\ref{thm:main} is exactly as strong as Theorem~\ref{thm:import},
-and the proof of Theorem~\ref{thm:import} is long. It goes through a case
+The lower bound in Theorem~\ref{thm:main} depends on
+Theorem~\ref{thm:import}. The proof of the latter goes through a case
 analysis on whether the field has \emph{ports}, a nonlinear Poincar\'e
 property of certain metric spaces attached to tensors \cite{Geom}. The
 two cases use different tools: the CAT(0) geometry of spectral points in
@@ -140,8 +173,8 @@ For $w\ge1$ let $n_w=2w\cdot2^w$, and let $D_w:\{0,1\}^{n_w}\to\{0,1\}$
 take a list of $2^w$ words of $2w$ bits each and return $1$ exactly when
 the words are pairwise distinct. For every $n\ge n_1$ let $w(n)$ be the
 largest $w$ with $n_w\le n$. Define $\ED_n:\{0,1\}^n\to\{0,1\}$ to apply
-$D_{w(n)}$ to the first $n_{w(n)}$ input bits and ignore the rest, and
-let $\ED=\bigcup_n\ED_n^{-1}(1)$.
+$D_{w(n)}$ to the first $n_{w(n)}$ input bits and ignore the rest.
+Set $\ED_n=0$ for $n<n_1$ and let $\ED=\bigcup_n\ED_n^{-1}(1)$.
 \end{definition}
 
 Any reasonable encoding of element distinctness works equally well. All
@@ -194,9 +227,11 @@ the start of a later word $j$ and compare it with the copy. Accept if
 they agree.
 \end{proof}
 
-For circuits, a sorting network followed by comparisons of adjacent
-words gives circuits for $D_w$ of size $O(n_w w^2)$ \cite{OAI}. So
-Theorem~\ref{thm:main} is tight up to the exponent of $\log n$.
+For circuits, the sorting network of Ajtai, Koml\'os and Szemer\'edi
+uses $O(m\log m)$ comparators on $m=2^w$ keys \cite{AKS}.
+A comparison and conditional swap on $b=2w$ bits takes $O(b)$ gates.
+Comparing adjacent sorted words costs another $O(mb)$ gates.
+Thus $D_w$ has $B_2$ circuits of size $O(n_w\log n_w)$.
 
 \section{Circuits as tensor networks}
 The following conversion is from \cite[proof of Proposition~2.3]{OAI}; we
@@ -229,9 +264,9 @@ identically $1$.
 \end{itemize}
 Fix an exterior setting $x$. The equality tables force all copies of a
 signal to agree, and the gate tables force each gate output to equal its
-gate's value on its inputs. So exactly one internal assignment has a
-nonzero product: the evaluation of $C$ on $x$. The ones-tables and the
-pin then contribute the factor $[C(x)=1]$. Hence the network represents
+gate's value on its inputs. Exactly one internal assignment satisfies
+all gate and copy constraints. Its contribution after the output pin is
+$[C(x)=1]$. Hence the network represents
 $f$, with entries $0$ and $1$ in $k$, in every characteristic.
 
 There are $s$ gate tables, one pin, at most $n+s$ ones-tables, and at most
@@ -311,9 +346,9 @@ break \cite[Lemma~4.1]{OAI}.
 Here a cheap network for $D_w$ is used, through the descent of
 \cite[Proposition~14.1]{Geom}, to compress batches of a signed counting
 tensor $U^*_\ell$ below the exact batch lower bound of
-\cite[Theorem~12.1]{HC}. That theorem is stated without hypothesis, but
-its proof (Sections~13--15 of \cite{HC}) assumes ports. This is
-harmless, since it is only invoked in the ports case. Its proof is a
+\cite[Theorem~12.1]{HC}. Its statement inherits the assumption at the
+start of Part~II of \cite{HC} that the characteristic admits ports.
+Its proof in Sections~13--15 of \cite{HC} is a
 diagonal argument, in which a program uses the compression to evaluate
 its own success count and add one. We checked every parameter step of
 the ports case in \cite{OAI}. The diagonal argument in \cite{HC} deserves
@@ -335,13 +370,467 @@ at \cite[Lemma~4.1]{OAI}. By itself it is no reason to doubt the lemma,
 since the spectral machinery of \cite{Geom} is a new tool for charging
 coded information for the distance it travels.
 
+\section{Unambiguous and existential verification of collision}\label{sec:ambiguity}
+Let $\mathsf{COL}_n=1-\ED_n$. A length-$n$ verifier is a single-output
+Boolean circuit $V_n(x,y)$ with $n$ data bits, $r=r(n)$ witness bits,
+and $s=s(n)$ gates. Count every gate, including those that access
+addressed data. Inputs and fan-out are free. Put
+$A(x)=|\{y\in\{0,1\}^r:V_n(x,y)=1\}|$. For a total language $L$,
+$\NSIZE[O(n)]$ requires one such circuit per length with $s=O(n)$ and
+$[A(x)>0]=[x\in L]$. In $\USIZE[O(n)]$ require $A(x)=[x\in L]$
+as an integer for every input. Under parity acceptance the answer is
+$A(x)\bmod2$. These are nonuniform definitions.
+
+For collision guess $w$-bit indices $i<j$ in the unpadded list.
+For each bit position of a record, a tree of $2^w-1$ binary
+multiplexers reads that bit at address $i$. Each multiplexer takes
+a constant number of Boolean gates. The two reads over all $2w$ bit
+positions use $O(w2^w)=O(n)$ gates. Comparing the addresses and the
+two selected words takes $O(w)$ more. A witness is exactly one
+unordered colliding pair on a list, written in its increasing order.
+Use a constant circuit below the first list length.
+
+\begin{theorem}\label{thm:ambiguity}
+Assume Theorem~\ref{thm:import} over $\F_2$, with exponent $\sigma$.
+At every sufficiently large length, a parity or unambiguous verifier
+for $\mathsf{COL}_n$ needs $\Omega(n(\log n)^\sigma)$ gates. More
+generally, if an existential verifier has at most $a\ge1$ accepting
+witnesses on every input, then
+\[
+                 a(s+1)=\Omega(n(\log n)^\sigma).
+\]
+In particular, a linear-size verifier has some input with
+$\Omega((\log n)^\sigma)$ accepting witnesses.
+\end{theorem}
+\begin{proof}
+Apply Lemma~\ref{lem:convert} to $V(x,y)$ and terminate each witness
+port by a unary all-ones tensor. The resulting network over $\F_2$
+has volume $O(n+r+s)$ and computes $A(x)\bmod 2$. For a nonzero
+parity function every witness bit must be used, since an unused bit
+pairs all accepting assignments. Prune dead gates to get $r\le2s+1$.
+A parity verifier for $\ED_n$ now gives a network of volume $O(n+s)$
+for $D_{w(n)}$ after pinning the padding. For $\mathsf{COL}_n$, add
+one branch bit and accept on the extra branch exactly when $y=0^r$.
+The new count $A(x)+1$ has parity $\ED_n(x)$. The padding estimate in
+the proof of Theorem~\ref{thm:main} gives the parity bound, which
+also applies to unambiguous verifiers.
+
+For an existential verifier, discard unused witness coordinates.
+Acceptance is preserved and $a$ remains an upper bound. Order all
+witnesses lexicographically. We use the counting construction of
+Beigel and Gill~\cite{BG} with its gate cost made explicit.
+Use $a$ slots, each with an activity
+bit and an $r$-bit witness. Require the active slots to be a prefix,
+their contents to be strictly increasing and accepted by $V$, and
+all inactive contents to be zero. For fixed $x$ this circuit has
+exactly one accepting assignment per subset of the $A(x)$ accepting
+witnesses, including the empty subset. Its accepting count is
+$2^{A(x)}$, odd precisely when $A(x)=0$. Adjacent comparisons,
+activity checks, and $a$ copies of $V$ cost $O(a(s+r+1))=O(a(s+1))$
+gates and use $O(a(s+1))$ witness bits. All copies share $x$.
+Apply the parity bound for $\ED_n$ to finish.
+\end{proof}
+\begin{proof}[Proof of Theorem~\ref{thm:strict-verification}]
+Every unambiguous verifier is an existential verifier for the same
+language, with exactly the same gates. The two-address verifier places
+$\mathsf{COL}$ in $\NSIZE[O(n)]$. Theorem~\ref{thm:ambiguity} excludes
+it from $\USIZE[O(n)]$ since $(\log n)^{\sigma_2}$ tends to infinity.
+For clarity, at an arbitrary large length $n$ fix the padding to zero
+in any proposed verifier. The remaining verifier acts on $n_w>n/4$
+bits, with $w=\Theta(\log n)$ and the same acceptance rule. This gives
+the claimed every-length witness.
+\end{proof}
+The promise of at most one colliding pair would make the two-address
+verifier itself unambiguous. The theorem uses the total predicate.
+Parity gives a noncontainment, since $\mathsf{COL}$ is outside parity
+size $o(n(\log n)^\sigma)$.
+The same reasoning on the tensor product of $t$ lists uses the batch
+form of the imported theorem for $1\le t\le2^w$. For the existential
+problem that at least one list has a collision, the right side of
+the tradeoff becomes $\Omega(t n_w w^\sigma)$.
+
+For fixed prime $p$, the same conversion works for modular verifiers
+whose count $A$ signifies acceptance when $A\ne0\bmod p$. To obtain
+a parity-style \emph{indicator} over $\F_p$, use $p-1$ independent
+copies and conjoin them, giving count $A^{p-1}$. For a collision
+verifier, combine one dummy witness with $p-1$ disjoint copies of this
+last witness set to get count $1-A^{p-1}$ modulo $p$; inactive bits
+are fixed in each branch. Removing an unused bit at odd $p$ divides
+all counts by the unit $2$. This proves the corresponding verifier
+lower bound with the field's exponent and constants.
+
+\subsection{Modular verifiers and finite-field tensor volume}
+For a Boolean function $f$ on $n\ge1$ bits, let $M_p(f)$ be its
+minimum gate count for a verifier using nonzero-modulo-$p$ acceptance.
+Call a verifier \emph{normalized} if its count equals $f$ modulo $p$.
+
+\begin{lemma}\label{lem:mod-volume}
+For a fixed finite field $F$ of characteristic $p$,
+$\vol_F(f)=\Theta_F(n+M_p(f))$. A network of volume $v$ for $f$
+yields a normalized modulo-$p$ verifier with $O_F(v)$ gates.
+\end{lemma}
+\begin{proof}
+For the upper bound prune unused witnesses as above and conjoin $p-1$
+independent copies of a modular verifier. Their count is the Boolean
+indicator in $\F_p\subset F$. Summing their witness wires in
+Lemma~\ref{lem:convert} uses $O_p(n+M_p(f))$ volume. The constantly
+zero case has a deterministic constant verifier.
+
+Conversely, guess the internal wire bits and multiply the selected
+local entries in $F$ to obtain $z$. Each fixed-arity lookup and field
+product costs $O_F(1)$ gates. Choose an $\F_p$-linear functional
+$\lambda:F\to\F_p$ with $\lambda(1)=1$ by extending $1$ to a basis.
+Accept exactly when a fresh $\lceil\log p\rceil$-bit integer is below
+the representative of $\lambda(z)$ in $\{0,\ldots,p-1\}$. By
+linearity, the total count is $\lambda$ of the contraction modulo $p$,
+hence equals $f$. Finally $v\ge n$ by the exterior-wire convention.
+The same verifier construction works for any fixed bound on local arity.
+\end{proof}
+
+\subsection{Thresholds of many collision answers}
+The batch premise also applies when only a threshold of the list
+answers is requested. The threshold can vary with the batch size.
+
+\begin{corollary}\label{cor:threshold}
+Assume the batch form of Theorem~\ref{thm:import} over a fixed finite field
+$F$ of characteristic $p$. Given $1\le t\le2^w$ lists and
+$1\le r\le t$, deciding whether at least $r$ of them have a collision
+requires $\Omega_F(tn_w w^{\sigma_F})$ modulo-$p$ verifier gates.
+The same holds for the threshold of distinctness answers. The constants
+are uniform in $t,r$ and one verifier may share work across lists.
+\end{corollary}
+\begin{proof}
+Let $b$ be the largest power of $p$ at most $t$, so $b>t/p$.
+Pin $t-b$ list answers, with $\max(0,r-b)$ ones and the rest zeros,
+using distinct or all-equal lists. The remaining threshold has level
+$v\in[1,b]$. By inclusion--exclusion its multilinear polynomial in
+the $b$ answer bits has top coefficient
+\[
+    \sum_{i=v}^b(-1)^{b-i}\binom bi
+       =(-1)^{b-v}\binom{b-1}{v-1}.
+\]
+This is nonzero modulo $p$: dividing $(1+z)^b=1+z^b$ by $1+z$
+shows that $\binom{b-1}{j}=(-1)^j$ in $F$ for $0\le j<b$.
+
+For distinctness, on each retained block apply the operator
+$f(x)-f(a)$ in that block, with $a$ an all-equal list. This kills
+constants and sends $D_w$ to itself. For collision, use $f(a)-f(x)$
+at the same anchor. It kills constants and sends $1-D_w$ to $D_w$.
+Each operator uses the given network once: a shared bit of weights
+$+1,-1$ chooses between the actual and fixed inputs, in the required
+order. A ternary table at each exterior position enforces the selected
+value, with equality trees distributing the shared bit.
+Thus $O(n_w)$ additional volume per block suffices, even when all
+operators are applied. Only the full monomial survives, yielding a
+nonzero multiple of $D_w^{\otimes b}$. Rescale by a constant. Pinning
+and the operators cost $O(tn_w)$, which the imported
+$bn_w w^{\sigma_F}$ bound dominates. Apply Lemma~\ref{lem:mod-volume}.
+\end{proof}
+
+\section{Exact quantum verification}\label{sec:quantum}
+Consider circuits on basis inputs and zero ancillas, with a fixed finite
+set $\mathcal G$ of bounded-arity unitary gates and one measured output
+bit. Exact acceptance means that its probability equals the Boolean
+answer on every input.
+
+\begin{lemma}\label{lem:quantum}
+For each such $\mathcal G$ there is a fixed odd prime $p$ such that an
+exact $g$-gate circuit on $n$ data bits has a normalized modulo-$p$
+verifier with $O_{\mathcal G}(g+n+1)$ Boolean gates.
+\end{lemma}
+\begin{proof}
+Let $R\subset\mathbb C$ be the ring generated over $\mathbb Z$ by all
+gate entries, their complex conjugates, and $1/2$. Take a maximal ideal.
+Its residue field $F$ is finitely generated as a $\mathbb Z$-algebra.
+In characteristic zero it would be a number field by Zariski's lemma.
+Clearing integral denominators of the finitely many generators would
+embed $F$ in $\mathcal O_F[1/d]$ for a single positive integer $d$.
+For a prime $q\nmid d$, the element $1/q$ cannot lie there, since
+$d^j/q$ is never an algebraic integer. Thus $F$ has positive
+characteristic $p$. Zariski's lemma over $\F_p$ makes $F$ finite,
+and the image of $1/2$ makes $p$ odd.
+
+Expand the acceptance probability as a contraction of the circuit
+and its complex conjugate~\cite{MarkovShi}. Pin both copies of the
+measured wire to one and identify the remaining pairs of output
+wires to sum over the same basis outcome. Both copies have the same
+basis inputs and zero ancillas. Discard unused ancillas. This leaves
+$O_{\mathcal G}(g+n+1)$ bounded-arity factors and wires. Apply the
+unital map $R\to F$ to every entry. Exactness preserves the answer
+$0$ or $1$ under this substitution.
+
+Apply the network-to-verifier construction of Lemma~\ref{lem:mod-volume}
+to these bounded-arity factors. Both $F$ and the arity bound depend
+only on the gate set, so the gate count is $O_{\mathcal G}(g+n+1)$.
+\end{proof}
+
+For the standard Clifford+$T$ generators $H,T,\mathrm{CNOT}$ we can
+take $p=3$. In $\F_9=\F_3[u]/(u^2+1)$ send $\zeta_8$ to $1+u$.
+Its fourth power is $-1$, and its inverse is $2+u$. Thus
+$\sqrt2=\zeta_8+\zeta_8^{-1}$ maps to $2u$ and $1/\sqrt2$ to $u$.
+These substitutions define the map on $\mathbb Z[\zeta_8,1/\sqrt2]$.
+Conjugate each complex bra entry before reducing it. The reduction of
+$\overline{\zeta_8}$ is $2+u$, and the Frobenius image is $(1+u)^3=1-u$.
+
+\begin{corollary}
+Under Theorem~\ref{thm:import} over $\F_3$, exact Clifford+$T$ circuits
+for collision require $\Omega(n(\log n)^{\sigma_3})$ gates at every
+sufficiently large length. In the same gate set, linear size suffices
+if the acceptance probability need only be positive on yes inputs
+and zero on no inputs.
+\end{corollary}
+\begin{proof}
+Apply Lemma~\ref{lem:quantum} and the modulo-three verifier bound of
+Section~\ref{sec:ambiguity}. For the upper bound prepare uniform address
+bits with Hadamard gates and evaluate the two-address verifier reversibly.
+Each binary gate can write its truth function into a fresh ancilla with
+a constant number of NOT, CNOT and Toffoli gates, all exactly available
+in Clifford+$T$. Keeping the witnesses gives probability
+$A(x)/2^{2w}$. An exact circuit in particular meets the positive
+acceptance convention, which gives the strict inclusion at linear size.
+\end{proof}
+For an arbitrary fixed finite gate set $\mathcal G$, the same exact
+lower bound holds with the exponent for the prime supplied by
+Lemma~\ref{lem:quantum}, assuming Theorem~\ref{thm:import} in that
+characteristic.
+Under the full batch premise Corollary~\ref{cor:threshold} transfers
+in the same way to exact quantum circuits for thresholds of list answers.
+Exact quantum counting simulations have classical precedents
+\cite{FortnowRogers,deBeaudrap}. The linear gate accounting lets us
+apply the quantitative tensor bound. For bounded error the same
+specialization sends $3/4$ to zero and $1/4$ to one, so it cannot
+translate the usual probability inequalities.
+
+\section{A modular language hard at every large length}\label{sec:modular}
+Fix a prime $p$ and use the signed universal table of \cite{HC}.
+In its fixed self-delimiting program encoding, an $n$-bit input $x$
+starts with a program that can read all of $x$ and request fresh
+branch bits. Sum its outputs $+1,-1,0$ over paths of at most
+$n^{100}$ simulated steps, assigning zero to malformed programs,
+errors and timeouts. Write the sum as $U_n^\star(x)$. A uniform
+interpreter uses polynomial time per path. Unused choice bits are
+fixed to zero if paths are represented by padded guess strings.
+
+We use the following two \emph{exact truth-table} volume estimates.
+\begin{enumerate}
+\item Without ports in characteristic $p$,
+$\vol_{\F_p}(D_w)\ge a_p n_w\sqrt w$ for every large $w$.
+In the list-test proof, put $h=w-1$. Two copies of the network plus
+$O(2^hh)$ volume implement tagged permutation. Pinning tags gives
+$2^hh$ wires with $2^h$ possible uniform destinations per input bit.
+The uniform-destinations lemma gives the stated rate
+\cite[Section~4]{OAI}.
+\item With ports in characteristic $p$,
+$\vol_{\F_p}(U_n^\star\bmod p)> n^{1+\delta_p}$ for every large
+$n$ and some $\delta_p>0$. This is the one-copy case of the
+exact-batches theorem \cite[Theorem~12.1]{HC}.
+\end{enumerate}
+
+\begin{theorem}\label{thm:modular}
+Assume these two case-specific estimates. For each fixed prime $p$
+there is an explicit total language $R_p\in\mathsf{Mod}_p\mathsf P$
+whose $N$-bit slice requires $\Omega_p(N\sqrt{\log N})$ unrestricted
+$B_2$ gates for every sufficiently large $N$. At $p=2$ the parity
+of $U_n^\star$ itself has the bound.
+\end{theorem}
+\begin{proof}
+Let $r=\lceil\log p\rceil$. At length $N=n+r$, use the first $r$
+bits for the unsigned integer $a$ and define
+\[
+ R_p(a,x)=[a<p\ \text{ and }\ U_n^\star(x)\equiv a\pmod p].
+\]
+Reject lengths without a selector. For $a<p$, the GapP function
+$1-(U_n^\star-a)^{p-1}$ has residue one on equality and zero
+otherwise. Signed counts are closed under sum, negation and a fixed
+number of products by disjoint branching, sign changes and independent
+path choices. Replace each negative contribution by $p-1$ accepting
+paths to obtain the nonzero-modulo-$p$ acceptance test. At $p=2$
+accepting either sign gives the parity of $U_n^\star$ directly.
+
+With ports, attach to the selector ports of a network for $R_p$ the
+fixed tensor assigning weight $a$ to valid selectors and zero to the
+rest. Its contraction is $U_n^\star\bmod p$. This fixed table has
+$O_p(1)$ trivalent volume, for instance by binary selectors and
+equality trees. Thus Lemma~\ref{lem:convert} and the second estimate
+give $\Omega_p(n^{1+\delta_p})$ gates. At $p=2$ the same estimate
+applies directly to the one-bit table.
+
+Without ports, fix a single deterministic program prefix $q$ that
+skips its own code and returns $+1$ or $0$ according to the padded
+distinctness predicate on the remaining $m$ bits. The pairwise scan in
+Lemma~\ref{lem:uniform} fits well within $(m+|q|)^{100}$ simulated
+steps for large $m$. Thus $U_{m+|q|}^\star(qz)=\ED_m(z)$.
+Setting $a=1$ restricts $R_p$ to $\ED_m$, and fixing $q$ alone
+suffices for parity. The first estimate and $n_{w(m)}>m/4$ yield
+$\Omega_p(m\sqrt{\log m})$ gates by the same circuit conversion.
+The prefix and selector add a constant number of bits, so every
+sufficiently large $N$ is covered.
+\end{proof}
+The definition of $R_p$ is independent of which geometric case holds.
+The two estimates refer to contractions on Boolean assignments. An
+arithmetic lower bound for a formal polynomial cannot replace them:
+adding $(X_i^2-X_i)h$ changes the polynomial without changing any
+Boolean value. The formalization scope lists related arithmetic
+endpoints \cite{scope}; independent verification of these geometric
+inputs and a priority determination for this modular combination
+are separate questions.
+
+\subsection{Nearly linear counting time and modular-verifier size}
+The full ports premise in the exact-batches theorem~\cite{HC} supplies
+constants $\delta,\xi>0$ for which
+\[
+ \vol_{\F_p}\bigl((U_\ell^\star)^{\otimes b}\bmod p\bigr)
+     > b\ell^{1+\delta}
+ \qquad (1\le b\le 2^{\ell^\xi},\ \ell\ \text{sufficiently large}).
+\]
+This bound permits sharing across all $b$ copies.
+
+\begin{theorem}\label{thm:nearly-linear-count}
+Assume the no-ports distinctness estimate of Section~\ref{sec:modular}
+and the ports exact-batches estimate above. For each fixed prime $p$
+there are a constant $C_p$ and a total language in
+$\mathsf{Mod}_p\mathsf{TIME}[n(\log n)^{C_p}]$ whose modulo-$p$ verifier
+circuits require $\Omega_p(n\sqrt{\log n})$ gates at every large length.
+For $p=3$ the same language requires that many exact Clifford+$T$ gates.
+\end{theorem}
+\begin{proof}
+Reserve $r=\lceil\log p\rceil$ tag bits and write $m=n-r$. Fix a
+positive integer $d$ and put $\ell=\lceil\log m\rceil^d$. Use the
+largest $n_w\le m/2$ and put $b=\lfloor(m-n_w)/\ell\rfloor$. On the
+first $n_w$ data bits and the next $b$ blocks define the integer
+\[
+       S_m(x,y)=D_w(x)\prod_{j=1}^b U_\ell^\star(y_j).
+\]
+Ignore leftover bits. Accept if the tag is a valid residue equal to
+$S_m\bmod p$. Reject the finitely many short lengths before these
+blocks exist. At large lengths $n_w=\Theta(m)$ and $b\ell=\Theta(m)$.
+
+Pin every universal block to a padded program that returns $+1$
+deterministically. This recovers $D_w$ and gives the required volume
+in the no-ports case. In the ports case pin $x$ to a list of distinct
+records. This recovers the full batch. Choose $d$ with $d\xi\ge1$
+and $d\delta\ge1/2$. Then $b\le m\le2^{\ell^\xi}$ and
+$b\ell^{1+\delta}=\Omega(m\sqrt{\log m})$. The choice of $d$ is fixed
+per characteristic. In the no-ports case every fixed $d\ge1$ works.
+Pinning and terminating unused inputs cost at most $O(m)$ volume.
+
+Given an $s$-gate modular verifier for the tagged language, discard
+unused witnesses at odd $p$ (their multiplicity is a unit). At $p=2$
+a verifier for this nonzero predicate must use every witness bit.
+After pruning, there are at most $2s+1$ of them. Conjoining $p-1$
+independent witness copies with shared data and tag gives a count
+congruent to the indicator of the correct tag. Attach the constant
+table weighting valid tags by their residues and invalid tags by
+zero. Contraction sums over the tags and recovers $S_m\bmod p$ at
+volume $O_p(s+m+1)$. Either pinning therefore forces the gate bound.
+
+On tapes, merge-sort the fixed-width records in $O(m\log m)$ time
+using sequential passes and compare adjacent records. For distinct
+records, simulate one path of each universal block in succession,
+multiplying the signs. The sum over paths is exactly the product
+above. With $O(\ell^A)$ time per block per path for a fixed interpreter,
+this costs $O(m\log m+m\ell^{A-1})$. The fixed number of sums and
+products in $1-(S_m-a)^{p-1}$ and the replacement of negative paths
+by $p-1$ positive paths preserve the time bound for the valid tag $a$.
+This proves membership with a clock on every branch.
+Lemma~\ref{lem:quantum} gives the exact quantum conclusion.
+\end{proof}
+There is also a choice of block length independent of the unknown
+exponents, $\ell=2^{\lceil\sqrt{\lceil\log m\rceil}\rceil}$.
+It eventually exceeds every fixed power of $\log m$ and is $o(m)$.
+The proof gives the same every-length gate lower bound for this
+specified language in time $m2^{O(\sqrt{\log m})}$ per branch.
+
 \section{Discussion}
+\subsection{Depth three and oblivious time}\label{sec:depth-three}
+For a list of $m$ words of $b$ bits, distinctness is the conjunction,
+over $i<j$, of the disjunction
+\[
+ \bigvee_{k=0}^{b-1}
+ \bigl((x_{i,k}\land\neg x_{j,k})\lor
+       (\neg x_{i,k}\land x_{j,k})\bigr).
+\]
+The two mismatches for each $k$ feed the same OR. With negations at
+the inputs this has depth three, bottom fan-in two, and $O(m^2b)$
+gates and wires, or $O(n^2/\log n)$ for the lists of Definition~\ref{def:ed}.
+
+Here is a DLOGTIME-uniform witness with the same lower bound at every
+large length. Use the first $2^\ell$ bits, $\ell=\lfloor\log n\rfloor$,
+as $2^u$ words of $2^h$ bits, where $h=\lceil\log(2\ell)\rceil$ and
+$u=\ell-h$. Ignore the suffix and handle small lengths by constants.
+Name a bottom gate by $(i,j,k,e)$, where the word indices have $u$ bits,
+$k$ has $h$ bits and $e$ selects a mismatch. An input address is the
+concatenation of a word index and $k$. With $n$ in binary, computing the
+field widths by counting bits, comparing $i<j$, and checking adjacent
+gate labels all take $O(\log n)$ bit operations. This gives the
+direct-connection uniformity test, including signs of literals.
+The scans in Lemma~\ref{lem:uniform} also work for this layout.
+Since $2^h\ge 2u$, setting the extra bits of each word to zero embeds
+$D_u$, whose input length $2u\,2^u=\Theta(n)$. Theorem~\ref{thm:import}
+therefore gives
+\[
+ \text{DLOGTIME-uniform }\mathsf{AC}^0_3\cap\Lclass\cap\coNTIME[n]
+ \not\subseteq \SIZE[o(n(\log n)^\sigma)].
+\]
+In particular the same witness excludes linear $B_2$ size for
+$\mathsf{AC}^0$, $\mathsf{TC}^0$, $\mathsf{NC}^1$, and first-order
+logic on bit strings with the standard arithmetic predicates
+($\mathsf{FO}[\mathrm{BIT}]$) \cite{BIS}.
+
+An oblivious multitape computation of $T$ steps has fixed last-write
+locations. Wiring each read to its last write takes $O(T)$ gates, so
+the witness also excludes oblivious time $o(n(\log n)^\sigma)$.
+For ordinary multitape time the Pippenger--Fischer simulation costs
+$O(T\log T)$ gates \cite{PF}. A superlinear time bound by this route
+would require $\sigma>1$. The sorting upper bound above gives
+$\sigma\le1$, including for the padded witness.
+
+\subsection{Other problems on the same input scale}\label{sec:transfers}
+Write $n=mb$ for $m=2^w$ keys of $b=2w$ bits. If a circuit for a target
+on $N=\Theta(n)$ bits decides $D_w$ after $O(n)$ gates of preprocessing
+and output tests, its size is $\Omega(N(\log N)^\sigma)$ under
+Theorem~\ref{thm:import}. This assertion concerns the target lengths
+of the reduction. The following tests allow multi-output circuits.
+\begin{itemize}
+\item After integer sorting, compare adjacent keys. For minimum gap or
+exact closest-pair distance, test for zero. Points $(x_i,0)$ give the
+plane version, including the test for a zero edge in a Euclidean
+minimum spanning tree on the indexed points. Coincident points must
+remain separate vertices.
+\item For multiplicities $f_a$, distinctness means
+$F_0=|\{a:f_a>0\}|=m$, or equivalently $F_2=\sum_a f_a^2=m$,
+since $\sum_a f_a(f_a-1)=0$ exactly then.
+\item The words are the table of a function $[m]\to[m^2]$.
+Alternatively split each word into two $w$-bit endpoints in disjoint
+vertex parts. A repeated edge occurs exactly when a word repeats.
+Testing bijectivity with range $[m]$ would require a further reduction.
+\item For longest repeated substring, encode a key $x$ twice with
+different tags. Let $E(z)$ replace each bit $a$ by $1a$, and set
+$C_e(x)=001\,E(ex)\,1$ for $e\in\{0,1\}$. Both codewords have
+length $K=2b+6$. Output $C_0(x_i)C_1(x_i)$ for each $i$ in order.
+A duplicate key repeats a substring of length $2K$. Conversely, every
+length-$2K$ window contains a complete codeword. Its initial $00$
+occurs only at a codeword boundary, so equal windows at distinct
+positions contain equal complete codewords at distinct positions.
+Their tags and keys coincide, which requires two input occurrences.
+The encoding is a projection of length $2Km=O(n)$. It gives the bound
+both for the threshold decision and for computing the maximum length.
+A single zero delimiter with $E(x)$ would allow equal windows across
+boundaries, even for the four distinct four-bit keys $0,1,3,2$.
+\end{itemize}
+Splitting indices by each of their $w$ coordinates gives $w$ calls
+to two-list disjointness. This loses a factor $\Theta(\log n)$ in the
+gate bound. For a general Boolean circuit computing a linear map such
+as $H_N$ in Result~08 or cyclic convolution with a fixed kernel, a
+transfer would require a different reduction or a volume lower bound
+for that map's input-output relation.
+
 \paragraph{Open problems.}
 \begin{itemize}
 \item \emph{Make $\sigma$ explicit.} If $\F_2$ has no ports, the proof
 gives every $\sigma<1/2$. What is the best exponent one can extract from
 the ports case? Is $\Omega(n\log n)$ possible for element distinctness,
-matching the sorting upper bound up to a $\log n$ factor?
+matching the sorting upper bound?
 \item \emph{Polynomially superlinear bounds.} Can the volume machinery
 of \cite{OAI,Geom,HC} give an $n^{1+\varepsilon}$ lower bound for any
 explicit function? Hardness magnification \cite{MMW,OS} shows that
@@ -351,9 +840,9 @@ distinctness is not one of those problems, so no magnification applies
 directly to Theorem~\ref{thm:main}. It would be interesting to know
 whether the tensor-network method can reach them.
 \item \emph{Other functions.} The argument needs only that the function
-forces data-dependent routing. Sorting (as a multi-output function),
-checking a permutation, and set disjointness on structured inputs are
-natural candidates for the same treatment.
+forces data-dependent routing. Can one obtain the same bound for
+checking a permutation of $[m]$, or for a single instance of two-list
+disjointness, at linear bit cost?
 \item \emph{Which case holds for $\F_2$?} Deciding whether characteristic
 two admits ports would remove half of the proof from consideration.
 \end{itemize}
@@ -363,6 +852,39 @@ The bound is an immediate corollary of \cite[Theorem~2.2]{OAI}, and all
 credit for the underlying theorem belongs to its authors.
 
 \begin{thebibliography}{99}
+\bibitem{VerificationNote} \emph{Verification, Ambiguity, and Exact
+Quantum Circuits from a Tensor-Volume Lower Bound}. Research note
+prepared for Charlie Cruz, 25 November 2026, Sections~2--5.
+\bibitem{BG} R.~Beigel and J.~Gill. Counting classes: thresholds,
+parity, mods, and fewness. \emph{Theoretical Computer Science} 103,
+3--23, 1992. \href{https://cis.temple.edu/~beigel/papers/bg-mods-tcs.html}{Paper}.
+\bibitem{MarkovShi} I.~L. Markov and Y.~Shi. Simulating quantum
+computation by contracting tensor networks.
+\href{https://arxiv.org/abs/quant-ph/0511069}{Preprint}.
+\bibitem{FortnowRogers} L.~Fortnow and J.~Rogers. Complexity limitations
+on quantum computation. \href{https://arxiv.org/abs/cs/9811023}{Preprint}.
+\bibitem{deBeaudrap} N.~de Beaudrap. On exact counting and quasi-quantum
+complexity. \href{https://arxiv.org/abs/1509.07789}{Preprint}.
+\bibitem{MS} O.~S. Mishra and R.~Santhanam.
+An explicit $4n-O(\log n)$ size lower bound against general Boolean
+circuits. \href{https://eccc.weizmann.ac.il/report/2026/260/}{ECCC
+TR26-260, revision 1}.
+\bibitem{scope} OpenAI. Formalization scope for the November 24 release.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/docs/379.md}{Pinned scope document}.
+\bibitem{AKS}
+M.~Ajtai, J.~Koml\'os, and E.~Szemer\'edi. An $O(n\log n)$ sorting
+network. STOC, 1983. \href{https://doi.org/10.1145/800061.808726}{Proceedings}.
+
+\bibitem{PF}
+N.~Pippenger and M.~J. Fischer. Relations among complexity measures.
+\emph{J. ACM} 26, 361--381, 1979.
+\href{https://doi.org/10.1145/322123.322138}{Article}.
+
+\bibitem{BIS}
+D.~A. Mix Barrington, N.~Immerman, and H.~Straubing. On uniformity
+within $\mathsf{NC}^1$. \emph{J. Comput. System Sci.} 41, 274--306,
+1990. \href{https://doi.org/10.1016/0022-0000(90)90022-D}{Article}.
+
 \bibitem{AFKL}
 P.~Afshani, C.~B. Freksen, L.~Kamma, and K.~G. Larsen. Lower bounds for
 multiplication via network coding. In \emph{Proceedings of ICALP 2019},
@@ -398,7 +920,8 @@ Preprint, November 24, 2026.
 \bibitem{HC}
 OpenAI. Circuit lower bounds for Hamiltonian cycle and the permanent.
 Preprint, November 24, 2026.
-\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/paper.pdf}{Manuscript}.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/paper.pdf}{Manuscript}
+and \href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/build/model.tex}{exact-batches statement and standing hypothesis}.
 
 \bibitem{Geom}
 OpenAI. Euclidean geometry in the asymptotic spectrum of tensors.

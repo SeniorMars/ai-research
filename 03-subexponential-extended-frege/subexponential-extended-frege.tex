@@ -18,7 +18,7 @@
 \title{\textbf{Subexponential Extended Frege refutations of unsatisfiable 3-CNFs}\\[0.4em]
 \large relative to an integral grid-contraction construction}
 \author{Charlie Cruz}
-\date{19 November 2026}
+\date{19 November 2026, revised 25 November 2026}
 \hypersetup{pdftitle={Subexponential Extended Frege refutations of unsatisfiable 3-CNFs},pdfauthor={Charlie Cruz}}
 \begin{document}
 \maketitle
@@ -88,7 +88,10 @@ $2^{O(n/\sqrt{\log n})}$ (Theorem~\ref{thm:direct-subexp-ef}).
 \item Every unsatisfiable normalized $n$-variable 3-CNF has an EF
 refutation of size $2^{o(n)}$ (Theorem~\ref{thm:all-3cnf-ef}). This
 follows from the first result and the sparsification tree of
-Impagliazzo, Paturi, and Zane~\cite{ipz}.
+Impagliazzo, Paturi, and Zane~\cite{ipz}. Corollary~\ref{cor:fixed-width}
+extends the variable-only bound to every fixed clause width.
+Theorem~\ref{thm:quant-width} gives an explicit rate and also covers
+widths $k$ with $k\log(k+2)=o(\log\log n)$.
 \item Every 3-CNF with $n$ variables and $m$ clauses has a CLIP plus
 EF proof of its exact model count, in the sense of Chede, Chew, and
 Shukla~\cite{ccs}, of size $2^{O((n+m)/\sqrt{\log(n+m+2)})}$
@@ -1364,6 +1367,108 @@ No uniform estimate in $C_\varepsilon$ and no unspecified
 choice of $\varepsilon(n)$ is used.
 \end{proof}
 
+\begin{corollary}[Every fixed clause width]\label{cor:fixed-width}
+Relative to the same contraction construction, for each fixed $k$ the
+maximum shortest EF refutation size of an unsatisfiable normalized
+$n$-variable CNF of width at most $k$ is $2^{o(n)}$.
+\end{corollary}
+\begin{proof}
+Fix $k$ and $\varepsilon>0$. Apply the width-$k$ IPZ tree
+\cite[Theorem~1 and Corollary~1]{ipz} before introducing any variables.
+It has at most $2^{\varepsilon n}$ leaves, each with at most
+$C_{k,\varepsilon}n$ clauses. The split proof of
+Lemma~\ref{lem:ef-sparse-split} works verbatim for the same heart
+and petal implications. Each node now contains at most $O_k(n^k)$
+distinct clauses, so each split costs $n^{O_k(1)}$ symbols.
+
+In a leaf, encode each clause of length greater than three by a
+binary OR tree. Give every internal gate a fresh extension variable
+and write the three defining clauses for $y\leftrightarrow(a\lor b)$.
+Assert the root. From the original clause and the extension axioms,
+EF derives the defining clauses and the root unit in size polynomial
+in the leaf length: at fixed $k$ this is a fixed propositional
+derivation up to renaming and signs of literals. Short clauses are
+retained. The resulting unsatisfiable 3-CNF has
+$O_{k,\varepsilon}(n)$ variables and clauses, so
+Theorem~\ref{thm:direct-subexp-ef} refutes it in size
+$2^{O_{k,\varepsilon}(n/\sqrt{\log(n+2)})}$. Append that refutation
+with fresh extension names, using the derived clauses as its premises.
+This gives a refutation from the original leaf clauses.
+
+Convert each leaf refutation to a proof of its negation as above and
+apply Lemma~\ref{lem:ef-sparse-combine}, with $n^{O_k(1)}$ per node.
+The base-two logarithm of the root proof size divided by $n$ has
+limit superior at most $\varepsilon$. Taking the infimum over fixed
+$\varepsilon>0$ proves the claim, including at density $\Theta(n^{k-1})$.
+\end{proof}
+
+\begin{theorem}[Quantitative sparsification in EF]\label{thm:quant-width}
+Under the same contraction premise, every normalized unsatisfiable
+$n$-variable CNF of fixed width $k\ge3$ has an EF refutation of size
+\[
+ 2^{\,O_k\left(n(\log\log n)^{1-1/k}/(\log n)^{1/(2k)}\right)} .
+\]
+At width three the exponent is
+$O(n(\log\log n)^{2/3}/(\log n)^{1/6})$.
+For growing $k\ge3$ satisfying $k\log(k+2)=o(\log\log n)$, the size
+is $2^{o(n)}$. The proofs can be constructed within the respective
+bounds, with the input-reading cost added for redundant encodings.
+\end{theorem}
+\begin{proof}
+Use Calabro's constructive sparsification algorithm~\cite{calabro}.
+For $0<\epsilon\le1$ it gives at most $2^{\epsilon n}$ leaves with
+$n^{O(k)}$ delay. The penultimate bound in equation~(5.4) of that
+source, with the subclause size set to one, bounds the occurrences
+of each literal by
+\[
+ \Delta=\big[C k^2\epsilon^{-1}\log(k/\epsilon)\big]^{k-1}
+\]
+for an absolute $C$. The children add a heart or its petals and then
+discard supersets, exactly the implication in Lemma~\ref{lem:ef-sparse-split}.
+Every intermediate conjunction and split proof has size $n^{O(k)}$.
+Each leaf has $O(n\Delta)$ clauses. The OR-tree construction of
+Corollary~\ref{cor:fixed-width} uses $O(kn\Delta)$ variables and
+clauses. Uniformly in $k$, its root unit follows by propagating each
+original literal up its path to the root and eliminating the literals
+from the original clause. This needs only polynomial work in the
+written tree and clause.
+
+Use Corollary~\ref{cor:ef-proof-output} to construct each refutation.
+The leaf time exponent is $O(kn\Delta/\sqrt{\log n})$, by monotonicity
+of $v/\sqrt{\log(v+2)}$ at large $v$. The deduction conversion and
+bottom-up reuse of proofs from Lemma~\ref{lem:ef-sparse-combine} add
+at most polynomial overhead in each leaf proof and $n^{O(k)}$ per
+tree node. Variable names can include a leaf index of $O(\epsilon n+1)$
+bits. The base-two logarithm of both total size and construction time
+is at most
+\[
+ O\big(\epsilon n+kn\Delta/\sqrt{\log n}+k\log n\big).
+\]
+For fixed $k$ take $\epsilon=(\log\log n)^{1-1/k}/(\log n)^{1/(2k)}$.
+Then $\log(k/\epsilon)=O_k(\log\log n)$ and
+$\Delta/\sqrt{\log n}=O_k(\epsilon)$. For growing $k$, put
+$L=\log\log n$ and take $\epsilon=2^{-\sqrt{L/k}}$. The width
+condition gives $\epsilon=o(1)$ and
+$\log\Delta=O(k\log(k+2)+\sqrt{kL})=o(L)$. Hence
+$k\Delta=(\log n)^{o(1)}$ and all three terms are $o(n)$.
+Dyadic rounding within a factor two preserves each estimate. The
+width is read directly from a normalized formula.
+\end{proof}
+
+\paragraph{Comparison on hard families.}
+At sufficiently large fixed clause density, random 3-CNFs are
+unsatisfiable with high probability. On the same distribution, exponential
+lower bounds hold for Resolution length~\cite{BSW}, for polynomial
+calculus monomial size, for example over $\mathbb F_3$~\cite{BI},
+and for SOS monomial size with the clause-satisfaction equations
+$p_C(x)=1$~\cite[Corollary~14]{AH}. Here $p_C$ is the multilinear
+indicator of satisfying $C$. The fixed-density EF bound is
+$2^{O(n/\sqrt{\log n})}$ on every unsatisfiable instance in that
+distribution. This gives both a high-probability comparison and
+worst-case families witnessing the gap. At other widths and densities
+the EF upper bound still applies, while a size comparison requires
+a lower bound in the corresponding system and encoding.
+
 \paragraph{A four-clause split check.}
 For
 $A=(x\lor y)\land(x\lor\neg y)\land(\neg x\lor y)
@@ -2624,6 +2729,23 @@ version. \S2.3.4, Theorem 2.3, printed p.~18 (PDF p.~20),
 states Cook's correspondence theorem; it points to
 Kraj\'i\v{c}ek's 2019 book, Theorem 12.4.2, for the proof.
 \url{https://narteche.github.io/files/papers/PAP_june2025.pdf}.
+
+\bibitem{BSW} Eli Ben-Sasson and Avi Wigderson.
+\emph{Short proofs are narrow---resolution made simple}. J. ACM, 2001.
+\href{https://doi.org/10.1145/375827.375835}{Article}.
+
+\bibitem{BI} Eli Ben-Sasson and Russell Impagliazzo.
+\emph{Random CNFs are hard for the polynomial calculus}.
+\href{https://www.ias.edu/sites/default/files/math/csdm/10-11/ebensasson_random_cnfs_are_hard.pdf}{Paper}, Theorem~1.2.
+
+\bibitem{AH} Albert Atserias and Tuomas Hakoniemi.
+\emph{Size-degree trade-offs for sums-of-squares and Positivstellensatz proofs}.
+CCC, 2019. \href{https://doi.org/10.4230/LIPIcs.CCC.2019.24}{Proceedings}.
+
+\bibitem{calabro} Chris Calabro. \emph{The Exponential Complexity of
+Satisfiability Problems}. UC San Diego, 2009. Chapter~5, equation~(5.4),
+Lemmas~5.13--5.14 and Theorem~5.15.
+\href{https://cseweb.ucsd.edu/~ccalabro/thesis.pdf}{Dissertation}.
 
 \bibitem{ipz} Russell Impagliazzo, Ramamohan Paturi, Francis Zane.
 \emph{Which Problems Have Strongly Exponential Complexity?}

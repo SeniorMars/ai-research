@@ -19,7 +19,7 @@
 \title{\textbf{Quantifier elimination, variable orders,\protect\\ and program proofs}\\[0.45em]
 \large Further logical consequences of integral counting}
 \author{Charlie Cruz}
-\date{19 November 2026}
+\date{19 November 2026, revised 25 November 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -126,7 +126,10 @@ have worst-case total symbol size
 $O(n(\log n)^{1/2-\epsilon})$. This is a superlinear worst-case
 bound; we do not exhibit an explicit family of exponentially hard
 identities. See Theorems~\ref{thm:regex-nondet-lower}
-and~\ref{thm:ka-tree-superlinear}.
+and~\ref{thm:ka-tree-superlinear}. On one writable tape, the
+two-fifths-power space simulation excludes deterministic time
+$O(n^{5/2-\delta})$ for all six decisions and each fixed $\delta>0$
+(Section~\ref{sec:regex-one-tape}).
 
 \paragraph{Further results.}
 Section~\ref{sec:skolem} shows that, for a circuit with at most one
@@ -2028,6 +2031,109 @@ The initial-prefix test on $abc$ expands as
 which rejects a correct $abc$ prefix and accepts each possible first
 mismatch in exactly the corresponding branch.
 
+\subsection{Regular expressions on one writable tape}\label{sec:regex-one-tape}
+\begin{corollary}
+Assume the deterministic one-writable-tape simulation of
+\cite{OneTapeSpace}. For every fixed $\varepsilon>0$, universality,
+equivalence and inclusion of ordinary binary regular expressions, and
+their complementary decisions, are outside deterministic time
+$O(n^{5/2-\varepsilon})$ in the model with one writable tape head and
+finitely many read-only input heads, each moving at most one cell
+per step.
+\end{corollary}
+\begin{proof}
+The imported simulation with cap $U$ returns the halting flag and
+finite-control outcome using $O(U^{2/5}\log^C(U+2))$ space. It allows
+time-cap-independent initial contents and input symbols accessible in
+polylogarithmic space. Fix a language in $\mathrm{DSPACE}[n]$ and use
+Lemmas~\ref{lem:linear-regex-reduction} and~\ref{lem:regex-binary}.
+The reduction's output has length $\Theta(n)$ and each addressed
+symbol, including an endmarker, can be regenerated in $O(\log n)$
+space. The fixed comparison expression used for equivalence and
+inclusion adds constant length. Feed this virtual input directly to
+the simulator. Doubling the cap on finite-control timeouts uses at
+most $U=O(n+n^{5/2-\varepsilon})$ on the assumed algorithm. Thus
+$O(U^{2/5}\log^C(U+2)+\log n)=o(n)$, contradicting the linear
+space hierarchy on the diagonal language from
+Theorem~\ref{thm:regex-nondet-lower}. Swapping accepting and rejecting
+outcomes gives the complementary cases. The evaluated algorithm has
+only its one writable tape throughout.
+\end{proof}
+
+\subsection{Linear-length reductions to local reachability}\label{sec:local-targets}
+The reduction must run in deterministic $O(n)$ time and produce
+$O(n)$ \emph{bits} for the preceding time lower bound to transfer. The
+following targets admit reductions of this kind. Fix the linear-space
+diagonal language $D$ in the proof of Theorem~\ref{thm:regex-nondet-lower},
+and its one-tape machine from Lemma~\ref{lem:regex-local-machine}.
+On acceptance let the machine sweep its bounded tape clean and halt
+in a distinguished state at the left marker. Its accepting configuration
+$a_S$ of length $S=n+2$ is now prescribed by $n$. On rejection it
+halts in a different state.
+
+\begin{itemize}
+\item \emph{One-tape LBA acceptance.} Supply the fixed machine and
+its letterwise encoded input with endpoints. The bound is the
+length of the supplied tape segment.
+\item \emph{One-dimensional cellular automaton reachability.}
+Use a fixed radius-one rule on a marked segment. On a well-formed
+configuration each cell computes its successor from the triple in
+Lemma~\ref{lem:regex-local-machine}. Make halting configurations
+stationary and complete the rule arbitrarily on unused triples.
+Output $(c_0(x),a_S)$. The unique orbit hits its target precisely
+on acceptance.
+\item \emph{Bounded string rewriting.} Use directed, length-preserving
+rules on a fixed alphabet. A right move replaces $(q,b)c$ by
+$b'(q',c)$, a left move uses the reversed neighborhood, and a
+stationary move rewrites one marked symbol. Only the head can
+trigger a rule. With the same source and target strings, reachability
+is acceptance. The same test works for a symmetric Thue system
+obtained by allowing the rules in both directions. Every rewrite
+preserves the single head, and on these strings the forward rules
+define a partial function. For a forward edge $u\to v$, $u$ reaches
+the terminal $a_S$ exactly when $v$ does. Its set of predecessors is
+therefore closed under walking along edges in either direction.
+\item \emph{Context-sensitive grammar membership.} Use a fixed
+noncontracting grammar whose start productions generate the regular
+family of clean accepting configurations $a_S$ in nonterminal copies
+of the tape alphabet. This needs only length-preserving or growing
+productions: emit the left marker, any number of blanks, then the
+right marker. Add the preceding rewrite rules in reverse and permit
+each tape nonterminal to become its corresponding terminal. Any
+terminalization can be postponed, since the reverse rules read only
+nonterminals. Thus the terminal word encoding $c_0(x)$ is generated
+exactly if $c_0(x)$ reaches the clean accepting configuration of the
+same length. The noncontracting grammar is a context-sensitive
+grammar in the monotone presentation.
+\end{itemize}
+All alphabets and rule sets are fixed. A symbol has constant bit
+length, and one scan writes the configurations and any fixed description.
+For each target and its complement, composing the reduction with
+an algorithm gives the following exclusions in full input length $N$:
+\[
+\begin{array}{c|c}
+ \text{machine or oracle model} & \text{excluded time}\\ \hline
+ \mathrm{NTIME},\ \mathrm{coNTIME},\ \mathrm{PPTIME}
+     & o(N\sqrt{\log N})\\
+ \mathrm{DTIME}^{\textsc{TQBF}}\ \text{with fresh, one-bit queries}
+     & o(N\log N)\\
+ \mathrm{DTIME}\ \text{on multitape machines}
+     & o(N^2/\log N).
+\end{array}
+\]
+Indeed the first row uses the nondeterministic and counting simulations
+above, also derived in Result~04. The second uses the binary-identifier
+prenex TQBF simulation in Result~07. In the third, Williams's
+$O(\sqrt{T\log T})$ space simulation~\cite{WilliamsSpace} uses $o(n)$
+space at the indicated time. In all three cases the envelope argument
+of Theorem~\ref{thm:regex-nondet-lower} absorbs the linear reduction.
+Deterministic space is closed under complement, so an $o(n)$-space
+algorithm for either $D$ or its complement contradicts the diagonal.
+The same last two rows apply to the regex reductions already proved.
+An NFA with $O(n)$ states and edges can take $O(n\log n)$ bits to list
+its endpoints, so a state-count estimate alone does not yield these
+bounds for an explicitly listed NFA.
+
 \section{Proof size in tree-like Kleene algebra}
 \label{sec:ka-proof-lower}
 
@@ -2900,6 +3006,13 @@ min-partition rank method.
 \newblock \url{https://lics.siglog.org/archive/1999/GradelRosen-TwoVariableDescript.html}.
 \newblock (The word-structure result uses successor, endpoints and
 letters; we do not extend it to a supplied full-order predicate.)
+
+\bibitem{OneTapeSpace} OpenAI. Simulating one-tape time in two-fifths-power
+space. September 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/docs/137.md}{Simulation hypotheses and formalization scope}.
+
+\bibitem{WilliamsSpace} R.~R. Williams. Simulating time with square-root space.
+\newblock STOC, 2025. \url{https://arxiv.org/abs/2502.17779}.
 
 \bibitem{GS05} Gregor Gramlich and Georg Schnitger.
 \newblock Minimizing NFA's and regular expressions.

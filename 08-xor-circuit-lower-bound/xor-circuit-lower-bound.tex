@@ -23,7 +23,7 @@
   pdfkeywords={superlinear lower bounds, XOR circuits, linear circuits, matrix rigidity, F2, GF(2), explicit matrix, Fourier transform, circuit complexity, trace descent}}
 \title{Superlinear XOR Circuit Lower Bounds and\\Superlinear Rigidity for an Explicit Matrix over $\F_2$}
 \author{Charlie Cruz}
-\date{November 24, 2026}
+\date{November 24, 2026, revised November 25, 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -46,7 +46,15 @@ $\Omega(N\sqrt{\log N})$ linear gates. That theorem never applies over
 $\F_2$, and its proof has been formally verified in Lean. Two elementary
 tools carry it down to $\F_2$. One is a trace descent for circuits. The
 other is a projection onto $\F_4$-linear maps, which controls rank and
-sparsity. To our knowledge these are the first superlinear lower bounds
+sparsity. Cutting the nonlinear outputs of a Boolean circuit gives a
+whole-vector agreement bound when only a small linear number of such
+gates is available. The rigidity estimate also gives a product lower
+bound for bit updates and adaptive queries to linear memory.
+Using all Frobenius conjugates of a cyclic transform over a growing
+extension field, we also obtain binary lower-triangular Toeplitz and
+circulant matrices requiring $\Omega(m\sqrt{\log m})$ XOR gates in
+every large dimension $m$, with batched and robust versions.
+To our knowledge these are the first superlinear lower bounds
 for an explicit $\F_2$-linear map against XOR circuits of unbounded depth.
 The rigidity bound is also the first explicit bound over $\F_2$ that is
 superlinear at linear rank.
@@ -166,8 +174,13 @@ R_{H_N}(\gamma N)>\eta'N\,2^{\sqrt{\log N}/8}.
 \end{corollary}
 
 The rigidity bound is superlinear at linear rank. It is below Valiant's
-threshold $N^{1+\delta}$, since $2^{\sqrt{\log N}}=N^{o(1)}$, so it does not
-yield lower bounds for log-depth circuits.
+threshold $N^{1+\delta}$ for excluding linear-size log-depth circuits
+by rigidity, since $2^{\sqrt{\log N}}=N^{o(1)}$.
+Section~\ref{sec:applications} gives its depth-dependent wire
+bound and its consequence for systematic storage.
+Section~\ref{sec:toeplitz} constructs scalar binary Toeplitz and
+circulant matrices with the same gate lower bound. In this construction
+the extension degree grows with the dimension.
 
 The same tools give explicit hard matrices over every field.
 
@@ -382,14 +395,345 @@ of basis cost $O(N)$ gates, so Theorem~\ref{thm:fft}(1) with $J=2$ gives
 both bounds.
 \end{proof}
 
+\section{Two consequences of rigidity}\label{sec:applications}
+We first work at the dimensions $N=2\cdot3^j$ of
+Corollary~\ref{cor:rigid}. Depth below counts edges on the longest
+input-to-output path. Output sinks count their incoming wires, and
+an XOR gate may have arbitrary fan-in.
+
+\begin{corollary}[Wires at depth $d$]\label{cor:wires}
+If a depth-$d$ linear circuit over $\F_2$ computes $H_Nx$ using $S$
+wires, then for sufficiently large $N$ and $d\ge1$,
+\[
+ S>\gamma^{1-1/d}(\eta')^{1/d}\,N\,2^{\sqrt{\log N}/(8d)}.
+\]
+In particular this gives $N2^{\Omega(\sqrt{\log N})}$ wires at
+every fixed depth, including depth two, and $\omega(N)$ wires
+whenever $d=o(\sqrt{\log N})$.
+\end{corollary}
+\begin{proof}
+Take $\Delta=S/(\gamma N)$, decreasing $\gamma$ to at most one if
+needed. Every output of $H_N$ is nonzero, so $S\ge N$ and $\Delta\ge1$.
+There are at most $S/\Delta$ nodes of out-degree greater than $\Delta$,
+including inputs. Zero their outgoing signals one node at a time.
+At each step the change in the output is a fixed vector times the
+linear form carried by that node in the current circuit. The total
+change has rank at most $S/\Delta\le\gamma N$.
+
+In the remaining circuit each nonzero matrix entry needs a surviving
+path from its input to its output. Choose its first wire in at most
+$S$ ways. From there a path branches at most $\Delta$ ways for at
+most $d-1$ further steps. The number ending at sinks is at most
+$S\Delta^{d-1}$, also when paths have different lengths (use the
+depth-$d-1$ branching tree for each first wire). Thus
+\[
+ \eta'N2^{\sqrt{\log N}/8}<R_{H_N}(\gamma N)
+ \le S\Delta^{d-1}=S^d/(\gamma N)^{d-1}.
+\]
+Taking $d$th roots proves the claim.
+\end{proof}
+
+\begin{corollary}[Systematic linear queries]\label{cor:probes}
+Store the $N$ input bits verbatim together with $r\le\gamma N$ linear
+parities $Ax$. To answer row $i$ of $H_Nx$, take the XOR of a fixed
+set of stored bits. Even if the auxiliary parities are free to read,
+the average number of input-bit probes over a uniformly chosen row is
+greater than $\eta'2^{\sqrt{\log N}/8}$.
+\end{corollary}
+\begin{proof}
+Let row $i$ of $P$ select the input bits read for query $i$ and row
+$i$ of $B$ select its auxiliary parities. Correctness on all inputs
+is $H_N=P+BA$. The second term has rank at most $r$ and the total
+number of input probes is at least $|\supp P|$. Apply
+Corollary~\ref{cor:rigid} and divide by $N$. The largest row cost
+is at least the average. See also the systematic model of
+Natarajan Ramamoorthy and Rashtchian~\cite{NRR}.
+\end{proof}
+
+For the padded matrices of Definition~\ref{def:H}, let $N_0$ be the
+largest core dimension at most $N$. Restriction of an approximation
+to its leading $N_0\times N_0$ block increases neither rank nor
+support. Since $N_0>N/3$, a rank budget $(\gamma/3)N$ fits within
+$\gamma N_0$. Both corollaries extend to every large $N$ after
+adjusting absolute constants.
+
+\paragraph{Limits of the two deductions.}
+At depth $\Theta(\log N)$ the depth-dependent exponential factor
+tends to one. The separate fan-in-two gate bound in
+Corollary~\ref{cor:xor} still applies. For unrestricted linear
+storage of these particular $N$ queries there is a one-probe
+scheme with $N$ cells: store $H_Nx$ itself. Equivalently, the Fourier
+matrix and its padded form are invertible, so the change of input
+basis $T=H_N^{-1}$ gives $H_NT=I$. A hardness question for arbitrary
+linear storage needs, for example, more query vectors than cells.
+Finally, lowering the rank budget preserves the numerical lower bound
+in Corollary~\ref{cor:rigid} by monotonicity. A communication
+separation via the constant-error form of Razborov's rigidity
+criterion would require resistance to changing a constant fraction of
+all $N^2$ entries, even at ranks $2^{(\log\log N)^k}$ for every fixed
+$k$. The bound here is $N^{1+o(1)}$ \cite{RazCC}.
+
+\section{Nonlinear gates and whole-vector agreement}\label{sec:mixed}
+At a core dimension $N=2\cdot3^j$, put $r=\lfloor\gamma N\rfloor$.
+Use the affine gate count $a$ and the nonlinear gate count $k$ of a
+fan-in-two Boolean circuit with $N$ outputs. Constants and copies are
+allowed. Use the constant $c'$ of Theorem~\ref{thm:main}.
+
+\begin{theorem}\label{thm:mixed}
+If $C(x)=H_Nx$ on every input and $k\le r$, then
+$a\ge c'N\sqrt{\log N}$. More generally, if $a<c'N\sqrt{\log N}$, then
+\[
+ \Pr_{x\ \mathrm{uniform}}[C(x)=H_Nx]
+ \le 2^{-\max\{0,r+1-k\}} .
+\]
+For $k\le\gamma N/2$ the agreement probability is at most
+$2^{-\gamma N/2}$. This holds also for randomized circuits with the
+same budgets on every choice of coins.
+\end{theorem}
+\begin{proof}
+Replace each nonlinear output by a new independent input. The remaining
+circuit is affine. Restoring the original outputs $f_1(x),\ldots,f_k(x)$
+gives $C(x)=Mx+b+Df(x)$ with $D$ having $k$ columns. After setting the
+new inputs to zero and taking the homogeneous part gate by gate, at
+most $a$ XOR gates compute $Mx$. This also covers nonlinear gates
+whose inputs depend on earlier nonlinear gates. In the exact case,
+subtract the equation at zero to obtain
+$(H_N-M)x=D(f(x)+f(0))$. Thus $\rk(H_N-M)\le k$, so
+Theorem~\ref{thm:main} with zero sparse error gives the first bound.
+
+If $a<c'N\sqrt{\log N}$, that theorem gives $\rk(H_N-M)\ge r+1$.
+Let $Q$ be the quotient by the span of the columns of $D$. Agreement
+of the entire vector implies $Q(H_N-M)x=Qb$, a system of rank at least
+$r+1-k$. Its solution set is empty or has the corresponding power-of-two
+density. Fixing the coins and averaging proves the randomized claim.
+\end{proof}
+For padded dimensions, fix the trailing input bits arbitrarily and
+restrict the outputs to the core. The affine gate and helper budgets
+never increase. Apply the core estimate on each slice and average.
+Since the core has dimension greater than $N/3$, the conclusions hold
+at all large dimensions with smaller absolute constants. The proof
+controls the span of the helper outputs even if their computation is
+free. An unrestricted supply of helpers could output $H_Nx$ itself.
+
+\paragraph{Depth with nonlinear gates.}
+If the remaining affine gates have unbounded fan-in, an exact circuit
+still gives $\rk(H_N-M)\le k$. The linear circuit for $M$ obtained by
+zeroing the helpers has at most the original $S$ wires and depth $d$.
+For $k\le r/2$, allow the high-outdegree deletion in
+Corollary~\ref{cor:wires} a further rank budget $r-k$ by taking
+$\Delta=S/(r-k)$. The total removed rank is at most $r$, and the
+residual support is at most $S\Delta^{d-1}$. Consequently the same
+$\Omega(N2^{\sqrt{\log N}/(8d)})$ wire bound holds, with an absolute
+constant uniform in $d$.
+
+\section{Adaptive decoding and the cost of updates}\label{sec:dynamic}
+\paragraph{Systematic storage.}
+Let row $i$ of $H_N$ be $h_i$. Give the decoder all auxiliary parities
+$Ax$ for free, where $\rk A\le r$, and charge one probe per raw bit of
+$x$. Define
+\[
+ d_i=\min\{|\supp v|:h_i-v\in\operatorname{rowspan} A\}.
+\]
+Choosing a minimizing vector for each row gives a matrix $P$ with
+$\rk(H_N-P)\le r$. Hence $\sum_i d_i\ge R_{H_N}(r)$.
+On any transcript, the observed measurements are the rows of $A$
+and the probed coordinate vectors. If their span omits $h_i$, a vector
+annihilated by all measurements flips $h_ix$. Translating by it gives
+the identical adaptive transcript with the opposite correct answer.
+Thus every exact decoder, with arbitrary computation between probes,
+uses at least $d_i$ probes on \emph{every} input for query $i$.
+
+For uniform data, conditional on a transcript and fixed independent
+coins, the possible inputs are uniform on its affine fiber. A parity
+outside the observed span is unbiased on that fiber. Success at least
+$1/2+\delta$ for each query therefore implies
+$\Pr[T_i\ge d_i]\ge2\delta$ and $\mathbb E[T_i]\ge2\delta d_i$.
+The mean over rows is at least $2\delta R_{H_N}(r)/N$.
+
+\begin{theorem}[Updates and queries to fixed linear memory]\label{thm:dynamic}
+Store $Ax$ in any number of bit cells, for a fixed binary matrix $A$.
+After a single input-bit flip maintain this encoding exactly, charging
+for each changed cell. Let $u=|\supp A|/N$ be the mean number of cells
+changed by a uniformly chosen coordinate flip. If $t$ is the mean
+exact query cost over the $N$ rows, then
+\[
+ ut\ \ge\ \frac{r}{N^2} R_{H_N}(r)
+ \ =\ \Omega\!\left(2^{\sqrt{\log N}/8}\right).
+\]
+This holds on every input for exact adaptive decoding. For a randomized
+decoder with advantage $\delta>0$ on each row under uniform data, use
+expected $t$ and multiply the right-hand lower bound by $2\delta$.
+\end{theorem}
+\begin{proof}
+First consider a parity decoder $H_N=BA$. Mark columns of $B$ heavier
+than $|\supp B|/r$. Their number is at most $r$, so the corresponding
+sum of outer products has rank at most $r$. The remaining outer
+products have total support at most
+\[
+ \sum_{j\ \mathrm{unmarked}} |\supp B_{*,j}|\,|\supp A_{j,*}|
+ \le |\supp B|\,|\supp A|/r .
+\]
+Rigidity proves the claim with $t=|\supp B|/N$.
+For adaptive decoders let $d'_i$ be the minimum number of rows of
+$A$ spanning $h_i$ by their sum. Positive advantage ensures such a
+representation exists, by the same affine-fiber argument applied to
+all memory cells. Every exact transcript uses at least $d'_i$ probes,
+and with advantage $\delta$ the expected cost is at least $2\delta d'_i$.
+Use the minimizing representations as rows of $B$ and apply the first
+part. The rigidity padding argument in Section~\ref{sec:applications}
+extends both storage bounds to every large dimension.
+\end{proof}
+
+\section{Binary Toeplitz and circulant matrices}\label{sec:toeplitz}
+
+In a Toeplitz matrix the entry depends only on the difference of its
+row and column indices. In a circulant matrix that difference is
+taken modulo the dimension. We construct a fixed binary convolution
+kernel for each dimension.
+
+\begin{theorem}\label{thm:toeplitz}
+Assume Theorem~\ref{thm:fft}. There are logspace-uniform binary
+matrices $T_m,C_m$ in every sufficiently large dimension $m$, with
+$T_m$ lower-triangular Toeplitz of diagonal one and $C_m$ circulant.
+For $A=T_m$ or $C_m$, and every $J\ge1$,
+\[
+                         \Cx(A^{\oplus J})=\Omega(Jm\sqrt{\log m}).
+\]
+In fact, there are absolute $\gamma_0,\eta_0,c_0>0$ such that if
+$A^{\oplus J}=M+B+Z$ over $\F_2$ with
+\[
+   \rk B\le\gamma_0 Jm,\qquad
+   |\supp Z|\le\eta_0 Jm\,2^{\sqrt{\log m}/32},
+\]
+then every XOR feedback system for $M$ has at least
+$c_0Jm\sqrt{\log m}$ states. In particular,
+$R_A(\lfloor\gamma_0m\rfloor)>\eta_0m\,2^{\sqrt{\log m}/32}$.
+\end{theorem}
+
+\paragraph{The kernel.}
+For $k\ge3$ put $N=2^k-1$ and $K=\F_2[\theta]$ of degree $k$,
+using the polynomial basis. Pick a primitive element $\zeta$ and
+let $u$ be the inverse of $2$ modulo $N$. Define
+$d_i=\zeta^{ui^2}$ and $b_r=\zeta^{-ur^2}$ for indices modulo $N$.
+The matrix with entries $\zeta^{it}$ acts by multiplying each input
+$i$ by $d_i$, convolving cyclically with $b$, and multiplying output
+$t$ by $d_t$. Indeed $u(i^2+t^2-(t-i)^2)=it\bmod N$.
+
+Write $b_r(Z)\in\F_2[Z]_{<k}$ for the representative of $b_r$.
+Set $q=2k-1$, $L_k=2Nq$ and
+\[
+                     B_k(X)=\sum_{r=0}^{N-1}X^{qr}b_r(X).
+\]
+For dimension $m$ take the largest $k\ge3$ with $2L_k\le m$;
+use identity matrices at smaller dimensions. Define $T_m$ by
+multiplication by $B_k$ modulo $X^m$, and $C_m$ by multiplication
+by $B_k$ modulo $X^m-1$. The constant coefficient is one. Both
+contain the length-$L_k$ truncated multiplication matrix as their
+leading principal block: $\deg B_k<L_k$ and $m\ge2L_k$ exclude wraparound
+in this block. For $k\ge3$, $L_{k+1}/L_k\le3$, so $m=\Theta(kN)$.
+
+\paragraph{A circuit over the extension field.}
+Read the binary matrix over $K$ via scalar extension. We exhibit
+linear maps $P,Q$ over $K$ for which $QAP$ is a batch of $k$ cyclic
+Fourier transforms up to row permutations. Put
+$\alpha_j=\theta^{2^j}$, $0\le j<k$. These points are distinct.
+Given $k$ independent vectors $(x_{j,i})_{i<N}$, interpolate the
+unique $p_i(Z)\in K[Z]_{<k}$ satisfying
+\[
+                  p_i(\alpha_j)=d_i^{\,2^j}x_{j,i}.
+\]
+The map $P$ places the coefficients of $p_i$ in positions starting at
+$qi$, with zeros elsewhere. The entries of $A$ are binary, so on these
+$K$-valued inputs the leading block performs ordinary polynomial
+multiplication over $K$. Its block at position $qv$ gives the
+coefficients of
+\[
+                       s_v(Z)=\sum_{i+r=v}p_i(Z)b_r(Z).
+\]
+Each product has degree at most $2k-2<q$. Blocks do not overlap,
+and $0\le v\le 2N-2$ fits within $L_k$. For output $(j,t)$ the map
+$Q$ computes
+\[
+              d_t^{\,2^j}\sum_{v\equiv t\bmod N}s_v(\alpha_j).
+\]
+Since $b_r(\alpha_j)=b_r^{2^j}$, the displayed value is
+$\sum_i\zeta^{2^jit}x_{j,i}$. Multiplication of $t$ by $2^j$
+permutes the residues modulo the odd integer $N$. Thus each block
+is the same Fourier matrix up to a permutation. This retains all
+$k$ transforms in one application of $A$.
+
+\paragraph{Gate count for the two maps.}
+Let $\tau=\log_3 5<3/2$. Multiplication of a variable polynomial
+of length $l$ by a fixed polynomial of length $l$ takes $O(l^\tau)$
+linear gates over $K$. Split each operand into three pieces, evaluate
+the resulting quadratics at five distinct field points, recursively
+multiply the five values by their fixed counterparts, and interpolate
+the degree-four product. Evaluation and interpolation here take $O(l)$
+linear gates. Padding to a power of three gives the stated recurrence,
+and $|K|\ge8$ suffices for the five fixed points.
+
+Evaluation of a degree-$O(k)$ polynomial at the $k$ fixed points
+$\alpha_j$ costs $O(k^\tau)$ gates. Build a balanced tree of their
+monic subproducts and pass remainders down it. At a node of size $l$,
+division uses reversed polynomials: the reversed quotient is the
+truncated product with the precomputed inverse of the reversed monic
+divisor, and subtracting divisor times quotient gives the remainder.
+Both products have a fixed operand and cost $O(l^\tau)$. The initial
+division at the root also has length $O(k)$. For interpolation use
+$g(Z)=\prod_j(Z-\alpha_j)$ and start each leaf with its prescribed
+value divided by $g'(\alpha_j)\ne0$. At an internal node add the two
+child polynomials, each multiplied by its sibling's subproduct. This
+is the Lagrange interpolation formula. In both trees the sum of the
+costs over levels is geometric because $\tau>1$. Consequently $P$
+and $Q$ together cost $O(Nk^\tau)$ gates over $K$; the fold and the
+diagonal scalings fit within that bound.
+
+\begin{proof}[Proof of Theorem~\ref{thm:toeplitz}]
+For $J$ copies, take block sums of $P$ and $Q$ and apply the output
+permutations just described. This converts one shared system for
+$M$ to a system over $K$ with $s+O(JNk^\tau)$ states. Scalar extension
+preserves invertibility of its feedback equations, and the added
+input and output circuits are acyclic. The rank of the transported
+$B$ is at most $\rk_{\F_2}B$. For a single error in position $(a,b)$,
+the transported error is a multiple of the outer product
+$(Qe_a)(e_b^\top P)$. A raw output coefficient contributes at most
+one folded position in each of $k$ transforms, so column $a$ of $Q$
+has at most $k$ nonzeros. A packed input coefficient uses only the
+$k$ values at its input position, so row $b$ of $P$ has at most $k$
+nonzeros. Thus the transported support is at most $k^2|\supp Z|$,
+including errors between distinct copies.
+
+Apply Theorem~\ref{thm:fft} over $K$ to $kJ$ copies of the order-$N$
+transform, with total dimension $h=kJN$. Since $Jm=\Theta(h)$, a
+sufficiently small $\gamma_0$ meets its rank budget. Moreover,
+\[
+    k^2\,2^{\sqrt{\log m}/32}=o(2^{\sqrt{\log N}/8}),
+    \qquad k^\tau=o(k\sqrt{\log N}).
+\]
+The first estimate fits the transported errors in its support budget,
+and the second absorbs the cost of $P,Q$ in its gate lower bound.
+We obtain $s=\Omega(kJN\sqrt{\log N})=\Omega(Jm\sqrt{\log m})$,
+uniformly in $J$. Taking $M=0$ proves the rigidity assertion.
+
+To specify the family uniformly, use the lexicographically first monic
+irreducible of degree $k$, then the first primitive element in polynomial
+coordinates. Irreducibility can be tested by trial division by monic
+polynomials of degrees at most $\lfloor k/2\rfloor$; primitivity by
+enumerating powers up to $N$. With $m$ in unary, these searches take
+polynomial time in $m$ and $O(k)=O(\log m)$ space. Given a row and column,
+compute the requisite coefficient of $B_k$ by field exponentiation
+and extraction of its basis bit. Both truncation and cyclic indexing
+use $O(\log m)$ further space.
+\end{proof}
+The scale $m\,2^{\Theta(\sqrt{\log m})}=m^{1+o(1)}$ at linear rank
+is compatible with the nonrigidity results for structured matrices
+of Dvir and Liu~\cite{DL}. Theorem~\ref{thm:toeplitz} concerns XOR
+circuits. The low-rank argument of Section~\ref{sec:mixed} also applies
+to these matrices when the number of nonlinear gates is bounded by
+$\gamma_0m$. A bound for arbitrary Boolean circuits would have to
+account for additional nonlinear intermediate values.
+
 \section{Discussion}
-\paragraph{Circuits with AND gates.}
-Our lower bounds are for XOR circuits. They do not exclude smaller
-circuits for $H_N$ that also use AND gates. Whether nonlinear gates can
-help compute linear maps is a well-known open problem. For bilinear maps,
-the analogous descent to Boolean circuits fails. On bits $x^2=x$, so an
-AND gate can create bilinear terms whose rank is not controlled by the
-number of gates.
 
 \paragraph{A consistency check.}
 Alman and Williams bound the rigidity of the Walsh--Hadamard matrix from
@@ -401,10 +745,9 @@ with lower bounds of the form $N2^{\Omega(\sqrt{\log N})}$.
 \begin{itemize}
 \item Is $\Cx(H_N)=\Theta(N\sqrt{\log N})$? The upper bound in
 Theorem~\ref{thm:fft} leaves the case $\varepsilon=0$ open.
-\item The descent costs $kn$ gates for an extension of degree $k$, so it
-only handles extensions of bounded degree. Do cyclic or Toeplitz maps over
-$\F_2$, which arise from transforms over $\F_{2^k}$ with $k$ growing,
-inherit superlinear bounds?
+\item Do the scalar binary Toeplitz maps of Theorem~\ref{thm:toeplitz}
+still require $\Omega(m\sqrt{\log m})$ gates when arbitrary fan-in-two
+Boolean gates are allowed?
 \item Is there an explicit matrix $A$ over $\F_2$ with
 $R_A(\gamma N)\ge N^{1+\delta}$? This would meet Valiant's threshold.
 \end{itemize}
@@ -414,6 +757,19 @@ The Fourier exponent theorem and its formalization are due to the
 authors of \cite{FFT,Lean}.
 
 \begin{thebibliography}{99}
+\small\raggedright
+\setlength{\itemsep}{2pt}
+\bibitem{DL} Z.~Dvir and A.~Liu. Fourier and circulant matrices are
+not rigid. \href{https://arxiv.org/abs/1902.07334}{Preprint}.
+\bibitem{NRR}
+S.~Natarajan Ramamoorthy and C.~Rashtchian. Equivalence of systematic
+linear data structures and matrix rigidity. ITCS, 2020.
+\href{https://doi.org/10.4230/LIPIcs.ITCS.2020.35}{Proceedings}.
+
+\bibitem{RazCC}
+H.~Wunderlich. On a theorem of Razborov. ECCC TR10-086, 2010.
+\href{https://eccc.weizmann.ac.il/report/2010/086/}{Paper}.
+
 \bibitem{AW17}
 J.~Alman and R.~Williams. Probabilistic rank and matrix rigidity.
 In \emph{Proceedings of STOC 2017}, pages 641--652, 2017.

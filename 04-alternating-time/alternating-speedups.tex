@@ -93,7 +93,7 @@ in time $O(g(T(n)))$. Then
 With sequential input the conclusion is $\NTIME[T]\subseteq\ATIME[O(n+g(T))]$. In particular, the random-access conclusion holds for every fixed positive integer $k$ and bound $T(n)=n^k$.
 \end{corollary}
 
-We prove both corollaries in \cref{sec:finish}. \Cref{cor:original} relies on its faster clock hypothesis; mere constructibility of $T$ in time $O(T)$ is not used as a substitute. The denominator throughout is $\sqrt{\log T}$; no $T/\log T$ simulation is claimed. \Cref{sec:remarks} discusses the hypotheses further.
+We prove both corollaries in \cref{sec:finish}. \Cref{cor:original} relies on its faster clock hypothesis; mere constructibility of $T$ in time $O(T)$ is not used as a substitute. The denominator throughout is $\sqrt{\log T}$; no $T/\log T$ simulation is claimed. \Cref{sec:remarks} discusses the hypotheses further. In \cref{sec:consequences} we sum over head schedules to decide bits of the total path count, obtain the PP simulation and separate alternating from nondeterministic linear time.
 
 \subsection{Proof outline}
 
@@ -569,6 +569,113 @@ All original computations halt within $U$, so the clocked simulation decides the
 Obtain binary $n$ by the random-access endmarker convention in $O(\log^2(n+2))$ time, or by a sequential scan in $O(n)$ time. Compute the upper clock $U_0(n)$ by hypothesis and multiply it by a fixed constant covering $M$'s time bound. The resulting $U=\Theta(T(n))$ satisfies $g(U)=\Theta(g(T(n)))$. Apply \cref{thm:clocked}. For $T(n)=n^k$ with fixed $k$, binary exponentiation by the fixed power and constant-factor rounding take polynomial time in $\log(n+2)$, which is absorbed by $g(T(n))$.
 \end{proof}
 
+\section{Hierarchy and counting consequences}\label{sec:consequences}
+\paragraph{Alternation versus nondeterminism.}
+Let $t\ge n$ be fully time-constructible and put
+$H(n)=t(n)\sqrt{\log(t(n)+2)}$. The clock construction in
+\cref{cor:clean}, followed by writing out the clock, gives a running
+time $\Theta(H)$. The nondeterministic time hierarchy in the union
+form of Seiferas, Fischer and Meyer~\cite[Corollary~4.1]{SFM}
+(see also \v{Z}\'ak~\cite{Zak}) gives one language in $\NTIME[H]$
+outside every $\NTIME[f]$ with $f(n+1)=o(H(n))$. A clock at the larger
+bound makes the time bound hold on all branches.
+By \cref{cor:clean} this language belongs to $\ATIME[O(t)]$.
+Complementing the alternating machine gives the corresponding witness
+against the union of the $\mathsf{coNTIME}[f]$ classes.
+When $H(n+1)=O(H(n))$ the shift condition covers every $f=o(H)$.
+In particular
+\[
+ \NTIME[n]\subsetneq\ATIME[O(n)],\qquad
+ \ATIME[O(n)]\not\subseteq\NTIME[o(n\sqrt{\log n})].
+\]
+Here the little-$o$ class is a union over bounds. The shift condition
+matters for clocks that can jump sharply in one input length.
+
+\begin{corollary}[Bits of the total count]\label{cor:total-count}
+For a binary choice machine with supplied clock $U\ge\max\{n,2\}$,
+a specified bit of its number of accepting choices can be tested in
+$O(g(U))$ alternating time with random access to the input, or
+$O(n+g(U))$ with sequential access.
+\end{corollary}
+\begin{proof}
+Fix a unique code of length $q=O(U/\log(U+2))$ for each valid head
+schedule (pad to this fixed length with zeros). Every complete choice
+string induces exactly one schedule. The proof of \cref{lem:block}
+therefore gives the identity
+\[
+ A(x,U)=\sum_{\pi\in\{0,1\}^q} Z(G_{x,U,\pi}),
+\]
+with zero for invalid codes. Append this sum as a new root to the
+formulas of \cref{thm:formula}. Its charge is $q+O(\log U)$.
+The child index supplies the schedule as a read-only slice of the
+address. The decoder can translate its offsets with $O(\log U)$
+extra space. Thus \cref{prop:evaluate} still applies with cost
+$O(g(U))$, depth $O(\log U)$ and modulus $2^{U+1}$. Since
+$0\le A(x,U)\le2^U$, these residues give every bit. The terminal
+scan and all-branch clock from \cref{thm:clocked} apply unchanged.
+\end{proof}
+
+For PP and BP use one fair bit per step through time $U$, ignoring
+unused bits after a halt. Strict majority is comparison of $A(x,U)$
+with $2^{U-1}$ and also decides a bounded-error computation. For
+ordinary path counts, require the unique padding bit zero after a halt
+and at deterministic steps, and count each genuine transition once.
+This is a local change to the interval counts in \cref{lem:block}.
+It preserves parity and every fixed modulus. The same construction
+counts rejecting paths by changing the final test. Equality of the
+two counts gives $\mathsf C_{=}\mathsf{TIME}$.
+For comparison one can select the highest differing bit and universally
+check all more significant bits. For modulus $p$ combine bit residues
+$2^j A_j\bmod p$ in a balanced addition tree modulo the fixed $p$.
+Each procedure takes polylogarithmic overhead on a branch before its
+one count-bit test. Thus the inclusion in \cref{cor:clean} also holds
+with $\NTIME$ on the left replaced by $\mathsf{PPTIME}$,
+$\mathsf{BPTIME}$, $\oplus\mathsf{TIME}$, $\mathsf{Mod}_p\mathsf{TIME}$
+or $\mathsf C_{=}\mathsf{TIME}$, with the respective conventions above.
+
+\paragraph{Linear space versus smaller counting times.}
+Alternating time $a$ with random-access input takes deterministic
+space $O(a+\log n)$ \cite{CKS81}. One can store the choices on the
+current branch, recompute its configurations, and traverse the tree
+depth first. To avoid assuming a fast clock for an unknown running
+time $T(n)\ge n$, try dyadic clocks beginning just above $n$.
+At each clock use the same blocked computation with a final test for
+an unfinished branch. At the first clock with no unfinished branch,
+apply the desired counting test. The largest clock is $O(T(n))$ and
+the deterministic traversals reuse space. For each of the counting
+classes above this gives space $O(g(T))$. Hence their unions over
+$T=o(n\sqrt{\log n})$ are proper subclasses of $\mathsf{DSPACE}[n]$,
+by the linear space hierarchy (one language diagonalizes against all
+$o(n)$-space machines). Time bounds below $n$ can first be raised to $n$.
+
+\paragraph{Two blocks with a short existential choice string.}
+Suppose a two-block machine runs in time $T\ge n$ on sequential tapes
+and makes at most $b\le T$ binary choices before switching from its
+existential phase to its universal phase. With the bounds supplied
+or constructible in the indicated space, its language belongs to
+\[
+  \mathsf{DSPACE}\big[O(b+T/\sqrt{\log(T+2)})\big].
+\]
+Enumerate $y\in\{0,1\}^b$. On the pair $(x,y)$ a nondeterministic
+machine follows $y$ from the initial configuration and then searches
+for a rejecting universal branch. Unused suffix bits of $y$ are
+ignored. This machine simulates both phases in $O(T)$ time, including
+copying the inputs onto separate tapes. Apply the preceding space
+simulation to the whole computation with $y$ supplied from the
+enumeration buffer. Accept if some $y$ has no rejecting branch.
+This avoids storing the potentially $T$-cell configuration at the
+block switch. The bound is $o(T)$ when $b=o(T)$.
+
+The count-bit procedure above answers one specified bit at a time.
+Producing all $\Theta(T)$ bits on a sequential output tape would
+itself take linear time. Similarly, iterating the time-to-space bound
+$g(T)$ would require a time bound on the intermediate space
+simulation. Its configuration count can be exponential in $g(T)$.
+A power saving $O(T^{1-\delta})$ in space would suffice for strict
+containment of $\NTIME[n^{1+\varepsilon}]$ in $\mathsf{DSPACE}[n]$
+when $\varepsilon<\delta/(1-\delta)$; the square-root logarithm
+does not give that exponent.
+
 \section{Remarks on the hypotheses}\label{sec:remarks}
 
 \paragraph{The faster-constructibility hypothesis.}
@@ -589,6 +696,16 @@ On a sequential-input machine, no branch of an $o(n)$-time computation reaches t
 The simulation uses unrestricted alternation. Its saving is $\sqrt{\log T}$, and the language-class form has the explicit clock hypotheses above. The proof does not replace those qualifications by an unqualified $T/\log T$ bound, a bounded number of alternations, or an arbitrary unconstructible time function.
 
 \begin{thebibliography}{9}
+\bibitem{SFM}
+J.~I. Seiferas, M.~J. Fischer and A.~R. Meyer.
+Separating nondeterministic time complexity classes.
+\emph{J. ACM} 25, 146--167, 1978.
+
+\bibitem{Zak}
+S.~\v{Z}\'ak. A Turing machine time hierarchy.
+\emph{Theoretical Computer Science} 26, 327--333, 1983.
+\url{https://doi.org/10.1016/0304-3975(83)90015-4}.
+
 \bibitem{Buss87}
 Samuel R. Buss.
 \newblock The Boolean formula value problem is in {ALOGTIME}.
