@@ -1,0 +1,671 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{xurl}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\vol}{\mathrm{vol}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\AEST}{\mathsf{AEST}}
+\newcommand{\TSUM}{\mathsf{3SUM}}
+\newcommand{\Inc}{\mathrm{Inc}}
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\ind}[1]{[\,#1\,]}
+\hypersetup{pdftitle={Superlinear circuit lower bounds for All-Edges Sparse Triangle, 3SUM, and shortest paths},
+  pdfauthor={Charlie Cruz},
+  pdfkeywords={circuit lower bounds, All-Edges Sparse Triangle, APSP, 3SUM, triangle detection, element distinctness, tensor networks, unambiguous verification, superlinear lower bounds}}
+\title{Superlinear Circuit Lower Bounds for All-Edges Sparse Triangle,\\
+3SUM, and Shortest Paths, Assuming a Tensor-Network Volume Bound}
+\author{Charlie Cruz}
+\date{November 25, 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We prove superlinear Boolean circuit lower bounds for three central
+problems in fine-grained complexity, assuming the tensor-network volume
+lower bound for list distinctness stated as Theorem~2.2 of \emph{The matrix
+multiplication exponent is nine fourths}. Our main result is that
+All-Edges Sparse Triangle, where one must decide for every edge of an
+$m$-edge graph whether it lies in a triangle, requires
+$\Omega(m(\log m)^{1+\sigma})$ gates for a constant $\sigma>0$. This holds
+even for sorted edge lists of 2-degenerate graphs on vertex set
+$\{0,\dots,m-1\}$, and the same bound applies to counting triangles and to
+deciding whether one exists. As corollaries, answering $m$ distance
+queries in a sparse unweighted DAG, and hence APSP on such graphs, requires
+the same number of gates. We also show that 3SUM on $n$ integers requires
+$\Omega(n(\log n)^{1+\sigma})$ gates. Each bound is superlinear in the input
+length in bits. The triangle lower bound comes from two simple gadgets: a
+graph whose triangles perform parallel table lookups, and a sorting
+certificate that three lookups can check and that is unique exactly when
+the input list is distinct.
+\end{abstract}
+
+\section{Introduction}
+
+Three problems sit at the heart of fine-grained complexity: 3SUM,
+All-Pairs Shortest Paths (APSP), and triangle detection. Each is believed
+to require essentially its textbook running time, and a large web of
+reductions ties their complexities to those of many other problems. In
+particular, \emph{All-Edges Sparse Triangle} ($\AEST$), where one is given
+a graph with $m$ edges and must determine for every edge whether it lies in
+a triangle, is known to require $m^{4/3-o(1)}$ time on a word RAM if either
+the 3SUM hypothesis or the APSP hypothesis holds \cite{VWX}.
+
+These lower bounds are conditional, and they concern a specific
+computational model. Unconditionally, much less is known. Against general
+Boolean circuits, until very recently the best lower bound for any
+explicit function was of the form $cn$ for a small constant $c$, and no
+superlinear bound was known for any problem in $\mathsf P$ (see the
+discussion in \cite{R06}).
+
+The recent paper \emph{The matrix multiplication exponent is nine fourths}
+\cite{OAI} states, as its Theorem~2.2, a superlinear lower bound on the
+volume of tensor networks that test whether a list of words is distinct.
+Result~06 of this collection \cite{R06} observed that this theorem implies
+that element distinctness on $N$ input bits requires
+$\Omega(N(\log N)^{\sigma})$ gates. In this paper, we show that the same
+theorem gives superlinear circuit lower bounds for all three of the
+problems above.
+
+\subsection{Our results}
+
+Throughout, circuits have fan-in at most two, use arbitrary binary gates,
+and have unrestricted depth and fan-out; size counts gates. All of our
+results assume Theorem~\ref{thm:import} below, which is the single-list
+case of \cite[Theorem~2.2]{OAI} over $\F_2$, and $\sigma>0$ always denotes
+its exponent. No 3SUM, APSP, or ETH hypothesis is used.
+
+An $\AEST$ instance of size $m$ is a list of $m$ edges $(a,b)$ with
+$0\le a<b<m$, each endpoint written in $L_m=\lceil\log m\rceil$ bits. The
+input has $B_m=2mL_m=\Theta(m\log m)$ bits, and the output is one bit per
+edge, in input order. Our main result is the following.
+
+\begin{theorem}\label{thm:main}
+For every sufficiently large $m$, every circuit for $\AEST$ on $m$ edges
+has $\Omega(m(\log m)^{1+\sigma})$ gates, equivalently
+$\Omega(B_m(\log B_m)^{\sigma})$ gates. This holds even if the circuit need
+only be correct on graphs that
+\begin{enumerate}
+\item are simple, with exactly $m$ vertices $\{0,\dots,m-1\}$ and $m$ edges;
+\item are given as lexicographically sorted edge lists; and
+\item are 2-degenerate.
+\end{enumerate}
+The circuit may share gates arbitrarily among its $m$ outputs.
+\end{theorem}
+
+The hard instances are thus about as structured as one could hope for.
+The same approach handles the natural variants of triangle detection.
+
+\begin{corollary}\label{cor:variants}
+Each of the following requires $\Omega(m(\log m)^{1+\sigma})$ gates on
+sorted edge lists of simple 2-degenerate graphs with $m$ edges:
+\begin{enumerate}
+\item counting the triangles, on $m$ vertices;
+\item returning, for every edge, a triangle containing it or a marker that
+none exists, on $m$ vertices;
+\item deciding whether a triangle exists, on $m+1$ vertices; and
+\item returning some triangle or a marker that none exists, on $m+1$
+vertices.
+\end{enumerate}
+\end{corollary}
+
+Since $\AEST$ reduces to distance queries, Theorem~\ref{thm:main} also
+gives a lower bound for shortest paths.
+
+\begin{corollary}\label{cor:apsp}
+For every sufficiently large $m$, every circuit that, given an unweighted
+directed acyclic graph with $O(m)$ vertices and $4m$ edges and $m$ query
+pairs $(s_k,t_k)$, outputs the distances $d(s_k,t_k)$ has
+$\Omega(m(\log m)^{1+\sigma})$ gates. This holds even if only the bits
+$\ind{d(s_k,t_k)=2}$ are required. In particular, every circuit for APSP
+on such graphs has $\Omega(m(\log m)^{1+\sigma})$ gates.
+\end{corollary}
+
+Finally, we show that 3SUM requires superlinear circuits as well. Let
+$\TSUM_n$ take $n$ integers of magnitude at most $n^4$ and decide whether
+three of them, at distinct positions, sum to zero.
+
+\begin{theorem}\label{thm:3sum-intro}
+For every sufficiently large $n$, every circuit for $\TSUM_n$ has
+$\Omega(n(\log n)^{1+\sigma})$ gates, even if it need only be correct on
+lists of pairwise distinct integers.
+\end{theorem}
+
+In every case the input has $B$ bits for $B$ equal to the stated parameter
+times a logarithm, so each bound reads $\Omega(B(\log B)^{\sigma})$: it is
+superlinear in the input length, by a factor of $(\log B)^\sigma$.
+
+\subsection{Technique overview}
+
+\paragraph{Triangles as lookups.} Our starting point is that triangles in
+a sparse graph can implement table lookup. Given an address array
+$j\in[q]^q$, a claimed-value array $x\in[q]^q$, and a table $y\in[q]^q$,
+consider the predicate $R(j,x,y)=\bigwedge_i\ind{x_i=y_{j_i}}$. We build a
+graph on three classes $I$, $A$, $B$ of size $q$: vertex $I_i$ is joined to
+$A_{j_i}$ and $B_{x_i}$, and $A_a$ is joined to $B_{y_a}$. Since $I_i$ has
+only these two neighbors, the edge $I_iA_{j_i}$ lies in a triangle exactly
+when $x_i=y_{j_i}$. So $q$ outputs of an $\AEST$ circuit compute $R$. The
+graph has $3q$ vertices and $3q$ edges, its sorted edge order does not
+depend on the data, and writing it down costs no gates at all.
+
+\paragraph{A unique sorting certificate.} The predicate $R$ is easy, so we
+need a way to build a hard function out of a few lookups. The key idea is
+to use nondeterminism of a kind that tensor networks can absorb. Given a
+list $X_0,\dots,X_{q-1}$, a certificate consists of a rank array $j$, a
+claimed inverse $z$, and a claimed sorted list $Y$. One lookup checks
+$z_{j_i}=i$, which forces $j$ to be a permutation; two more check
+$Y_{j_i}=X_i$, which forces $Y$ to be a rearrangement of $X$; and a
+comparator chain of linear size checks that $Y$ is strictly increasing.
+If $X$ is distinct then exactly one certificate passes, and otherwise none
+does.
+
+\paragraph{Summing out the certificate.} A circuit is a tensor network of
+linear volume \cite{OAI,R06}. Summing over the certificate wires counts
+the accepting certificates, and because that count is always $0$ or $1$,
+the result is exactly the distinctness indicator, even over $\F_2$. This
+summation is a tensor contraction rather than an enumeration, so it costs
+only the volume of the certificate wires. Comparing with the volume lower
+bound of \cite{OAI} proves Theorem~\ref{thm:main}. For triangle detection
+(Corollary~\ref{cor:variants}), where only one output bit is available, we
+recover $R$ by a second contraction over selector bits that switch
+individual triangles on and off.
+
+\paragraph{Shortest paths and 3SUM.} For Corollary~\ref{cor:apsp}, an edge
+$\{u,v\}$ lies in a triangle exactly when $u$ and $v$ have a common
+neighbor, which is a distance query in a three-layer copy of the graph.
+3SUM is different. The standard reductions go \emph{from} 3SUM and APSP
+\emph{to} $\AEST$ \cite{VWX}, which is the wrong direction for
+transferring a lower bound, and Theorem~\ref{thm:main} does not seem to
+imply Theorem~\ref{thm:3sum-intro}. Instead, we reduce distinctness to
+3SUM directly. The difficulty is to detect equal values only at
+\emph{different} positions, and we handle it by writing each position into
+the low-order bits of the corresponding integers.
+
+\subsection{Discussion}
+
+\paragraph{Comparison with direct reductions.} A direct reduction from
+distinctness to triangle detection must compare words at different
+positions, which takes a gadget on all pairs $i<j$. Paying for that gadget
+forces one to batch $\Theta(q)$ lists, using the many-list form of
+\cite[Theorem~2.2]{OAI}, and to name vertices from a universe of size
+$\Theta(m^{3/2})$. The certificate approach avoids both. It uses a single
+list, vertex names in $[m]$, and graphs of degeneracy $2$. It is an
+instance of the observation in \cite[Section~7]{R06} that unambiguous
+verifiers convert into tensor networks.
+
+\paragraph{What the bounds do not say.} Our bounds are Boolean circuit
+lower bounds. They are not word-RAM bounds, and they are far from the
+conditional $m^{4/3-o(1)}$ and $n^{2-o(1)}$ time bounds. Indeed, on our
+hard triangle instances, the designated answers can be computed with $q$
+indexed table accesses and comparisons, which is $O(m)$ word-RAM
+operations; a circuit must instead implement the dependence on address bits
+with gates. For full APSP, the bound of Corollary~\ref{cor:apsp} is
+weaker than the trivial $\Omega(m^2)$ needed to write $\Theta(m^2)$
+outputs, so the informative statement there is the one about $m$ queries.
+The exponent $\sigma$ is the unspecified constant from \cite{OAI}.
+
+\paragraph{Status of the imported theorem.} Everything in this paper is
+elementary given Theorem~\ref{thm:import}, which \cite{OAI} states without
+hypotheses. We have not independently audited its proof. Result~06
+\cite[Section~6]{R06} describes which parts of it have been checked.
+
+\subsection{Outline}
+In Section~\ref{sec:prelim} we state the imported theorem and show that
+unambiguous verifiers give small tensor networks. Section~\ref{sec:lookup}
+constructs the lookup graph, Section~\ref{sec:certificate} the unique
+sorting certificate, and Section~\ref{sec:proof} combines them to prove
+Theorem~\ref{thm:main}. Section~\ref{sec:decision} proves
+Corollary~\ref{cor:variants}, Section~\ref{sec:apsp} proves
+Corollary~\ref{cor:apsp}, and Section~\ref{sec:3sum} proves
+Theorem~\ref{thm:3sum-intro}. We conclude with open problems in
+Section~\ref{sec:open}.
+
+\section{Preliminaries}\label{sec:prelim}
+
+Let $[r]=\{0,\dots,r-1\}$. All logarithms are base two. For a predicate
+$P$, $\ind{P}\in\{0,1\}$ is its indicator.
+
+\paragraph{Tensor networks.} We follow \cite[Section~2.1]{OAI} and
+\cite[Section~2]{R06}. Fix a field $k$. A network places a table
+$\{0,1\}^u\to k$ at each vertex. Each wire pairs two argument positions,
+and each unpaired position is a named exterior bit. The network represents
+the function of its exterior bits obtained by multiplying vertex entries
+and summing over all settings of the internal wires. It is
+\emph{trivalent} if every table has arity at most three. Its
+\emph{volume} counts vertices and all wires, including exterior wires.
+Let $\vol_k(T)$ be the least volume of a trivalent network over $k$
+representing $T$.
+
+For $w\ge1$ let $q=2^w$ and $n_w=2qw$. Let $D_w:\{0,1\}^{n_w}\to\{0,1\}$
+take $q$ words $X_0,\dots,X_{q-1}\in[q^2]$ of $2w$ bits each and return
+$1$ exactly when they are pairwise distinct.
+
+\begin{theorem}[{\cite[Theorem~2.2]{OAI}}, case $t=1$]\label{thm:import}
+For every finite field $k$ there is $\sigma>0$ such that for all
+sufficiently large $w$,
+\[
+\vol_k(D_w)>n_w\,w^{\sigma}=2q\,w^{1+\sigma}.
+\]
+\end{theorem}
+
+The only other tool we need is the observation that a circuit with a
+unique certificate yields a network for the function it verifies.
+
+\begin{lemma}[Unambiguous verifiers give networks]\label{lem:verifier}
+Let $V(x,c)$ be computed by a circuit with $s$ gates on $b$ input bits in
+total, split into data bits $x$ and certificate bits $c$. Suppose that for
+every $x$ the number of $c$ with $V(x,c)=1$ is $f(x)\in\{0,1\}$. Then over
+every field, $f$ has a trivalent network with exterior bits $x$ and volume
+at most $16s+5b+8$.
+\end{lemma}
+\begin{proof}
+By \cite[Lemma~4.1]{R06}, which writes out the conversion in
+\cite[proof of Proposition~2.3]{OAI}, there is a trivalent network of
+volume at most $16s+4b+8$ representing $V$ with values $0,1$. It places the
+relation table $\ind{c=g(a,b)}$ at each gate, ternary equality tables at
+fan-outs, and the pin $\ind{c=1}$ at the output. For each input exactly one
+internal assignment is consistent.
+
+Close each certificate exterior bit with the unary table that is
+identically $1$. This adds at most $b$ vertices and no wires, and sums
+over $c$. The new network represents $\sum_cV(x,c)$, computed in the field.
+That sum is the integer $f(x)\in\{0,1\}$, so it is $f(x)$ in every
+characteristic.
+\end{proof}
+
+We emphasize that the sum over $c$ is a contraction. We do not claim that a
+circuit can enumerate the certificates within this size;
+Theorem~\ref{thm:import} bounds the volume of every network representing
+$D_w$, however it is evaluated.
+
+\section{Lookup by triangles}\label{sec:lookup}
+
+We now construct the graph that turns triangles into table lookups. For
+arrays $j=(j_i)_{i\in[q]}$, $x=(x_i)_{i\in[q]}$, and $y=(y_a)_{a\in[q]}$
+of $w$-bit words, define
+\[
+R(j,x,y)=\bigwedge_{i\in[q]}\ind{x_i=y_{j_i}}.
+\]
+No promise is placed on the arrays; in particular $j$ need not be a
+permutation.
+
+\begin{lemma}[Lookup graph]\label{lem:graph}
+For all $j,x,y$ there is a simple graph $G(j,x,y)$ on vertex set $[3q]$
+with $3q$ edges, listed in a fixed order that is lexicographically sorted
+for every input, such that:
+\begin{enumerate}
+\item for each $i$, a designated edge $e_i$ lies in a triangle if and only
+if $x_i=y_{j_i}$, so $R(j,x,y)$ is the AND of the $\AEST$ outputs on
+$e_0,\dots,e_{q-1}$;
+\item every triangle contains exactly one vertex of $[q]$, and each vertex
+of $[q]$ lies in at most one triangle;
+\item $G(j,x,y)$ is 2-degenerate; and
+\item the edge list is a projection of the bits of $j,x,y$ together with
+constants.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+Name the vertices $I_i=i$, $A_a=q+a$, and $B_b=2q+b$ for $i,a,b\in[q]$,
+and add the edges
+\[
+e_i=\{I_i,A_{j_i}\},\qquad f_i=\{I_i,B_{x_i}\},\qquad g_a=\{A_a,B_{y_a}\}.
+\]
+Within the $e$'s and within the $f$'s the endpoint $I_i$ distinguishes
+the edges, and within the $g$'s the endpoint $A_a$ does. The three families
+join different pairs of classes. So the graph is simple for every input.
+
+The only edges are between classes $I$--$A$, $I$--$B$ and $A$--$B$, so
+every triangle has one vertex in each class. Vertex $I_i$ has exactly the
+two neighbors $A_{j_i}$ and $B_{x_i}$, so it lies in at most one triangle,
+and
+\[
+e_i\text{ lies in a triangle}
+\iff\{A_{j_i},B_{x_i}\}\text{ is an edge}
+\iff x_i=y_{j_i}.
+\]
+This proves items~1 and~2.
+
+List the edges as $e_0,f_0,e_1,f_1,\dots,e_{q-1},f_{q-1},g_0,\dots,g_{q-1}$.
+Writing each edge with its smaller endpoint first, $e_i=(i,q+j_i)$ precedes
+$f_i=(i,2q+x_i)$ because $q+j_i<2q$, the pairs for $i$ precede those for
+$i+1$, and every $g_a=(q+a,2q+y_a)$ has smaller endpoint at least $q$. So
+the list is sorted for every input.
+
+For degeneracy, delete the $I$-vertices, each of degree $2$. Each
+$A$-vertex then has degree $1$; delete them, and then the isolated
+$B$-vertices.
+
+Since $q$ is a power of two, the name $q+a$ is the bits of $a$ preceded by
+fixed class bits, and likewise for $2q+b$. So the edge list is a projection.
+\end{proof}
+
+Hence an $\AEST$ circuit of size $S$ on these graphs yields a circuit for
+$R$ of size $S+q-1$, plus $O(qw)$ constant gates for the fixed bits.
+
+\section{A unique sorting certificate}\label{sec:certificate}
+
+Next, we show how three lookups verify distinctness unambiguously. Write
+each word of the distinctness input as $X_i=(a_i,b_i)$ with
+$a_i,b_i\in[q]$, the first half most significant. A \emph{certificate}
+consists of four arrays $j,z,u,v\in[q]^q$. Put $Y_c=(u_c,v_c)$ and let
+$\id$ be the constant array $\id_i=i$. Define
+\[
+V(X;j,z,u,v)=R(j,\id,z)\wedge R(j,a,u)\wedge R(j,b,v)\wedge
+\Inc(Y),
+\qquad
+\Inc(Y)=\bigwedge_{c=0}^{q-2}\ind{Y_c<Y_{c+1}},
+\]
+where $Y_c<Y_{c+1}$ compares $2w$-bit words. The intended certificate
+takes $j_i$ to be the rank of $X_i$ in sorted order, $z=j^{-1}$, and $Y$
+the sorted list.
+
+\begin{lemma}[Uniqueness]\label{lem:unique}
+For every $X$, the number of certificates accepted by $V(X;\cdot)$ is
+$D_w(X)$.
+\end{lemma}
+\begin{proof}
+Suppose $V$ accepts $(j,z,u,v)$. The first lookup says $z_{j_i}=i$ for
+all $i$. If $j_i=j_{i'}$ then $i=z_{j_i}=z_{j_{i'}}=i'$, so $i\mapsto j_i$
+is injective, hence a permutation of $[q]$, and $z$ is its inverse. The
+other two lookups say $u_{j_i}=a_i$ and $v_{j_i}=b_i$, that is,
+$Y_{j_i}=X_i$. Since $j$ is a permutation, $Y$ is a rearrangement of $X$,
+and $\Inc$ says it is strictly increasing.
+
+If $X$ has a repeated word, no rearrangement of $X$ is strictly increasing,
+so no certificate is accepted. If $X$ is distinct, $Y$ must be the unique
+increasing rearrangement of $X$; then $j_i$ must be the rank of $X_i$, and
+$z$, $u$, $v$ are determined by $j$ and $Y$. This certificate passes every
+check, so exactly one is accepted.
+\end{proof}
+
+Notice that neither a sorting circuit nor a permutation test is needed:
+the inverse lookup forces a permutation, and the comparator chain checks
+the proposed order. Both existence and uniqueness matter, since we will
+sum over certificates in characteristic two.
+
+\section{Proof of Theorem~\ref{thm:main}}\label{sec:proof}
+
+We are now ready to prove our main result. It remains to pad the lookup
+graph to every size $m$ and to account for the cost of the verifier.
+
+\paragraph{Padding.} Let $m$ be large and let $q=2^w$ be the largest power
+of two with $3q\le m$, so $m/6<q\le m/3$. For arrays $j,x,y$, let
+$G_m(j,x,y)$ be $G(j,x,y)$ with a path of $p=m-3q$ edges attached at
+$B_0=2q$, through the new vertices $3q,3q+1,\dots,m-1$:
+\[
+\{2q,3q\},\ \{3q,3q+1\},\ \dots,\ \{m-2,m-1\}.
+\]
+Append these edges to the list of Lemma~\ref{lem:graph}. The result has
+exactly $m$ vertices and $m$ edges, and is simple. It is still sorted: the
+first added edge has smaller endpoint $2q$, larger than that of every core
+edge, and the later ones have increasing smaller endpoints. It is still
+2-degenerate: delete the path from its far end inward, then proceed as
+before. A pendant path lies on no triangle, so the outputs on
+$e_0,\dots,e_{q-1}$ are unchanged. Since $L_m\ge w+2$, every name fits.
+
+\paragraph{The verifier.} Let $C$ be a circuit with $S$ gates computing
+$\AEST$ on $m$ edges, correct on the promised graphs. We build a verifier
+for $D_w$: on input $X$ and certificate $(j,z,u,v)$, run $C$ on
+$G_m(j,\id,z)$, $G_m(j,a,u)$ and $G_m(j,b,v)$, AND the outputs on the
+designated edges, and AND the result with a comparator chain for
+$\Inc(Y)$. The three edge lists are projections of the input bits plus
+constants, and each comparison of $2w$-bit words takes $O(w)$ gates. The
+verifier therefore has $s\le 3S+O(qw)$ gates and $b=2qw+4qw=6qw$ input
+bits. By Lemma~\ref{lem:graph} it computes $V$, and by
+Lemma~\ref{lem:unique} each $X$ has exactly $D_w(X)$ accepting
+certificates.
+
+\paragraph{Conclusion.} By Lemma~\ref{lem:verifier} over $\F_2$,
+$D_w$ has a trivalent network of volume at most
+$16(3S+O(qw))+30qw+8$. Theorem~\ref{thm:import} gives
+\[
+48S+O(qw)>2q\,w^{1+\sigma}.
+\]
+Since $w^\sigma\to\infty$, we get $S\ge q\,w^{1+\sigma}/48$ for large $w$.
+As $q>m/6$ and $w=\log q\ge\log m-3$, this is
+$\Omega(m(\log m)^{1+\sigma})$. Finally $\log B_m=\Theta(\log m)$, which
+gives the bound in terms of input bits. \qed
+
+\section{Counting, witnesses, and decision}\label{sec:decision}
+
+In this section we prove Corollary~\ref{cor:variants}. The first two
+parts follow from the structure of the lookup graph; the last two need one
+more contraction.
+
+\paragraph{Counting and per-edge witnesses.} By Lemma~\ref{lem:graph}(2),
+$G_m(j,x,y)$ has exactly $\sum_i\ind{x_i=y_{j_i}}$ triangles, so
+$R(j,x,y)=1$ exactly when the count equals $q$. A counting circuit
+therefore replaces $C$ in the verifier, with $O(\log m)$ extra gates per
+copy. A circuit that returns, for each edge, a triangle through it or a
+marker determines every $\AEST$ output after $O(m\log m)$ gates of
+decoding, which the bound absorbs. This proves parts~1 and~2.
+
+\paragraph{Decision.} One cannot simply take the OR of the $\AEST$
+outputs here, since that reduction goes the wrong way. Instead, we compute
+$R$ from a decision circuit by summing over selector bits inside the
+network.
+
+Add a dummy vertex $B_*=3q$ with no neighbors in $A$. For selector bits
+$s\in\{0,1\}^q$ let $G^s(j,x,y)$ replace each $f_i$ by
+\[
+f_i(s_i)=\begin{cases}\{I_i,B_{x_i}\},&s_i=1,\\ \{I_i,B_*\},&s_i=0,\end{cases}
+\]
+keeping the $e_i$ and $g_a$. This graph is simple, 2-degenerate by the same
+order, and sorted in the same layout, since $f_i(s_i)$ still has smaller
+endpoint $i$ and larger endpoint at least $2q>q+j_i$. Choosing each
+endpoint of $f_i(s_i)$ costs $O(w)$ gates. Put $h_i=\ind{x_i=y_{j_i}}$.
+Since $B_*$ has no $A$-neighbor, it lies on no triangle, and $G^s$ has a
+triangle through $I_i$ exactly when $s_ih_i=1$. Its triangle-free
+indicator is therefore $Q(s)=\prod_i(1-s_ih_i)$, and over every field
+\[
+\sum_{s\in\{0,1\}^q}(-1)^{|s|}\,Q(s)
+=\prod_{i}\sum_{s_i\in\{0,1\}}(-1)^{s_i}(1-s_ih_i)
+=\prod_i h_i=R(j,x,y).
+\]
+Over $\F_2$ the signs disappear. So if $T$ is a decision circuit with $S$
+gates, the network of $\neg T$ on $G^s$, with its $q$ selector bits closed
+by all-ones tables, represents $R$ with volume $O(S+qw)$. It uses one copy
+of $T$, not $2^q$.
+
+We use three such networks in place of the three lookups, sum over the
+certificate as before, and include the comparator chain. Summing over the
+selectors and over the certificate are both contractions, so the result
+represents $\sum_{j,z,u,v}V=D_w$ with volume $O(S+qw)$. For general $m$,
+attach the padding path at $B_0$ through the new vertices $3q+1,\dots,m$.
+This gives $m$ edges on vertex set $[m+1]$ and preserves all the
+properties above. Theorem~\ref{thm:import} then gives part~3. A circuit
+that returns a triangle or a marker decides existence after $O(m\log m)$
+gates of checking against the edge list, which gives part~4.
+
+\section{Shortest paths}\label{sec:apsp}
+
+We next prove Corollary~\ref{cor:apsp}. Here the reduction runs from
+$\AEST$ to shortest paths, so Theorem~\ref{thm:main} transfers directly.
+
+\begin{proof}[Proof of Corollary~\ref{cor:apsp}]
+Given an $\AEST$ instance $G$ on $[m]$, form the layered graph $H$ with
+vertices $u^0,u^1,u^2$ for $u\in[m]$ and, for each edge $\{u,v\}$ of $G$,
+the four arcs $u^0\to v^1$, $v^0\to u^1$, $u^1\to v^2$, $v^1\to u^2$.
+Name $u^\ell$ by two layer bits followed by the bits of $u$, so the arc
+list is a projection of the edge list. Every path in $H$ goes from layer
+$0$ to layer $1$ to layer $2$, so $H$ is acyclic and
+$d_H(u^0,v^2)=2$ exactly when $u$ and $v$ have a common neighbor in $G$.
+For an edge $\{u,v\}$ of $G$ this happens exactly when the edge lies in a
+triangle. So the $m$ queries $(u^0,v^2)$, one per edge, give every $\AEST$
+output after $O(\log m)$ gates each, and Theorem~\ref{thm:main} gives the
+bound.
+\end{proof}
+
+The input has $\Theta(m\log m)$ bits, so this bound is again superlinear
+in the input length. As noted in the introduction, for full APSP the
+inherited bound is below the $\Omega(m^2)$ gates needed just to write the
+output, and the informative statement is the one about $m$ queries. The
+APSP hypothesis itself concerns dense weighted graphs, which we do not
+address.
+
+\section{3SUM}\label{sec:3sum}
+
+Finally, we prove Theorem~\ref{thm:3sum-intro}. As discussed above, the
+known reductions run from 3SUM to $\AEST$ \cite{VWX}, so we instead reduce
+directly from distinctness.
+
+\begin{definition}
+For $n\ge3$ let $\ell_n=4\lceil\log n\rceil+2$. The function $\TSUM_n$
+takes $n$ integers $z_1,\dots,z_n$ in $\ell_n$-bit two's complement, so
+every $|z_i|\le n^4$ is representable, and returns $1$ exactly when
+$z_a+z_b+z_c=0$ for some pairwise distinct positions $a,b,c$.
+\end{definition}
+
+The difficulty is that equal values must be detected only at
+\emph{different} positions: placing $X_i$, $-X_i$ and $0$ in the instance
+would create a solution for every $i$. We therefore encode the positions
+into the integers.
+
+\subsection{The reduction}
+Let $M=4q$. Given $X_0,\dots,X_{q-1}\in[q^2]$, let $S(X)$ be the list of
+the following $3q-1$ integers:
+\begin{equation}\label{eq:3sum-red}
+\begin{aligned}
+a_i&=16(MX_i+i)+1, &&i\in[q],\\
+b_k&=-16(MX_k+k)+2, &&k\in[q],\\
+c_d&=16d-3, &&1\le d\le q-1.
+\end{aligned}
+\end{equation}
+
+\begin{lemma}\label{lem:3sum-correct}
+$\TSUM(S(X))=1-D_w(X)$.
+\end{lemma}
+\begin{proof}
+\emph{A zero-sum triple has one integer of each type.} Modulo $16$ the
+types are $a\equiv1$, $b\equiv2$, $c\equiv-3$. If a triple has $p$, $r$
+and $t$ integers of the three types, then $p+r+t=3$ and
+$p+2r-3t\equiv0\pmod{16}$. Since $-9\le p+2r-3t\le6$, in fact
+$p+2r-3t=0$. Eliminating $p$ gives $r=4t-3$, so $t\ge1$, and $p=6-5t\ge0$
+forces $t=1$. Hence $p=r=t=1$.
+
+\emph{Such a triple encodes a collision.} By \eqref{eq:3sum-red},
+\[
+a_i+b_k+c_d=16\bigl(M(X_i-X_k)+(i-k+d)\bigr).
+\]
+Here $-(q-2)\le i-k+d\le 2q-2$, so $|i-k+d|<M$. The sum is zero exactly
+when $X_i=X_k$ and $d=k-i$. As $1\le d\le q-1$, this requires $i<k$.
+Conversely, if $X_i=X_k$ with $i<k$, then $d=k-i$ gives a zero-sum triple.
+So $S(X)$ has a zero-sum triple exactly when $X$ has a repeated word.
+\end{proof}
+
+\begin{lemma}\label{lem:3sum-distinct}
+The $3q-1$ integers in $S(X)$ are pairwise distinct for every $X$,
+including lists with repeated words.
+\end{lemma}
+\begin{proof}
+Different types differ modulo $16$. If $a_i=a_k$ then $M(X_i-X_k)=k-i$
+with $|k-i|<M$, so $i=k$. The same holds for the $b$'s, and the $c$'s are
+distinct by definition.
+\end{proof}
+
+So the reduction is valid even for the version of 3SUM whose input is
+promised to be a set.
+
+\begin{lemma}\label{lem:3sum-cost}
+Every integer in $S(X)$ has absolute value less than $64q^3$, and $S$ is
+computed by a circuit with $O(qw)$ gates.
+\end{lemma}
+\begin{proof}
+From $X_i\le q^2-1$ and $i\le q-1$ we get $MX_i+i<4q^3$, which gives the
+bound. As $M=2^{w+2}$ and $i<M$, the number $16(MX_i+i)$ is the
+concatenation of the bits of $X_i$, of $i$ in $w+2$ bits, and of four
+zeros. So each $a_i$ is a projection with constants. Each $b_k$ is a
+two's complement negation plus a constant, which takes $O(w)$ gates.
+The $c_d$ are constants.
+\end{proof}
+
+\subsection{The lower bound}
+We restate Theorem~\ref{thm:3sum-intro} with the input format fixed.
+
+\begin{theorem}\label{thm:3sum}
+For every sufficiently large $n$, every circuit computing $\TSUM_n$ has
+$\Omega(n(\log n)^{1+\sigma})$ gates. This holds even if the circuit is
+required to be correct only on lists of pairwise distinct integers.
+\end{theorem}
+\begin{proof}
+Let $w$ be largest with $3\cdot2^w-1\le n$, and put $q=2^w$. Then
+$n<6q$. Put $R=64q^3$ and append the $n-3q+1$ padding integers
+$3R+1,3R+2,\dots$ to $S(X)$. Every integer of $S(X)$ lies in $(-R,R)$. A
+triple containing a padding integer has sum greater than $3R-2R>0$, so
+padding creates no zero-sum triple. The padding integers exceed $R$ and
+are distinct, so the padded list remains a set by
+Lemma~\ref{lem:3sum-distinct}. Every entry has absolute value at most
+$3R+n\le 8n^3\le n^4$ for large $n$, so it fits in $\ell_n$ bits.
+
+Let $C$ be a circuit for $\TSUM_n$ with $s$ gates. By
+Lemma~\ref{lem:3sum-correct}, $C$ preceded by this map and followed by one
+NOT gate computes $D_w$. The map costs $O(qw)+O(n\ell_n)=O(n_w)$ gates.
+By Lemma~\ref{lem:verifier} with an empty certificate and
+Theorem~\ref{thm:import}, $16(s+O(n_w))+5n_w+8>n_ww^\sigma$, so
+$s=\Omega(n_ww^\sigma)=\Omega(q(\log q)^{1+\sigma})$. Since $q>n/6$ and
+$\log q\ge\log n-3$, this is $\Omega(n(\log n)^{1+\sigma})$.
+\end{proof}
+
+\begin{remark}
+\begin{enumerate}
+\item In bits, the input has $B=n\ell_n=\Theta(n\log n)$ bits and the
+bound is $\Omega(B(\log B)^\sigma)$.
+\item The three-list version, which asks for $a+b+c=0$ with $a\in A$,
+$b\in B$, $c\in C$, inherits the bound directly from the lists
+$\{a_i\},\{b_k\},\{c_d\}$; the type tags modulo $16$ are then
+unnecessary. Negating the third list gives the version $a+b=c$.
+\item The tags force the type of every zero-sum triple. Without them, a
+triple such as $a_i+a_{i'}+c_d$ could vanish for reasons unrelated to
+collisions.
+\item As for $\AEST$, this is a circuit bound. It is far from the
+conjectured $n^{2-o(1)}$ word-RAM time, and $\TSUM_n$ has circuits of size
+$n^2\operatorname{polylog}n$.
+\end{enumerate}
+\end{remark}
+
+\section{Open problems}\label{sec:open}
+\begin{itemize}
+\item \emph{Larger exponents.} Our bounds are superlinear only by a factor
+of $(\log m)^{\sigma}$. Can tensor-network methods give an
+$m^{1+\varepsilon}$ circuit lower bound for $\AEST$, for triangle
+detection, or for 3SUM?
+\item \emph{Dense inputs.} The hard instances are sparse. Is there a
+superlinear-in-input bound, that is, $\Omega(v^2(\log v)^{\varepsilon})$
+gates, for triangle detection from a $v\times v$ adjacency matrix, or for
+APSP on dense weighted graphs?
+\item \emph{Lookup as the hard core.} Our proof shows that three parallel
+lookups plus a comparator chain suffice to verify distinctness
+unambiguously. Which other problems embed parallel lookup at linear cost,
+and so inherit the bound in the same way?
+\end{itemize}
+
+\paragraph{Acknowledgments.}
+All bounds here are corollaries of \cite[Theorem~2.2]{OAI}, and all
+credit for the underlying theorem belongs to its authors.
+
+\begin{thebibliography}{9}
+\bibitem{OAI}
+OpenAI. The matrix multiplication exponent is nine fourths.
+Preprint, November 24, 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf}{Manuscript}.
+
+\bibitem{R06}
+C.~Cruz. Superlinear lower bounds for element distinctness and unambiguous
+verification of collision from a tensor-network volume bound. Result~06 in
+this collection, November 2026.
+
+\bibitem{VWX}
+V.~Vassilevska Williams and Y.~Xu. Monochromatic triangles, triangle
+listing and APSP. In \emph{Proceedings of FOCS 2020}, pages 786--797, 2020.
+\href{https://arxiv.org/abs/2007.09318}{arXiv:2007.09318}.
+\end{thebibliography}
+\end{document}
