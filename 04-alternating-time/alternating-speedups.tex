@@ -1,0 +1,611 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1.05in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage[hidelinks,pdftitle={Simulating Nondeterministic Time t sqrt(log t) in Alternating Time O(t)},pdfauthor={Charlie Cruz},pdfsubject={A clocked nondeterministic-to-alternating simulation with a square-root-logarithmic saving}]{hyperref}
+\usepackage[capitalise,nameinlink,noabbrev]{cleveref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Nondeterministic time $t\sqrt{\log t}$ in alternating time $O(t)$}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\headheight}{14pt}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{1.5em}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\NTIME}{\mathsf{NTIME}}
+\newcommand{\ATIME}{\mathsf{ATIME}}
+\newcommand{\ARA}{\mathsf{ATIME}_{\mathrm{RA}}}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\N}{\mathbb N}
+\newcommand{\wt}{\operatorname{wt}}
+\newcommand{\val}{\operatorname{val}}
+\newcommand{\out}{\operatorname{out}}
+\newcommand{\inn}{\operatorname{in}}
+\newcommand{\row}{\mathrm{row}}
+\newcommand{\col}{\mathrm{col}}
+\newcommand{\up}{N^{\uparrow}}
+\newcommand{\down}{N^{\downarrow}}
+\newcommand{\enc}{\operatorname{enc}}
+\newcommand{\cost}{\operatorname{cost}}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\DeclareMathOperator{\Maj}{Maj}
+\DeclareMathOperator{\bit}{bit}
+\title{Simulating Nondeterministic Time \texorpdfstring{$t\sqrt{\log t}$}{t sqrt(log t)}\\in Alternating Time \texorpdfstring{$O(t)$}{O(t)}}
+\author{Charlie Cruz}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-2.5em}
+\begin{abstract}
+Given an input $x$ and a binary clock $U\ge\max\{|x|,2\}$, we decide whether a fixed nondeterministic multitape machine accepts $x$ within $U$ steps in alternating time $O(U/\sqrt{\log U})$, using random access to the input and ordinary sequential work tapes. With sequential input, the bound is $O(n+U/\sqrt{\log U})$. Consequently, for every fully time-constructible $t(n)\ge n$, we have $\NTIME[t\sqrt{\log t}]\subseteq\ATIME[O(t)]$ in the standard sequential-input model. The proof counts computations through a sparse constraint network. A signed crossing decomposition turns the count into an implicit integer formula with short root-to-leaf indices. We prove that each formula node has a decoder running in polylogarithmic space, and we evaluate the formula by alternation. Carry-save addition and balanced binary multiplication give the required time bound without general iterated-multiplication machinery. A terminal verification branch ensures that each branch pays for a full scan of a sequential tape at most once.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+An alternating machine can verify many claims without checking them in sequence, but each branch must first write down enough information to select the claim it checks. For a nondeterministic computation, guessing a complete computation already costs its running time. We instead count computations, express the count by an integer formula, and pay only for the indices on one path through the formula.
+
+\subsection{Model and results}
+
+All logarithms are to base two. Put
+\[
+ g(u)=\frac{u}{\sqrt{\log(u+2)}}.
+\]
+The running time of an alternating machine is the maximum length over \emph{all} computation branches, including branches outside an accepting subtree. A random-access input query is made by writing its binary address on a sequential work tape, and writing the address is charged. All other work tapes are sequential. We write $\ARA[\cdot]$ for alternating time in this random-access model, and $\ATIME[\cdot]$ for alternating time on ordinary multitape machines with sequential input.
+
+\begin{theorem}[Clocked simulation]\label{thm:clocked}
+For every fixed nondeterministic multitape Turing machine $M$, there is an alternating multitape machine which, on input $x$ and a binary integer $U\ge\max\{|x|,2\}$, decides whether $M$ accepts $x$ within $U$ steps in time $O(g(U))$ with random access to $x$. With sequential access to $x$, its time is $O(|x|+g(U))$. The constants depend on $M$.
+\end{theorem}
+
+\Cref{thm:clocked} gives the following inclusion, which requires no sublinear-input convention or unusual clock assumption.
+
+\begin{corollary}\label{cor:clean}
+For every fully time-constructible $t(n)\ge n$,
+\[
+ \NTIME[t\sqrt{\log(t+2)}]\subseteq\ATIME[O(t)].
+\]
+Both classes use ordinary multitape machines with sequential input.
+\end{corollary}
+
+When the simulation is parameterized by the nondeterministic time bound $T$ instead, the exact clock condition is as follows.
+
+\begin{corollary}\label{cor:original}
+Let $T(n)\ge n$. Suppose that, from binary $n$, a deterministic machine outputs a binary integer $U_0(n)$ with
+\[
+ T(n)\le U_0(n)=O(T(n))
+\]
+in time $O(g(T(n)))$. Then
+\[
+ \NTIME[T]\subseteq\ARA[O(g(T))].
+\]
+With sequential input the conclusion is $\NTIME[T]\subseteq\ATIME[O(n+g(T))]$. In particular, the random-access conclusion holds for every fixed positive integer $k$ and bound $T(n)=n^k$.
+\end{corollary}
+
+We prove both corollaries in \cref{sec:finish}. \Cref{cor:original} relies on its faster clock hypothesis; mere constructibility of $T$ in time $O(T)$ is not used as a substitute. The denominator throughout is $\sqrt{\log T}$; no $T/\log T$ simulation is claimed. \Cref{sec:remarks} discusses the hypotheses further.
+
+\subsection{Proof outline}
+
+The proof of \cref{thm:clocked} has four parts.
+\begin{enumerate}[label=(\arabic*)]
+\item Fix a short schedule of the heads of $M$. Blocking time and the tapes gives a network with $O(U)$ Boolean variables, each occurring in at most two constraints. Its value is a nonnegative count (\cref{sec:blocking}).
+\item We build an integer formula for this count with path cost $O(U/\sqrt{\log U})$ (\cref{sec:short}). The main algebraic fact is that a crossing has two factorizations whose weight budgets have a fixed sum. Merging along the cheaper cut halves a potential while halving the node-name length.
+\item Each formula node can be decoded in polylogarithmic space (\cref{sec:decoder}).
+\item An alternating machine evaluates the formula and verifies its local description separately (\cref{sec:evaluation,sec:finish}).
+\end{enumerate}
+
+\subsection{Sources}
+
+The multiset crossing and clique construction are developed from the manuscript \cite{Cruz26}; their proofs are included here. The additional ingredient needed for alternating time is the local-decoding lemma in \cref{sec:decoder}. The arithmetic evaluator is given explicitly, in the spirit of alternating-logtime arithmetic \cite{Buss87}. The small-space reachability check used for its decoder is the standard alternation simulation \cite{CKS81}.
+
+\section{Arithmetic formulas and alternation}\label{sec:evaluation}
+
+An \emph{integer formula} is a finite rooted tree. An internal node is a sum or product with one child for every string in $\{0,1\}^w$, where $w\ge0$ is its \emph{index width}. A leaf contains an integer. Sums and products are over $\Z$.
+
+Fix a parameter $s$ and let $\lambda=\lceil\log(s+2)\rceil$. Charge a sum node of width $w$ the amount $w+\lambda$, and a product node the amount $\lambda(w+1)$. Let $D$ be the maximum total charge on a root-to-leaf path. The charges are asymmetric because, by \cref{lem:arithmetic}, adding many numbers costs $O(w+\log k)$, while a balanced product costs $O((w+1)\log k)$.
+
+A node address records the child indices, each preceded by the Elias gamma code of its length plus one. Thus even a width-zero index is visible. Assume that widths, leaf values, and the numerical parameters below are bounded in magnitude by a fixed polynomial in $s$. An address on a path has length $O(D)$, including its headers.
+
+\begin{lemma}[Arithmetic bit verification]\label{lem:arithmetic}
+With virtual access to the bits of $2^w$ operands in $\Z/2^k\Z$, a specified output bit of their sum can be verified in alternating time $O(w+\log(k+2))$. For their product the bound is $O((w+1)\log(k+2))$. A branch ends at a constant or a request to verify one bit of one operand. Work tapes are sequential.
+\end{lemma}
+
+\begin{proof}
+For any constant-arity Boolean gate, guess the values of its inputs existentially, reject unless they give the claimed output, and universally choose an input claim to verify. This implements a constant-size Boolean circuit in constant alternating time, for either desired output value.
+
+For three $k$-bit vectors $a,b,c$, define
+\[
+ S_j=a_j\oplus b_j\oplus c_j,\qquad
+ C_j=\Maj(a_{j-1},b_{j-1},c_{j-1}),
+\]
+where negative-position bits are zero. Then $a+b+c=S+C\pmod{2^k}$. Two such compressors replace four vectors by two. Arrange the $2^w$ operands at the leaves of a complete binary tree, representing a leaf by the pair $(a_i,0)$. At each internal node compress its four child vectors into two. The root pair $(S,C)$ sums to the desired answer modulo $2^k$.
+
+The carry into position $j$ in the final addition is
+\begin{equation}\label{eq:carry}
+ \bigvee_{0\le t<j}\left(S_tC_t\ \wedge\!
+       \bigwedge_{t<r<j}(S_r\oplus C_r)\right).
+\end{equation}
+Together with $S_j\oplus C_j$, this determines the answer bit. Verifying \eqref{eq:carry}, or its complement, chooses at most two $O(\log(k+2))$-bit indices and ends at a claim about one bit of $S$ or $C$. Empty ranges and out-of-range padded choices have their usual Boolean identities.
+
+A bit of a compressor output depends on a constant number of bits at the same position or at one of the two preceding positions. Follow these constant-size circuits through the tree, appending a left/right bit to the operand index at each tree level. There are $w$ levels. On a branch, the bit position only decreases, by at most two per level.
+
+Store the level and bit-position counters least significant bit first on separate tapes. A consecutive run of $m$ binary decrements from an $L$-bit starting value takes $O(m+L)$ head moves, including returns to the low-order end: the total number of borrows is bounded by $\sum_{j<L}(m/2^j+1)$. Zero is detected by a final underflow, not by rescanning the counter at every step. Thus the compressor traversal, including its counters, takes $O(w+\log(k+2))$ time. The operand index is written once, in tree order. This proves the sum bound.
+
+For two operands,
+\[
+ ab\bmod2^k=\sum_{u=0}^{k-1}a_u(b\ll u)\bmod2^k.
+\]
+Pad the rows to a power of two and apply the sum procedure. A row-bit request is zero or the AND of $a_u$ and $b_{j-u}$. Translation and comparison of these $O(\log(k+2))$-bit indices take that much time. Binary multiplication therefore has an $O(\log(k+2))$-time verifier. Put a product of $2^w$ operands in a balanced binary tree. A branch follows $w$ multiplications and selects one original operand, proving the product bound. If $w=0$, the gate simply selects its only operand.
+\end{proof}
+
+The sum construction is a direct uniform implementation of the vector-addition primitive discussed in \cite{Buss87}. We do not infer a machine time bound merely from an unqualified circuit-depth bound.
+
+\begin{lemma}[Checking a small-space decoder]\label{lem:reach}
+Let a total deterministic predicate use space $S\ge\log(N+2)$ on fixed read-only data of total length $N$, with random access to those data. Its value can be checked in alternating time $O(S^2)$, apart from the cost of the eventual read-only queries. Here a computable upper bound on $S$ is available.
+\end{lemma}
+
+\begin{proof}
+A configuration has $O(S)$ bits, including read addresses, so a halting computation has length at most $2^{O(S)}$. Guess an accepting configuration and check its reachability from the initial configuration within that bound. For a bound $2^q$, guess a midpoint and universally select one of the two reachability claims with bound $2^{q-1}$. For bound one, check equality or one transition. There are $O(S)$ levels and $O(S)$ work per level. The final transition check makes only constantly many read-only symbol queries. This is the configuration-reachability argument of \cite{CKS81}. The exponent in the configuration bound is fixed by the decoder, and the recursion is clocked at that bound.
+\end{proof}
+
+\begin{lemma}[Terminal verification]\label{lem:terminal}
+Suppose a read-only string $y$ is stored on a sequential tape of length at most $A$, and an alternating procedure wants random access to $y$. Existentially guess each requested bit and universally branch into continuation and verification. The continuation uses the guessed bit without moving the physical head. The verification moves the head to the requested cell, checks the bit, and halts. The simulation is exact and adds at most $O(A+\log(A+2))$ time on a branch that physically inspects $y$.
+\end{lemma}
+
+\begin{proof}
+An incorrect guess has a rejecting verification branch; a correct guess allows both branches to proceed correctly. Once a physical verification is selected, the procedure terminates after that check, so a computation branch makes at most one full scan, even if many virtual queries preceded it.
+
+For a distance $q$, keep a binary distance counter on a separate tape. Decrement by ripple borrow, returning its head to the low-order end, and move the data head once per successful decrement. The final underflow detects the end. The total number of counter moves is $O(q+\log(q+2))$, since $\sum_{v=1}^q(1+\nu_2(v))=O(q)$, where $\nu_2$ is the $2$-adic valuation. No $O(\log q)$ scan is performed between consecutive moves. At a universal branch the two successors have independent configurations; movement on the verification successor does not move the continuation successor's head.
+\end{proof}
+
+\begin{proposition}[Implicit-formula evaluation]\label{prop:evaluate}
+Suppose an integer formula of depth $r$ and cost $D$ has a deterministic node decoder using $O(\log^2s)$ space with read-only access to its address, an external random-access input of length $s^{O(1)}$, and sequential auxiliary strings of total length $A\le s^{O(1)}$. Suppose $k\le s^{O(1)}$ and a constant-factor numerical upper bound on $D+A+r\log^4s+1$ is supplied. A specified bit of the formula modulo $2^k$ can be verified in alternating time
+\[
+ O(D+A+r\log^4s).
+\]
+The bound holds on every branch, including incorrect guesses.
+\end{proposition}
+
+\begin{proof}
+Maintain the current address on a dedicated tape whose head is parked just after its last symbol. At a node, guess its kind, width, and, if appropriate, leaf value. Universally choose between checking this metadata against the decoder and continuing with the guessed metadata. The check uses \cref{lem:reach} with $S=O(\log^2s)$ and then terminates. Its queries to the address or auxiliary strings use \cref{lem:terminal}.
+
+On the continuation, use \cref{lem:arithmetic}. A resulting operand claim specifies one child index and one bit of that child. Append the index, with its length header, and continue at the child; do not return to the parent. The address head never moves left on this descent. The old arithmetic workspace can be cleared in time proportional to the preceding arithmetic computation, since that computation has visited only that many cells. The selected child index is copied in linear time. Headers and scalar bookkeeping cost $O(\log s)$ per formula node and are covered by its charge.
+
+Consequently the arithmetic, appending, and resetting costs add along one formula path and total $O(D)$. Metadata checks add at most $O(r\log^4s)$; this bound is conservative because selecting a check abandons the formula descent. At most one physical address or auxiliary-string scan occurs on a branch, costing $O(D+A)$ by \cref{lem:terminal}. At a leaf, an integer of polynomial magnitude determines any requested residue bit, including the sign-extension bits of a negative integer, in $O(\log s)$ time.
+
+Finally impose a unary clock of length a sufficiently large constant times the supplied bound. It is written in linear time by amortized binary counting; afterwards its head advances once per computation step. Expiration rejects. Truthful computations meet the preceding bound, so they are not truncated. Incorrect or inconsistent guesses cannot create acceptance, and the clock prevents them from creating overlong branches. This is the same clocking issue that arises in alternating-logtime reductions \cite{Buss87}.
+
+Induction on formula height proves correctness. A false metadata or read-only-symbol claim has a rejecting check; for true metadata, the arithmetic verifier is exact and its operand claims are verified at the children. Reducing every node modulo $2^k$ preserves its value modulo $2^k$ because reduction is a ring homomorphism.
+\end{proof}
+
+\section{From computations to counting networks}\label{sec:blocking}
+
+A Boolean counting network is a finite graph, possibly with parallel edges but no loops, with a function $f_v:\{0,1\}^{\delta(v)}\to\N$ at each vertex, where $\delta(v)$ is the set of edges incident with $v$ in a fixed port order. Its value is
+\begin{equation}\label{eq:network}
+ Z(G)=\sum_{\theta\in\{0,1\}^{E(G)}}\prod_v f_v(\theta|_{\delta(v)}).
+\end{equation}
+We will use networks with $O(s)$ edges and vertices, degree $O(\log s)$, and values bounded by $s^{O(1)}$. Their local descriptions are computable in $O(\log s)$ workspace.
+
+\begin{lemma}[Blocked computations]\label{lem:block}
+Fix $M,x,U$ as in \cref{thm:clocked}. There is a family of networks $G_{x,U,\pi}$, indexed by strings $\pi$ of length $O(U/\log(U+2))$, with size parameter $s=\Theta(U)$, such that
+\[
+ M\text{ accepts }x\text{ within }U
+ \quad\Longleftrightarrow\quad
+ \exists\pi\ Z(G_{x,U,\pi})>0.
+\]
+For each $\pi$, $0\le Z(G_{x,U,\pi})\le2^{O(U)}$. Incidences, port orders, and local function values are computable in $O(\log U)$ workspace from read-only access to $x,U,\pi$.
+\end{lemma}
+
+\begin{proof}
+First normalize the fixed finite branching degree to binary branching. Each original step becomes a fixed number $d_M$ of microsteps, and acceptance is registered only at the end of such a block. Replacing $U$ by $d_MU$ preserves exact clocked acceptance and changes the claimed bound by a constant factor. We henceforth use the normalized clock and denote it by $U$. Preserve a computation's answer after it halts. A binary choice string of length $U$ specifies a computation, with choice bits ignored when only one transition applies.
+
+Put $b=\lceil\log(U+2)\rceil$. Split time into intervals of $b$ steps, except possibly the last, and every tape into blocks of $b$ cells. A schedule $\pi$ records each head's final-block displacement in each interval. These displacements lie in $\{-1,0,1\}$, so $\pi$ has $O(U/\log U)$ bits. Use a fixed binary encoding, and let malformed schedules give the zero network.
+
+Within an interval, each head stays in the three-block window centered on its initial block. The schedule determines all windows. The entering data of an interval consist of the state, head offsets, and contents of its work-tape windows; its leaving data consist of their final values. Both have $O(b)$ bits. The local function counts the interval choice strings taking the entering data to the leaving data and realizing the schedule; in the last interval it also requires acceptance. Its value is at most $2^b$.
+
+Introduce variables for the leaving-data bits. A control bit is read by the next interval. A work-tape bit is read by the next interval whose window contains its block, or by no later interval. Every intervening interval leaves that block unchanged. Initial values are constants. Thus every variable occurs in one or two constraints, there are $O(U)$ variables and constraints, and each constraint has arity $O(b)$. A variable in two constraints becomes an edge; a variable occurring once is joined to a constant-one vertex.
+
+Expand each local count into a sum over its choice strings. For a complete choice string, induction over intervals gives exactly one consistent setting of all leaving data. The product of the local indicators is one precisely when that computation follows $\pi$ and accepts. This proves the counting identity, the bound $2^U$ for the normalized clock, and the acceptance equivalence.
+
+To recover an incidence, scan the schedule with logarithmic counters to find the preceding or next window containing the relevant block. To compute a local function, enumerate its at most $2^b$ choice strings and simulate its $b$ steps on $O(b)$ cells, querying $x$ at the positions determined by the schedule. All names, positions, counts, and local data fit in $O(\log U)$ space. The shorter final interval enforces the exact supplied clock.
+\end{proof}
+
+\section{Short formulas for network values}\label{sec:short}
+
+\begin{theorem}[Counting formula]\label{thm:formula}
+For the networks in \cref{lem:block}, $Z(G)$ is the value of a finite integer formula of depth $O(\log s)$ and cost
+\[
+ O\!\left(\frac{s}{\sqrt{\log(s+2)}}\right).
+\]
+Its leaf values, index widths, and all structural scalar parameters have magnitude $s^{O(1)}$. Each node is a sum or product indexed by all strings of its prescribed width; malformed combinatorial choices have specified values. The formula has an $O(\log^2s)$-space node decoder.
+\end{theorem}
+
+This section constructs the formula and proves the cost bound. \Cref{sec:decoder} proves the decoder assertion.
+
+\subsection{Labels and their codes}
+
+A request of type $i\in\N$ has weight $i+1$. For a finite multiset $\sigma$ of requests, let $\mu_\sigma(i)$ be the multiplicity of type $i$ in $\sigma$, and write
+\[
+ \wt\sigma=\sum_i(i+1)\mu_\sigma(i).
+\]
+A \emph{label} is a pair of such multisets. Write $\Lambda(a)$ and $\Lambda_{\le a}$ for labels of weight exactly $a$ and at most $a$, respectively.
+
+\begin{lemma}[Short codes]\label{lem:codes}
+There are canonical injective encodings of $\Lambda_{\le a}$ into strings of length $w(a)=O(\sqrt a)$, with $w(0)=0$. Code validity, either component's multiplicities, and total weight are computable in $O(\log(a+2))$ workspace.
+\end{lemma}
+
+\begin{proof}
+Let a multiset of weight $W$ have distinct request weights $p_1<\cdots<p_m$, with multiplicities $\mu_1,\ldots,\mu_m$. Encode $m+1$ and then the gaps $d_i=p_i-p_{i-1}$, $p_0=0$, and multiplicities, using Elias gamma codes. A gamma code for $v\ge1$ has length $2\lfloor\log v\rfloor+1$.
+
+We have $m(m+1)/2\le W$. If $r_j$ gaps are at least $2^j$, their contributions to subsequent distinct weights give
+\[
+ W\ge 2^j(1+\cdots+r_j),\qquad
+ r_j\le\sqrt{2W}\,2^{-j/2}.
+\]
+The same bound holds for the number $r'_j$ of multiplicities at least $2^j$, because their weights are distinct positive integers. Therefore the two lists use
+\[
+ 2m+2\sum_{j\ge1}(r_j+r'_j)=O(\sqrt W)
+\]
+bits. Including the header, the length is at most $19.4\sqrt W+1$.
+
+Encode the two components of a label consecutively and pad with zeros. Since $\sqrt{W_1}+\sqrt{W_2}\le\sqrt{2a}$, the fixed length $w(a)=40\lceil\sqrt a\rceil$ for $a>0$ is sufficient. The empty label at budget zero has the empty code. Scan the code with counters for the number of entries, current type, multiplicity, and accumulated weight. Reject malformed words, excessive values, or nonzero trailing padding. Every counter has $O(\log(a+2))$ bits. Canonical parsing proves injectivity.
+\end{proof}
+
+A $d$-bit string $\theta$ is encoded by one request of each type $0,\ldots,d-1$, placed in the first component when its bit is one and in the second otherwise. Denote this label by $\enc(\theta)$. Its weight is $d(d+1)/2$.
+
+When a label lies on an ordered pair of nodes $u<v$, its first component goes from $u$ to $v$ and its second from $v$ to $u$. A corner views its label as $(\out,\inn)$; the larger endpoint reverses the components. Equality of two endpoint views means reversal: $[x=v]=[\out_x=\inn_v][\inn_x=\out_v]$.
+
+\subsection{A crossing with two factorizations}\label{sec:crossing}
+
+For $i,j\ge0$, put
+\[
+ C_{ij}(z)=(-1)^{\ip ij}z^{i\oplus j},
+\]
+where $\ip ij$ is the parity of the common one-bits and $i\oplus j$ is bitwise XOR, interpreted as an integer. We use
+\begin{equation}\label{eq:metric}
+ i\oplus j\le i+j,\qquad j\le i+(i\oplus j).
+\end{equation}
+
+\begin{lemma}[Splitting equality]\label{lem:equality}
+In the ring $\Z((z))$ of formal Laurent series,
+\[
+ (1-z^2)\sum_{n\ge0}C_{in}(z)C_{nj}(z)=[i=j].
+\]
+\end{lemma}
+
+\begin{proof}
+The exponent tends to infinity with $n$, so each coefficient has finitely many contributions. If $i\ne j$, flip a bit of $n$ in a position where $i$ and $j$ differ. This preserves $(i\oplus n)+(n\oplus j)$ and reverses the sign $(-1)^{\ip{i\oplus j}n}$, cancelling each coefficient in pairs. If $i=j$, the sign is positive and $i\oplus n$ ranges over $\N$, giving $\sum_{r\ge0}z^{2r}=(1-z^2)^{-1}$.
+\end{proof}
+
+Let a rectangle have upper corners $x,y$ and lower corners $u,v$. Suppose the views at $x,v$ have weight $a$, those at $y,u$ have weight $b$, and put $H=a+b$.
+
+Outgoing requests are distinct sources, ordered by type and occurrence. Incoming targets are interchangeable within each corner and type. A \emph{routing} sends each source to a target at another corner, meeting every incoming multiplicity. Its factor for a request joining types $i,j$ is
+\begin{equation}\label{eq:rules}
+\begin{array}{c|ccccc}
+\text{corner pair}&xu&yv&xy&uv&xv,\ yu\\ \hline
+\text{factor}&(1-z^2)C_{ij}(z)&C_{ij}(z)&
+ (1-z^{-2})C_{ij}(z^{-1})&C_{ij}(z^{-1})&[i=j].
+\end{array}
+\end{equation}
+Let $\Pi_{x,y,u,v}(z)$ be the sum of routing values, and $\Pi_k=[z^k]\Pi_{x,y,u,v}(z)$.
+
+Each request's exponents are bounded in absolute value by the weights of its two endpoints and have that total weight's parity. Summing endpoint weights gives $2H$, so
+\begin{equation}\label{eq:grades}
+ \Pi_k=0\quad\text{unless }k\text{ is even and }|k|\le2H.
+\end{equation}
+At $z=1$, both side factors incident with $x$ vanish. In a surviving routing all requests at $x$ use the diagonal $xv$, joining equal types. They use weight $a$ at $v$, exhausting $v$. The remaining requests must use $yu$. There is exactly one such routing when both diagonal equalities hold, and none otherwise. Hence
+\begin{equation}\label{eq:cross}
+ [x=v][y=u]=\sum_{\substack{k\text{ even}\\|k|\le2H}}\Pi_k.
+\end{equation}
+Transposing the rectangle exchanges $y,u$ and horizontal and vertical sides, giving
+\begin{equation}\label{eq:transpose}
+ \Pi_{x,y,u,v}(z)=\Pi_{x,u,y,v}(z^{-1}).
+\end{equation}
+
+For the row cut, a message is a label $m=(\eta,\zeta)$, with $\eta$ sent downward and $\zeta$ upward. An upper half-routing has sources $\out_x,\out_y,\zeta$ and targets $\inn_x,\inn_y,\eta$. Requests between $x,y$ use their side rule. A request between $x$ and the message uses $(1-z^2)C_{in}(z)$; one between $y$ and the message uses $[i=n]$. There are no same-kind requests, including message-to-message requests. Let $\up(x,y;m)$ be the sum of upper half-routing values. Define $\down(u,v;m)$ similarly, with the message roles exchanged, the internal $uv$ rule, a copy $[i=n]$ at $u$, and $C_{in}(z)$ at $v$.
+
+\begin{lemma}[Two cuts]\label{lem:cuts}
+For every even $k$ with $|k|\le2H$,
+\begin{align}
+ \Pi_k&=\sum_{m\in\Lambda_{\le H+k/2}}\ \sum_{|c|\le3H}
+ [z^{k-c}]\up(x,y;m)\,[z^c]\down(u,v;m),\label{eq:rowcut}\\
+ \Pi_k&=\sum_{m\in\Lambda_{\le H-k/2}}\ \sum_{|c|\le3H}
+ [z^{-k-c}]\up(x,u;m)\,[z^c]\down(y,v;m).\label{eq:colcut}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+First,
+\begin{equation}\label{eq:glue}
+ \Pi_{x,y,u,v}(z)=\sum_m\up(x,y;m)\down(u,v;m).
+\end{equation}
+To see this, glue downward message requests of each type from the upper half, in their source order, to the numbered message sources in the lower half; glue upward requests in the same way. The result is a full source-to-target assignment with one intermediate type on each crossing request. Cutting in this order is the inverse. There is no factorial factor: the source order fixes the identification. Summing each intermediate type gives the full request rule; on $xv$ it gives equality by \cref{lem:equality}, on $yu$ a copy, and on $xu,yv$ their side rules.
+
+An internal upper request contributes an exponent at least minus its two endpoint weights. A request meeting a message type $n$ at a corner type $i$ contributes an exponent at least $(n+1)-(i+1)$ by \eqref{eq:metric}. Thus every exponent in either half is at least $\wt m-H$. In particular only finitely many messages contribute to a fixed coefficient in \eqref{eq:glue}. For the coefficient $k$ the two half-exponents require
+\[
+ c\ge\wt m-H,\qquad k-c\ge\wt m-H.
+\]
+This implies $\wt m\le H+k/2$ and $|c|\le3H$, proving \eqref{eq:rowcut}. Apply \eqref{eq:transpose} to obtain \eqref{eq:colcut}.
+\end{proof}
+
+The two message caps add to $2H$. Their \emph{code lengths} need not add to a fixed amount; this is why the next invariant uses weights.
+
+\subsection{Cliques, packing, and the potential}\label{sec:cliques}
+
+A clique $\mathcal C$ has $q=2^h$ nodes named by $h$ bits, a budget $a_{uv}=a_{vu}\ge0$ on every pair, and a table $T_v$ at every node. Its value and potential are
+\[
+ Z(\mathcal C)=\sum_{\theta_{uv}\in\Lambda(a_{uv})}\prod_v T_v(\theta_v),
+ \qquad
+ \Phi(\mathcal C)=(q-1)^2\sum_{\{u,v\}}a_{uv}.
+\]
+The tables may have signed integer values. By \cref{lem:codes} and Cauchy--Schwarz, the codes of all pair labels have total length $O(\sqrt\Phi)$.
+
+\begin{lemma}[Initial clique]\label{lem:initial}
+There is a clique $\mathcal C_0$ of value $Z(G)$, with name length $h_*=\Theta(\log s)$ a power of two, such that $q_*=2^{h_*}$ satisfies $q_*^3\le s$, and $\Phi(\mathcal C_0)=O(s^2)$. Its table entries are products of polynomially many local network values and encoding or equality tests. Each budget and each selected factor is recoverable in logarithmic space given read access to its argument labels.
+\end{lemma}
+
+\begin{proof}
+For sufficiently large $s$, choose the largest power of two $h_*$ with $2^{3h_*}\le s$. Then $s<2^{6h_*}$. Put $K=q_*/2$ and $M=|E(G)|$. Group the original vertices by consecutive ranges of their cumulative port counts, using intervals of length $D_0=\max\{1,\lceil2M/K\rceil\}$ and truncating the group index at $K-1$. Every group has at most $D_0+\Delta$ ports, where $\Delta=O(\log s)$. Isolated vertices cause no difficulty.
+
+Subdivide every original edge with an equality-test vertex. For each unordered pair of original groups, including an equal pair, list its edges in their canonical order and distribute their tests cyclically among $K$ test groups. Use the $K$ original groups and the $K$ test groups as clique nodes. A pair carrying $d$ half-edge bits has budget $d(d+1)/2$, with its bits encoded by $\enc$. Original-group tables multiply the original functions; test-group tables multiply equality tests. All tables first check that their labels encode strings of the required widths. No half-edge lies inside a group, so no table contains an internal sum. Thus $Z(\mathcal C_0)=Z(G)$.
+
+If an original group has $d_i$ ports, its number of half-edges to a fixed test group is at most $d_i/K+K+1$. Therefore the maximum pair width satisfies
+\[
+ d_{\max}=O(M/K^2+(\Delta+1)/K+K+1).
+\]
+At most $K^2$ budgets are nonzero and each is $O(d_{\max}^2)$, yielding
+\[
+ \Phi(\mathcal C_0)
+ =O\bigl((M+K\Delta+K^3)^2\bigr)=O(s^2).
+\]
+Group membership, cyclic ranks, and half-edge positions are counts over polynomial-size universes, computed by bounded nested scans with logarithmic counters. The coding lemma supplies label tests and individual bits. This proves the access assertion. Bounded small values of $s$ can be handled by a fixed brute-force formula.
+\end{proof}
+
+Suppose $h\ge2$ is even. Put $g=2^{h/2}$, so $q=g^2$, and view a name as a row-column pair $(A,B)$. Pairs within one row or one column are \emph{straight}; every other pair is a diagonal of exactly one rectangle. Replace each pair label by its two independent endpoint copies, with an equality test. Apply \eqref{eq:cross} to the two diagonals of every rectangle.
+
+Fix all grades $\mathbf k=(k_R)_R$. For a row merge, apply \eqref{eq:rowcut}. Two rows share $g$ vertical labels and $\binom g2$ messages. For fixed coefficient splits $\mathbf c=(c_R)_R$ and these shared tuples, the remaining factors separate by row. The table at row $A$ is
+\begin{equation}\label{eq:table}
+ \sum_{\xi}\ \prod_{v\text{ in row }A}T_v(\xi_v)
+ \cdot\prod_{\text{horizontal pairs}}[\text{copies agree}]
+ \cdot\prod_{\text{vertical incidences}}[\text{copy}=\lambda]
+ \cdot\prod_{R\text{ incident with }A}\Psi_R.
+\end{equation}
+Here $\xi$ lists all old label copies in that row, each of its prescribed weight. For the upper row of $R$, $\Psi_R=[z^{k_R-c_R}]\up(x,y;m_R)$; for its lower row, $\Psi_R=[z^{c_R}]\down(u,v;m_R)$. The column construction uses \eqref{eq:colcut} instead.
+
+To pack a shared tuple into one label, set $L=1+g+\binom g2$. Number its entries by streams $\nu=1,\ldots,L-1$, and map a request of type $i$ in stream $\nu$ to type $Li+\nu$, preserving its direction. Since $Li+\nu+1\le L(i+1)$, all legal tuples fit in the budgets
+\begin{align}
+ a^\row_{AA'}&=L\left(\sum_B a_{(A,B),(A',B)}
+               +\sum_{B<B'}(H_R+k_R/2)\right),\label{eq:budgetrow}\\
+ a^\col_{BB'}&=L\left(\sum_A a_{(A,B),(A,B')}
+               +\sum_{A<A'}(H_R-k_R/2)\right).\label{eq:budgetcol}
+\end{align}
+Downward type-zero requests pad the packed label to exact weight. All other requests of a type divisible by $L$, including upward type zero, are forbidden. Removing padding and recovering quotient and remainder in division by $L$ is the unique unpacking.
+
+A merged table is zero unless all its incoming labels have valid packing, each straight stream has its prescribed weight, and each message satisfies its cap. Otherwise it is \eqref{eq:table}. Including these stream tests in table validity is equivalent to inserting the corresponding zero-one factors in the summand. It will also bound every routing coefficient that the formula can reach.
+
+\begin{lemma}[One merge]\label{lem:merge}
+For each grade list choose the orientation of smaller candidate potential, with rows breaking a tie. For $\iota=(\mathbf k,\mathbf c)$ let $\mathcal C_\iota$ be the resulting merged clique. Then
+\[
+ Z(\mathcal C)=\sum_\iota Z(\mathcal C_\iota),\qquad
+ \Phi(\mathcal C_\iota)\le\tfrac12\Phi(\mathcal C).
+\]
+Its name length is $h/2$.
+\end{lemma}
+
+\begin{proof}
+For a fixed grade list, either cut computes the same product of pieces after summing the coefficient splits. Separating the remaining label-copy sums by row or column gives the merged tables. Packing is a bijection on the allowed tuples: its unique padding has nonnegative multiplicity by \eqref{eq:budgetrow}--\eqref{eq:budgetcol}. Invalid tuples contribute zero. Thus either orientation gives the same value after the split sums, proving the identity. The orientation must depend on the grades alone, not the splits.
+
+Each straight pair belongs to exactly one candidate cut and each rectangle's two caps sum to $2H_R$. Hence
+\begin{align*}
+ \Phi_\row+\Phi_\col
+ &=(g-1)^2L\left(\sum_{\text{straight}}a+2\sum_RH_R\right)\\
+ &\le2(g-1)^2L\sum_{\{u,v\}}a_{uv}
+ \le(g-1)^2(g+1)^2\sum_{\{u,v\}}a_{uv}=\Phi(\mathcal C),
+\end{align*}
+since $2L=g^2+g+2\le(g+1)^2$. Choose the smaller candidate. Consequently $\Phi/h$ never increases during recursion.
+\end{proof}
+
+\subsection{Computing a routing coefficient}\label{sec:routing}
+
+A half-routing has a fixed ordered list of distinguishable sources and target multiplicities of a constant number of kinds. Let $N(I,\mathcal T;c)$ denote the coefficient of $z^c$ in its weighted maps from a source interval $I$ onto a target multiset $\mathcal T$, with all target multiplicities met. Put $W=\wt(I)+\wt(\mathcal T)$. A local source-target factor $\omega(p,t)$ is one of the half-rules above, or zero. Its coefficients lie in $\{-1,0,1\}$ and its exponents have magnitude at most $\wt(p)+\wt(t)$.
+
+If $I$ is empty, return $[\mathcal T=\varnothing][c=0]$. If cardinalities disagree or $|c|>W$, return zero. Otherwise split a map at the first source $p$ for which the cumulative source-and-target weight reaches $W/2$. Let $I_1,I_2$ be the intervals before and after $p$, let $t$ be its target, and let $\mathcal T_1$ be the targets before it. Put $\mathcal T_2=\mathcal T-\mathcal T_1-\{t\}$ and $W_1=\wt(I_1)+\wt(\mathcal T_1)$. Then
+\begin{equation}\label{eq:pivot}
+ W_1<W/2\le W_1+\wt(p)+\wt(t).
+\end{equation}
+Conversely, two submaps and a pivot meeting this condition combine uniquely to a map with that first threshold-crossing source. Thus
+\begin{align}\label{eq:routing}
+ N(I,\mathcal T;c)=\sum_{p,t,\mathcal T_1,c_1,c_0}
+ [\eqref{eq:pivot}]\,
+ N(I_1,\mathcal T_1;c_1)\,
+ [z^{c_0}]\omega(p,t)\,
+ N(I_2,\mathcal T_2;c-c_1-c_0).
+\end{align}
+The sum enforces nonnegative residual multiplicities and $|\mathcal T_1|=|I_1|$. Targets of a fixed kind and type are interchangeable, so there is no multiplicity factor. Both child weights are at most $W/2$.
+
+Use fixed $O(\log s)$-bit scalar fields for $p,t,c_1,c_0$, with unique signed encodings. For each target kind, encode its part of $\mathcal T_1$ as a label whose second component is empty, in a field of length $w(W)$; reject a field not satisfying that condition. The sum index has length $O(\sqrt W+\log s)$. Its child is a product of three factors, padded to four by one. Every malformed choice gives zero. The total path cost below a coefficient root of weight $W_0\le s^{O(1)}$ is
+\begin{equation}\label{eq:routingcost}
+ \sum_{d=0}^{O(\log s)}O\left(\sqrt{W_0/2^d}+\lambda\right)
+ =O(\sqrt{W_0}+\log^2s).
+\end{equation}
+Its depth is $O(\log s)$.
+
+\subsection{Unfolding and bounding the paths}\label{sec:paths}
+
+Starting with $\mathcal C_0$, apply \cref{lem:merge} at name lengths $h_*,h_*/2,\ldots,2$. A clique value is a sum over its grade and split choices. At name length one, sum over the code of the single pair label and multiply the two table entries. Expand each merged table by \eqref{eq:table}, every routing coefficient by \eqref{eq:routing}, and every initial table as its product of local factors. Pad product fan-ins by one and malformed sum indices by zero. The resulting formula has value $Z(G)$.
+
+Let $\Phi_*=\Phi(\mathcal C_0)$ and $F=s/\sqrt{h_*}$. At name length $h$,
+\begin{equation}\label{eq:phih}
+ \Phi_h\le\Phi_*h/h_*=O(F^2h).
+\end{equation}
+Every formula path first descends through clique-value choices, then follows one chain of older table entries. An older table never calls a clique value. The path may finally enter one routing-coefficient recursion.
+
+The descending choice indices contain fewer than $q_*^2$ rectangles per level and $O(\log s)$ bits per rectangle. Their total length is
+\[
+ O(q_*^2\log s\log h_*)=o(F),
+\]
+since $q_*^2\le s^{2/3}$. The last, single label has weight $\Phi_1=O(F^2)$ and takes $O(F)$ bits.
+
+A table entry formed from a parent at name length $h$ sums over fewer than $g^3$ copies, $g=2^{h/2}$. Each pair contributes at most two copies, so the sum of their budgets is at most $2\Phi_h/(q-1)^2$. Their code lengths are therefore at most
+\begin{equation}\label{eq:rowlength}
+ O\!\left(\sqrt{\Phi_h}\,2^{-h/4}\right)
+ =O\!\left(F\sqrt h\,2^{-h/4}\right).
+\end{equation}
+The sum of $\sqrt h\,2^{-h/4}$ over $h=2,4,8,\ldots$ is finite. Thus all these setting indices together use $O(F)$ bits.
+
+A reachable routing coefficient has already passed its message cap. Its root weight satisfies $W_0\le H+\wt m\le3H\le3\Phi_h/(q-1)^2$. Equation \eqref{eq:routingcost} adds $O(F+\log^2s)$. Outside the coefficient recursion there are $O(\log\log s)$ levels. Table-product indices have width $O(h)$ at name length $h$, and sum to $O(\log s)$; initial products add $O(\log s)$. Routing products have width two over $O(\log s)$ levels. The additional $\lambda$-charges and product charges are therefore $O(\log^2s)$.
+
+We have proved that the formula has cost $O(F)$ and depth $O(\log s)$. All budgets, grades, splits, types, weights, exponents, offsets, and leaf magnitudes are polynomially bounded in $s$. This proves every assertion of \cref{thm:formula} except the decoder bound.
+
+\section{Decoding a node in polylogarithmic space}\label{sec:decoder}
+
+We prove the remaining assertion of \cref{thm:formula}. Rather than storing smaller versions of the construction's arrays, the decoder replaces every array entry and every derived multiset by a query whose dependencies strictly decrease.
+
+\begin{lemma}[Local decoding]\label{lem:decode}
+Given read-only random access to $x,U,\pi$ and a formula address $\alpha$, the kind, index width, and leaf value of the addressed node are computable in deterministic space $O(\log^2s)$. The decoder is total on arbitrary addresses; an address continuing beyond a leaf, or with invalid structural headers, is reported invalid.
+\end{lemma}
+
+\begin{proof}
+Choose fixed constants large enough that a valid path has at most $c\lambda$ indices and every scalar has magnitude at most $Q=(s+2)^C$. First parse the self-delimiting address headers and store a directory of each index block's offset and length. This costs $O(\lambda^2)$ space. Reject malformed headers, excessive numbers of blocks, oversized lengths, or overflows. The subsequent semantic traversal checks every declared width against the prescribed parent width. The directory is available before semantic decoding, so locating an earlier block never requires a recursive node-decoder call.
+
+\paragraph{Budgets and orientations.}
+For a clique at level $i$, define a routine $\operatorname{Budget}(i,u,v)$. At level zero it performs the logarithmic-space grouping calculation from \cref{lem:initial}. At level $i+1$ it enumerates the summands in \eqref{eq:budgetrow} or \eqref{eq:budgetcol}, recursively querying level $i$. A frame holds a constant number of indices and a running sum of $O(\lambda)$ bits. There are $O(\log\log s)$ levels.
+
+Determine orientations in chronological order. Validate the next grade and split block, using the previously known budgets. With all earlier orientation bits stored, enumerate both candidate budget lists, sum their potentials, and store the next orientation bit. Budget calls in this calculation use only earlier orientations. There is no call from a budget query back to an orientation computation. This part uses $O(\lambda\log\log s)$ space. Offsets of label fields inside a setting are prefix sums of $w(a_{uv})$, obtained with the same routine and one additional accumulator.
+
+\paragraph{Explicit table arguments.}
+The argument of a bottom, two-node table is the explicitly chosen last label. In a merged table, the older-table child has the form $T_v(\xi_v)$ in \eqref{eq:table}; its argument is a slice of the \emph{current sum index}. It is not an unpacked transform of the newer table's argument. On this child the decoder resets its argument descriptor to that explicit slice.
+
+By induction, every table argument is specified by its clique level, node name, and an address-block location. Only a selected straight-label or message factor needs unpacking. Describe a multiset by
+\[
+ \operatorname{Raw}(p,\ell,\varepsilon)
+ \quad\text{or}\quad
+ \operatorname{Stream}(p,\ell,\varepsilon,L,\nu),
+\]
+where $p,\ell$ locate a canonical label code and $\varepsilon$ chooses one component. The first descriptor parses that component's code. The second answers
+\[
+ \mu_{\operatorname{Stream}}(j)=\mu_{\operatorname{Raw}}(Lj+\nu).
+\]
+Direction reversal changes $\varepsilon$. These descriptors have $O(\lambda)$ bits, and their queries use $O(\lambda)$ workspace. They terminate at raw address bits; there are no nested stream descriptors. Count, weight, equality, padding validity, and string-encoding validity are computed by bounded loops over types. Weight always means $\sum_j(j+1)\mu(j)$, not cardinality.
+
+At a merged table, validate each incoming code, packing rule, straight-stream weight, and message cap. Then, if the path supplies a setting $\xi$, validate its constituent raw codes and exact weights. A product-factor index either selects an older table, an equality test, a routing coefficient with a checked message, or a structural padding factor. The positions of these factors are determined by their canonical enumeration. Counts and offsets are polynomially bounded and require only logarithmic counters.
+
+\paragraph{Routing states.}
+At entry to a routing coefficient, the two corner views are raw slices and the message is one stream of a raw slice. Fix these root descriptors and the source order (kind, type, occurrence). The decoder maintains the source interval's endpoints, the desired exponent, and a list of short records for the routing descents already traversed. A record holds the direction, pivot target, scalar fields, and locations of the explicit $\mathcal T_1$ codes. It uses $O(\lambda)$ bits.
+
+For the current target multiplicity at routing depth $d$, let $q_0$ be the last left descent, or zero when there was none. A left descent resets the targets to the explicitly encoded $\mathcal T_1$ at that descent. All subsequent descents are right, so, separately for each target kind,
+\begin{equation}\label{eq:telescope}
+ \mu_{\mathcal T_d}(j)=\mu_{\mathcal T_{q_0}}(j)
+ -\sum_{q=q_0+1}^d\left(\mu_{\mathcal T_1^{(q)}}(j)+[j=t_q]\right).
+\end{equation}
+Each summand is a direct raw-code query. When $q_0=0$, the first term is a root descriptor query. Evaluate this formula with a loop over records and a running signed sum. It neither calls itself nor reconstructs an intermediate code.
+
+A source occurrence's kind and type are found by enumerating root source multiplicities. Interval cardinalities and weights are obtained from these queries and the interval endpoints. To traverse a proposed split, check canonical codes, nonnegative residual multiplicities, cardinalities, pivot membership, \eqref{eq:pivot}, and scalar ranges. The scalar field width is fixed from $s$; the three target-code widths are $w(W)$ for the current, already computed weight. Store their offsets after validation. An interval update changes only its endpoints. The new exponent is read or formed by one subtraction. Valid child weights halve, so there are $O(\lambda)$ records.
+
+An empty-source subproblem returns $[\mathcal T=\varnothing][c=0]$; an impossible exponent or cardinality returns zero. The selected pivot factor returns its actual coefficient $[z^{c_0}]\omega(p,t)\in\{-1,0,1\}$ by the local rules, not merely a multiplicity test.
+
+\paragraph{Initial leaves and totalization.}
+An initial-clique factor is an encoding test, an equality test, or a local network value. Its $O(\log s)$-bit network argument can be assembled from raw-label multiplicity queries, then passed to the network's logarithmic-space procedure. Empty products give one. Unused product positions give one; a genuine factor whose condition fails gives zero. At any sum, a malformed combinatorial choice gives the zero leaf. A continuation beyond any such leaf is an invalid address, not a newly created descendant.
+
+For malformed strings the decoder uses the same global polynomial caps, aborting before an integer field can exceed the allowed workspace. Valid computations never encounter these caps. All loops have bounded endpoints. Budget recursion decreases the clique level; routing queries use the finite loop in \eqref{eq:telescope}; and label queries end at raw address slices. No subroutine calls the semantic node traversal.
+
+The directory and routing records occupy $O(\lambda^2)$ bits. The simultaneously live budget stack and orientation data use $O(\lambda\log\log s)$ bits. Label queries, local arithmetic, and network procedures use $O(\lambda)$ further workspace. These amounts add, rather than multiply. Thus the decoder always halts in $O(\log^2s)$ space.
+\end{proof}
+
+\begin{proof}[Completion of \cref{thm:formula}]
+The formula and its value identity are constructed in \cref{sec:short}. The estimates in \cref{sec:paths} prove its depth, cost, and scalar bounds. \Cref{lem:decode} supplies its deterministic local decoder, including the total treatment of every child index.
+\end{proof}
+
+\section{Finishing the simulation}\label{sec:finish}
+
+\begin{proof}[Proof of \cref{thm:clocked}]
+Use the binary-normalized machine and its clock as in \cref{lem:block}; this changes $U$ only by a constant factor. Guess the head schedule $\pi$ in $O(U/\log U)$ time. Its network has parameter $s=\Theta(U)$, and the counting formula has value $Z(G_{x,U,\pi})$. For the normalized clock,
+\[
+ 0\le Z(G_{x,U,\pi})\le2^U.
+\]
+Consequently it is positive exactly when some bit $j\in\{0,\ldots,U\}$ is one. Guess $j$ in binary and set $k=U+1$. Verify the selected bit of the formula modulo $2^k$ using \cref{prop:evaluate}.
+
+The cost is $D=O(s/\sqrt{\log s})$, the depth is $r=O(\log s)$, and the node-decoder space is $O(\log^2s)$. The only long sequential auxiliary string is $\pi$, of length $O(U/\log U)$; the address length is already covered by $D$. Thus the verification time is
+\[
+ O\left(\frac{U}{\sqrt{\log U}}+\log^5(U+2)\right)=O(g(U)).
+\]
+This estimate supplies a clock for every branch. Explicitly, from binary $U$ compute $L=\lceil\log(U+2)\rceil$ and an integer
+\[
+ B=C_M\left(\left\lceil\frac{U}{\max\{1,\lfloor\sqrt L\rfloor\}}\right\rceil+L^5+1\right).
+\]
+Here $C_M$ is a sufficiently large fixed constant for the formula and verifier. The integer $B=O(g(U))$ is a valid numerical upper bound. Schoolbook binary arithmetic computes it in $O(L^3)$ time: the only long integer is $U$, division is by an $O(\log L)$-bit integer, and the remaining arithmetic is on $O(\log L)$-bit integers. Write its unary clock in $O(B)$ time. This includes clock initialization in the bound and prevents false metadata from producing an overlong branch.
+
+The machine accepts exactly when some schedule has positive count: the network reduction, formula identities, and bit verifier are all exact. The initial schedule and bit guesses fit in the same time bound. The input length can be supplied in binary, or recovered using the random-access endmarker by doubling and binary search in $O(\log^2(U+2))$ time.
+
+For sequential input, first determine its length and return the input head to the starting position in $O(n)$ time. Replace every subsequent random-access query to $x$ by \cref{lem:terminal}. A physical input check terminates its branch, so it adds at most one $O(n)$ scan. More generally, regardless of which of $x$, $\pi$, or the formula address is checked physically, a branch makes only one such terminal check. Include $n$ in the unary timer. The time is $O(n+g(U))$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{cor:clean}]
+Let $M$ run in time at most $c_Mt(n)\sqrt{\log(t(n)+2)}$. Run a fully time-constructible clock for $t(n)$ while counting its steps in binary. Ripple-carry increments cost $O(t(n))$ in total, so $t(n)$ is obtained in binary within that time. Standard sequential clock construction may read the input; that is permitted because $t(n)\ge n$. Returning its heads to their initial positions and clearing its used workspace costs at most $O(t(n))$ additional time; preserve the computed clock on a separate tape.
+
+From this value construct a dyadic upper bound
+\[
+ U(n)=\Theta\bigl(t(n)\sqrt{\log(t(n)+2)}\bigr)
+\]
+large enough to bound every computation of $M$. Fixed-precision integer square roots, multiplication, and rounding on $O(\log(t+2))$-bit integers take polynomial time in that bit length, hence $O(t)$ time after adjusting finitely many small cases. Then
+\[
+ \log(U+2)=\Theta(\log(t+2)),\qquad g(U)=\Theta(t).
+\]
+All original computations halt within $U$, so the clocked simulation decides the same language. Its sequential-input time is $O(n+g(U))=O(t)$, in addition to $O(t)$ initialization.
+\end{proof}
+
+\begin{proof}[Proof of \cref{cor:original}]
+Obtain binary $n$ by the random-access endmarker convention in $O(\log^2(n+2))$ time, or by a sequential scan in $O(n)$ time. Compute the upper clock $U_0(n)$ by hypothesis and multiply it by a fixed constant covering $M$'s time bound. The resulting $U=\Theta(T(n))$ satisfies $g(U)=\Theta(g(T(n)))$. Apply \cref{thm:clocked}. For $T(n)=n^k$ with fixed $k$, binary exponentiation by the fixed power and constant-factor rounding take polynomial time in $\log(n+2)$, which is absorbed by $g(T(n))$.
+\end{proof}
+
+\section{Remarks on the hypotheses}\label{sec:remarks}
+
+\paragraph{The faster-constructibility hypothesis.}
+One sufficient version of the hypothesis in \cref{cor:original} is the ability to construct
+\[
+ t(n)=\left\lceil\frac{T(n)}{\sqrt{\log(T(n)+2)}}\right\rceil
+\]
+from binary $n$ in $O(t(n))$ time. It is unnecessary to recover $T(n)$ exactly from this rounded value. Since
+\[
+ (t(n)+1)\sqrt{\log(t(n)+2)}=\Theta(T(n)),
+\]
+a sufficiently large fixed constant times this quantity, rounded upward to a power of two, is a valid upper clock. All rounding is performed on its binary representation. This is a length-aware constructibility condition; it is not a claim that a sequential-input clock can read $n$ input symbols in $o(n)$ time.
+
+\paragraph{Why the input qualification is necessary.}
+On a sequential-input machine, no branch of an $o(n)$-time computation reaches the last input cell. The two strings $0^{n-1}0$ and $0^{n-1}1$ therefore have the same entire alternating computation tree, so the language of strings ending in one is not decidable in alternating $o(n)$ time on that model. This explains the $n$ term in the sequential version. When $T(n)\ge n\sqrt{\log(n+2)}$, monotonicity of $g$ gives $n=O(g(T(n)))$, and the term is absorbed.
+
+\paragraph{Scope.}
+The simulation uses unrestricted alternation. Its saving is $\sqrt{\log T}$, and the language-class form has the explicit clock hypotheses above. The proof does not replace those qualifications by an unqualified $T/\log T$ bound, a bounded number of alternations, or an arbitrary unconstructible time function.
+
+\begin{thebibliography}{9}
+\bibitem{Buss87}
+Samuel R. Buss.
+\newblock The Boolean formula value problem is in {ALOGTIME}.
+\newblock In \emph{Proceedings of the 19th Annual ACM Symposium on Theory of Computing}, pages 123--131, 1987.
+\newblock Author's preliminary version, January 1987: \url{https://mathweb.ucsd.edu/~sbuss/ResearchWeb/Boolean/paper.pdf}.
+
+\bibitem{CKS81}
+Ashok K. Chandra, Dexter C. Kozen, and Larry J. Stockmeyer.
+\newblock Alternation.
+\newblock \emph{Journal of the ACM}, 28(1):114--133, 1981.
+\newblock \url{https://doi.org/10.1145/322234.322243}.
+
+\bibitem{Cruz26}
+Charlie Cruz.
+\newblock Simulating Nondeterministic Time in Sublinear Deterministic Space.
+\newblock Manuscript supplied by the author; source file
+\texttt{paper(20261109-045156).tex}, November 2026.
+\newblock Source of the multiset-label, routing, and clique-counting construction reproduced in Section~\ref{sec:short}. The polylogarithmic local decoder and alternating evaluation are developed in the present note.
+\end{thebibliography}
+\end{document}

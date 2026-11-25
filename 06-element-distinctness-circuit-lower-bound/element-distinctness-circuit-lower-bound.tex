@@ -1,0 +1,418 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{xurl}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\ED}{\mathsf{ED}}
+\newcommand{\vol}{\mathrm{vol}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\SIZE}{\mathsf{SIZE}}
+\newcommand{\NTIME}{\mathsf{NTIME}}
+\newcommand{\coNTIME}{\mathsf{coNTIME}}
+\newcommand{\Lclass}{\mathsf{L}}
+\newcommand{\ENP}{\mathsf{E}^{\mathsf{NP}}}
+\hypersetup{pdftitle={Element distinctness requires superlinear circuits, assuming a tensor-network volume bound},
+  pdfauthor={Charlie Cruz},
+  pdfkeywords={circuit lower bounds, element distinctness, tensor networks, volume, superlinear lower bounds, Boolean circuits}}
+\title{Element Distinctness Requires Superlinear Circuits,\texorpdfstring{\\}{ }Assuming a Tensor-Network Volume Bound}
+\author{Charlie Cruz}
+\date{November 24, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+\emph{Element distinctness} asks whether a list of words contains a
+repeated word. A \emph{tensor network} represents a function as a sum,
+over the values of its internal wires, of products of small tables, and
+its \emph{volume} counts its vertices and wires. The recent paper
+\emph{The matrix multiplication exponent is nine fourths} \cite{OAI}
+states a superlinear lower bound on the volume of tensor networks for
+list distinctness (its Theorem~2.2). We observe that this theorem implies
+a superlinear lower bound for element distinctness against unrestricted
+Boolean circuits. Assuming it, there are constants $\sigma,c>0$ such
+that, for all sufficiently large $n$, every fan-in-two circuit over the
+full binary basis computing element distinctness on $n$ bits has at
+least $c\,n(\log n)^{\sigma}$ gates. Element distinctness is in logspace
+and its complement is in nondeterministic linear time, so
+$\Lclass\cap\coNTIME[n]\not\subseteq\SIZE[O(n(\log n)^{\delta})]$ for all
+$\delta<\sigma$. The deduction is short: a circuit converts into a tensor
+network of linear volume. All of the difficulty lies in the imported
+theorem, and we state which parts of its proof we have checked.
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Background}
+Proving that an explicit Boolean function requires superlinear circuit
+size is a basic open problem in complexity theory. It has not been ruled
+out that every function in $\mathsf{NP}$ has circuits of size $O(n)$. The
+best lower bound for an explicit function against fan-in-two circuits
+over the full binary basis has improved from $3n-o(n)$ \cite{Blum} to
+$(3+\tfrac{1}{86})n$ \cite{FGHK} and then to about $3.1n$ \cite{LY}.
+These bounds come from gate elimination, and they are far from even
+$n\log\log n$.
+
+\subsection{Results}
+The November 24, 2026 release on matrix multiplication \cite{OAI}
+contains a statement strong enough to give a superlinear bound. The
+statement we use is Theorem~2.2 of \cite{OAI}, an intermediate theorem
+about tensor networks that test whether a list of words has a repeat; we
+do not use the main result $\omega=9/4$. That theorem is stated without
+hypotheses. We restate the case we need as Theorem~\ref{thm:import} in
+Section~\ref{sec:prelim}, where we also define $\ED_n$, element
+distinctness on $n$ input bits (Definition~\ref{def:ed}).
+
+\begin{theorem}\label{thm:main}
+Assume Theorem~\ref{thm:import} (Theorem~2.2 of \cite{OAI}). There are
+constants $\sigma,c>0$ such that for every sufficiently large $n$, every
+fan-in-two Boolean circuit computing element distinctness $\ED_n$ on $n$
+input bits has more than $c\,n(\log n)^{\sigma}$ gates.
+\end{theorem}
+
+Element distinctness is an easy problem. A logspace machine decides it
+by comparing all pairs of words with a few counters, and a
+nondeterministic machine decides its complement by guessing a repeated
+pair and checking it (Lemma~\ref{lem:uniform}).
+
+\begin{corollary}\label{cor:classes}
+Assume Theorem~\ref{thm:import}. For every fixed $0\le\delta<\sigma$,
+\[
+\Lclass\cap\coNTIME[n]\not\subseteq\SIZE[O(n(\log n)^{\delta})].
+\]
+Moreover, the lower bound holds at every sufficiently large input length,
+not just infinitely often.
+\end{corollary}
+
+For comparison, the refutation of ETH \cite{ETH} gives an
+$\Omega(n\sqrt{\log n})$ lower bound for a language in $\ENP$, but only at
+infinitely many input lengths \cite[Corollary~1.4]{ETH}. Its exponent of
+$\log n$ is larger than ours if $\sigma<1/2$, but its hard function lies
+in a much larger class. To our knowledge, Theorem~\ref{thm:main} is the
+first superlinear lower bound against unrestricted circuits for any
+function in $\mathsf{P}$.
+
+\subsection{Techniques}
+The proof uses one idea, which already appears in \cite{OAI}: a Boolean
+circuit is a tensor network. Put a $0/1$ table at every gate that checks
+the gate's input-output relation, put an equality table wherever a wire
+fans out, and pin the output to $1$. Summing over all values of the
+internal wires then leaves exactly one nonzero term, namely the
+evaluation of the circuit. So the network represents the circuit's
+function exactly, over any field, and its volume is linear in the size
+of the circuit (Lemma~\ref{lem:convert}). In the proof of
+\cite[Proposition~2.3]{OAI}, this conversion is applied to a sorting
+network to bound the volume of list distinctness from above. We apply
+the same conversion in the other direction, against the lower bound of
+\cite[Theorem~2.2]{OAI}.
+
+\subsection{Status of the imported theorem}
+Theorem~\ref{thm:main} is exactly as strong as Theorem~\ref{thm:import},
+and the proof of Theorem~\ref{thm:import} is long. It goes through a case
+analysis on whether the field has \emph{ports}, a nonlinear Poincar\'e
+property of certain metric spaces attached to tensors \cite{Geom}. The
+two cases use different tools: the CAT(0) geometry of spectral points in
+one case, and a self-referential counting argument from \cite{HC} in the
+other. We have read the parts of the argument that interface with list
+distinctness and found no gap. Section~\ref{sec:status} lays out what has
+and has not been checked. We think the reader should treat
+Theorem~\ref{thm:main} as one treats any striking corollary of a new and
+long proof: it is a reason to scrutinize that proof, and a reason to care
+about the answer.
+
+The conversion appears one paragraph after Theorem~2.2 in \cite{OAI}, but
+\cite{OAI} does not state this consequence. We do not know why.
+
+\section{Preliminaries}\label{sec:prelim}
+Circuits are single-output, with fan-in at most two, arbitrary binary
+Boolean gates, and unrestricted fan-out. Size counts gates. All
+logarithms are base two. Time bounds refer to multitape Turing machines.
+
+\begin{definition}\label{def:ed}
+For $w\ge1$ let $n_w=2w\cdot2^w$, and let $D_w:\{0,1\}^{n_w}\to\{0,1\}$
+take a list of $2^w$ words of $2w$ bits each and return $1$ exactly when
+the words are pairwise distinct. For every $n\ge n_1$ let $w(n)$ be the
+largest $w$ with $n_w\le n$. Define $\ED_n:\{0,1\}^n\to\{0,1\}$ to apply
+$D_{w(n)}$ to the first $n_{w(n)}$ input bits and ignore the rest, and
+let $\ED=\bigcup_n\ED_n^{-1}(1)$.
+\end{definition}
+
+Any reasonable encoding of element distinctness works equally well. All
+we need is that $D_w$ appears inside it, after fixing some input bits to
+constants, at input length $O(n_w)$.
+
+\paragraph{Tensor networks.}
+We follow \cite[Section~2.1]{OAI}. Fix a finite field $k$. A \emph{bit
+tensor} of arity $u$ is a function $\{0,1\}^u\to k$. A tensor network
+places a bit tensor (a \emph{table}) at each vertex. Each wire pairs two
+argument positions, and each unpaired position is a named exterior bit.
+For a setting of the exterior bits, multiply the vertex entries and sum
+over all settings of the internal wires. The result is the tensor the
+network represents. The network is \emph{trivalent} if every vertex has
+arity at most three. Its \emph{volume} counts vertices and all wires,
+including exterior wires. Let $\vol_k(T)$ be the minimum volume of a
+trivalent network over $k$ representing $T$. We view $D_w$ as a bit
+tensor with values $0,1\in k$.
+
+\begin{theorem}[{\cite[Theorem~2.2]{OAI}}, case $t=1$]\label{thm:import}
+For every finite field $k$ there is $\sigma>0$ such that for all
+sufficiently large $w$, $\vol_k(D_w)>n_w w^{\sigma}$.
+\end{theorem}
+
+The theorem in \cite{OAI} is stronger. It handles $t$ independent lists
+at once, uniformly for $1\le t\le 2^w$, even when the network shares work
+across lists. We need only one list.
+
+\section{Upper bounds for element distinctness}
+\begin{lemma}\label{lem:uniform}
+$\ED\in\Lclass$, and the complement of $\ED$ is in $\NTIME[n]$.
+\end{lemma}
+\begin{proof}
+From $n$ one computes $w=w(n)$ and $n_w$ by arithmetic on
+$O(\log n)$-bit numbers.
+
+For logspace, loop over all pairs $i<j$ of word indices with two
+$O(w)$-bit counters, and compare the two words bit by bit with a third
+counter. Accept exactly when no pair agrees.
+
+For the complement, the only care needed is to stay within linear time
+on tapes. Obtain $n$ in binary with an amortized constant-time counter,
+and compute $w$ and $n_w$ in polylogarithmic time. Write a marked block
+of length $2w$ on a work tape. Moving a head cyclically along this block
+while scanning the input locates word boundaries at constant cost per
+input bit. A second counter, decremented with amortized constant cost,
+stops the scan at position $n_w$. During one scan, guess the start of a
+word $i$ at a boundary and copy its $2w$ bits to a work tape. Then guess
+the start of a later word $j$ and compare it with the copy. Accept if
+they agree.
+\end{proof}
+
+For circuits, a sorting network followed by comparisons of adjacent
+words gives circuits for $D_w$ of size $O(n_w w^2)$ \cite{OAI}. So
+Theorem~\ref{thm:main} is tight up to the exponent of $\log n$.
+
+\section{Circuits as tensor networks}
+The following conversion is from \cite[proof of Proposition~2.3]{OAI}; we
+write out the size accounting.
+
+\begin{lemma}\label{lem:convert}
+Let $C$ be a circuit with $s$ gates on $n$ inputs computing
+$f:\{0,1\}^n\to\{0,1\}$. Over every field $k$ there is a trivalent network
+with exterior bits $x_1,\dots,x_n$ representing $f$, with values $0,1\in k$,
+and with volume at most $16s+4n+8$.
+\end{lemma}
+\begin{proof}
+Call the inputs and gate outputs \emph{signals}. Give each signal a set
+of \emph{uses}: one for each gate input that reads it, plus one extra use
+for the output signal of $C$. The total number of uses is at most
+$2s+1$.
+
+Put the following tables in the network.
+\begin{itemize}
+\item For each gate $g$ with inputs $a,b$ and output $c$, the table
+$T_g(a,b,c)=[c=g(a,b)]$. Gates of fan-in one or zero get tables of
+arity two or one in the same way.
+\item For the output signal, a pin $P(c)=[c=1]$ attached as its extra use.
+\item For each signal, a distribution structure joining its source (the
+exterior bit for an input, the output position of $T_g$ for a gate) to
+its uses. Let $d$ be the number of uses. If $d=1$, use a single wire.
+If $d\ge2$, use a path of $d-1$ equality tables
+$E(x,y,z)=[x=y=z]$. If $d=0$, end the source at a table that is
+identically $1$.
+\end{itemize}
+Fix an exterior setting $x$. The equality tables force all copies of a
+signal to agree, and the gate tables force each gate output to equal its
+gate's value on its inputs. So exactly one internal assignment has a
+nonzero product: the evaluation of $C$ on $x$. The ones-tables and the
+pin then contribute the factor $[C(x)=1]$. Hence the network represents
+$f$, with entries $0$ and $1$ in $k$, in every characteristic.
+
+There are $s$ gate tables, one pin, at most $n+s$ ones-tables, and at most
+$2s+1$ equality tables in total. That gives at most $V\le 4s+n+2$
+vertices. Every wire has at least one endpoint at a vertex, and every
+vertex has arity at most three, so there are at most $3V$ wires. The
+volume is at most $4V\le 16s+4n+8$.
+\end{proof}
+
+\section{Proofs of the main results}
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Let $n$ be large, put $w=w(n)$, and let $C$ be a circuit for $\ED_n$ with
+$s$ gates. Apply Lemma~\ref{lem:convert} to $C$ over $k=\F_2$. Then attach
+a pin $Z(x)=[x=0]$ to each of the last $n-n_w$ exterior bits. This turns
+those exterior wires into internal wires and adds $n-n_w$ vertices. We
+pin inside the network, rather than fixing inputs of $C$, to avoid
+handling gates with constant inputs. Since $\ED_n$ ignores these bits,
+the pinned network represents $D_w$ on the remaining $n_w$ exterior bits.
+
+By maximality of $w$ we have $n<n_{w+1}=2n_w(w+1)/w\le4n_w$. Comparing
+with Theorem~\ref{thm:import},
+\[
+16s+5n+8\;\ge\;\vol_{\F_2}(D_w)\;>\;n_w w^{\sigma},
+\qquad\text{so}\qquad
+s>\frac{n_w w^{\sigma}-20n_w-8}{16}\ge\frac{n_w w^{\sigma}}{32}
+\]
+for large $w$. Also $2(w+1)\le2^{w+1}$, so $n<n_{w+1}\le 2^{2(w+1)}$.
+This gives $w>\tfrac12\log n-1\ge\tfrac14\log n$ for large $n$. Therefore
+\[
+s>\frac{n_w w^{\sigma}}{32}>\frac{n}{128}\Bigl(\frac{\log n}{4}\Bigr)^{\sigma},
+\]
+and we may take $c=4^{-\sigma}/128$.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:classes}]
+Lemma~\ref{lem:uniform} places $\ED$ in $\Lclass\cap\coNTIME[n]$. For
+$\delta<\sigma$ and any constant $C'$, we have
+$C'n(\log n)^{\delta}<c\,n(\log n)^{\sigma}$ for large $n$. So no circuit
+family of size $O(n(\log n)^\delta)$ computes $\ED$, even at infinitely
+many lengths.
+\end{proof}
+
+\section{Status of Theorem~\ref{thm:import}}\label{sec:status}
+Everything above is elementary. The conversion is already written down
+in \cite{OAI}, and Theorem~\ref{thm:import} is stated there with no
+hypothesis. In particular it assumes neither $\omega<9/4$ (unlike the
+compression theorem it is later combined with) nor Weak ETH. So the
+question is entirely whether Theorem~\ref{thm:import} is correct. We
+outline its proof and state what we know about each piece.
+
+\paragraph{From distinctness to routing.}
+Two calls to a network for $D_w$ can check a \emph{tagged permutation}:
+that a list of tags forms a permutation $\pi$ and that each payload has
+been delivered to position $\pi(i)$ \cite[Section~4.1]{OAI}. Now pin the
+tags to a uniformly random permutation. What remains is a fixed network
+topology that must route $r$ payload bits, each to a uniformly random
+destination among $q$ positions. We checked this reduction, including
+over $\F_2$.
+
+\paragraph{Case 1: no ports.}
+\cite[Lemma~4.1]{OAI} shows that any such topology has size
+$\Omega(r\sqrt{\log q})$. The argument places the network in a spectral
+space whose distances behave like wire lengths. It then compares the
+total distance the payloads must travel with the total length of the
+wires, using a graph entropy bound \cite[Corollary~5.2]{HC} and a minimax
+step. Plain counting gives nothing superlinear here, because the pinned
+tags carry exactly enough information to specify the permutation.
+Everything above linear comes from the geometry. We checked
+\cite[Lemma~4.1]{OAI}. However, it rests on results about CAT(0)
+spectral spaces that we have only spot-checked, namely
+\cite[Theorem~4.3]{Geom} and \cite[Theorems~4.2, 5.1 and~6.1]{HC}. A
+concrete test would be a spectral point whose wire distances on four
+sites violate the CAT(0) quadrilateral inequality. Such a point would
+break \cite[Lemma~4.1]{OAI}.
+
+\paragraph{Case 2: ports.}
+Here a cheap network for $D_w$ is used, through the descent of
+\cite[Proposition~14.1]{Geom}, to compress batches of a signed counting
+tensor $U^*_\ell$ below the exact batch lower bound of
+\cite[Theorem~12.1]{HC}. That theorem is stated without hypothesis, but
+its proof (Sections~13--15 of \cite{HC}) assumes ports. This is
+harmless, since it is only invoked in the ports case. Its proof is a
+diagonal argument, in which a program uses the compression to evaluate
+its own success count and add one. We checked every parameter step of
+the ports case in \cite{OAI}. The diagonal argument in \cite{HC} deserves
+a careful line-by-line audit of its clocks and budgets.
+
+\paragraph{Which case holds.}
+We do not know. The multiplication paper shows that ports in
+characteristic zero would refute Weak ETH \cite[Theorem~7.1]{Mult}. That
+is suggestive, but our field is $\F_2$, and that theorem says nothing
+about characteristic two. So both cases need to be right.
+
+\paragraph{Comparison with network coding.}
+\cite[Lemma~4.1]{OAI} is, in effect, an unconditional superlinear lower
+bound for bounded-degree networks that route bits to data-dependent
+destinations, with arbitrary coding allowed along the way. For Boolean
+circuits, bounds of this kind were previously known only under the
+network coding conjecture \cite{AFKL}. That is a good reason to look hard
+at \cite[Lemma~4.1]{OAI}. By itself it is no reason to doubt the lemma,
+since the spectral machinery of \cite{Geom} is a new tool for charging
+coded information for the distance it travels.
+
+\section{Discussion}
+\paragraph{Open problems.}
+\begin{itemize}
+\item \emph{Make $\sigma$ explicit.} If $\F_2$ has no ports, the proof
+gives every $\sigma<1/2$. What is the best exponent one can extract from
+the ports case? Is $\Omega(n\log n)$ possible for element distinctness,
+matching the sorting upper bound up to a $\log n$ factor?
+\item \emph{Polynomially superlinear bounds.} Can the volume machinery
+of \cite{OAI,Geom,HC} give an $n^{1+\varepsilon}$ lower bound for any
+explicit function? Hardness magnification \cite{MMW,OS} shows that
+$n^{1+\varepsilon}$ lower bounds for certain compression problems would
+already separate $\mathsf{NP}$ from $\mathsf{P}/\mathsf{poly}$. Element
+distinctness is not one of those problems, so no magnification applies
+directly to Theorem~\ref{thm:main}. It would be interesting to know
+whether the tensor-network method can reach them.
+\item \emph{Other functions.} The argument needs only that the function
+forces data-dependent routing. Sorting (as a multi-output function),
+checking a permutation, and set disjointness on structured inputs are
+natural candidates for the same treatment.
+\item \emph{Which case holds for $\F_2$?} Deciding whether characteristic
+two admits ports would remove half of the proof from consideration.
+\end{itemize}
+
+\paragraph{Acknowledgments.}
+The bound is an immediate corollary of \cite[Theorem~2.2]{OAI}, and all
+credit for the underlying theorem belongs to its authors.
+
+\begin{thebibliography}{99}
+\bibitem{AFKL}
+P.~Afshani, C.~B. Freksen, L.~Kamma, and K.~G. Larsen. Lower bounds for
+multiplication via network coding. In \emph{Proceedings of ICALP 2019},
+LIPIcs 132, pages 10:1--10:12, 2019.
+
+\bibitem{Blum}
+N.~Blum. A Boolean function requiring $3n$ network size.
+\emph{Theoretical Computer Science}, 28(3):337--345, 1984.
+
+\bibitem{FGHK}
+M.~G. Find, A.~Golovnev, E.~A. Hirsch, and A.~S. Kulikov. A better-than-$3n$
+lower bound for the circuit complexity of an explicit function.
+In \emph{Proceedings of FOCS 2016}, pages 89--98, 2016.
+
+\bibitem{LY}
+J.~Li and T.~Yang. $3.1n-o(n)$ circuit lower bounds for explicit functions.
+In \emph{Proceedings of STOC 2022}, pages 1180--1193, 2022.
+
+\bibitem{MMW}
+D.~M. McKay, C.~D. Murray, and R.~R. Williams. Weak lower bounds on
+resource-bounded compression imply strong separations of complexity
+classes. In \emph{Proceedings of STOC 2019}, pages 1215--1225, 2019.
+
+\bibitem{OS}
+I.~C. Oliveira and R.~Santhanam. Hardness magnification for natural
+problems. In \emph{Proceedings of FOCS 2018}, pages 65--76, 2018.
+
+\bibitem{OAI}
+OpenAI. The matrix multiplication exponent is nine fourths.
+Preprint, November 24, 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf}{Manuscript}.
+
+\bibitem{HC}
+OpenAI. Circuit lower bounds for Hamiltonian cycle and the permanent.
+Preprint, November 24, 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026/paper.pdf}{Manuscript}.
+
+\bibitem{Geom}
+OpenAI. Euclidean geometry in the asymptotic spectrum of tensors.
+Preprint, November 24, 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Euclidean-geometry-in-the-asymptotic-spectrum-of-tensors-November-24-2026/paper.pdf}{Manuscript}.
+
+\bibitem{Mult}
+OpenAI. The logarithmic exponent of integer multiplication on tapes.
+Preprint, November 24, 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-logarithmic-exponent-of-integer-multiplication-on-tapes-November-24-2026/paper.pdf}{Manuscript}.
+
+\bibitem{ETH}
+OpenAI. The Exponential Time Hypothesis is False.
+Preprint, October 25, 2026.
+\href{https://github.com/openai/math/tree/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-Exponential-Time-Hypothesis-is-False-October-25-2026}{Manuscript repository}.
+\end{thebibliography}
+\end{document}

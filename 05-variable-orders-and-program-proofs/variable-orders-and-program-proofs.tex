@@ -1,0 +1,2968 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{xcolor,xurl}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\hypersetup{pdftitle={Quantifier elimination, variable orders, and program proofs},pdfauthor={Charlie Cruz}}
+\setlength{\emergencystretch}{2em}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\title{\textbf{Quantifier elimination, variable orders,\protect\\ and program proofs}\\[0.45em]
+\large Further logical consequences of integral counting}
+\author{Charlie Cruz}
+\date{19 November 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+The integral contraction recursion of~\cite{Cruz26} has more structure
+than its complexity bound records. Every merge in the recursion makes
+one global row/column choice. Grouping the expanded formula by these
+choices writes it as a sum of at most $h$ ordered formulas of total
+size $2^{O(s/\sqrt h)}$, for every power of two $h$ with $2^{3h}\le s$.
+The $h$ variable orders can be prescribed independently of the network.
+Combined with disjoint counting sparsification, this gives
+subexponential weighted-model formulas and integral multilinear IPS
+refutations that use any number of orders tending to infinity.
+
+A 2026 construction of fast codes and a specialization of Homeister's
+lower-bound argument show that this is qualitatively tight for an
+explicit family of unambiguous existential 3-CNFs: eliminating the
+witnesses into an XOR of ordered parity programs has subexponential
+minimum size if and only if the permitted number of orders tends to
+infinity. Separately, the time--space simulation of~\cite{Cruz26}
+implies a lower bound for equivalence of ordinary binary regular
+expressions: no nondeterministic multitape algorithm decides it in
+time $o(n\sqrt{\log n})$, where $n$ is the full syntax length. As a
+consequence, fully written tree-like Kleene-algebra proofs cannot have
+uniformly near-linear total symbol size. We also prove a restricted
+same-arity separation in descriptive complexity, and we isolate the
+unproved reflection step that would yield subexponential Frege
+refutations.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+\label{sec:premises}
+
+Cruz~\cite{Cruz26} simulates nondeterministic multitape time $t$ in
+deterministic space $O(t/\sqrt{\log t})$ by counting computations with
+an integral arithmetic formula. The formula comes from a contraction
+recursion on a sparse network. The network is first grouped into an
+initial clique of $q=2^h$ nodes, and each subsequent merge contracts
+the clique along its rows or along its columns. The preceding
+note~\cite{PreviousNote} lifts this construction to symbolic weights
+with unique owners and derives first-failed-clause IPS certificates
+from it.
+
+This paper starts from one structural observation. Each merge makes
+a single \emph{global} row/column choice, and all these choices are
+made before any table entry is unfolded. Grouping the expanded formula
+by its history of cuts therefore writes it as a sum of at most $h$
+formulas, each of which respects one variable order. The orders are
+determined by the cut histories alone, and with a suitable placement
+of the weight owners they do not depend on the network. Most results
+below are consequences of this observation; the remaining ones use the
+simulation theorem of~\cite{Cruz26} directly.
+
+\subsection{Main results}
+
+\paragraph{Result 1: a tunable, universal order list.}
+For a Boolean circuit whose gates and input vertices total $s$, and
+every integer order budget $k\ge1$, the compiler gives at most $k$
+ordered parity programs of total size
+\[
+  2^{O\!\left(s/\sqrt{\min\{k,\log(s+2)\}}\right)}.
+\]
+The hidden constant does not depend on $k$. The permitted list of
+orders is fixed from the input-universe size and the recursion
+parameter, independently of the circuit. This is a nonuniform size
+statement. Its proof also gives constant-free ordered arithmetic
+formulas over the integers. See Section~\ref{sec:few-order} and
+Theorem~\ref{thm:few-order-skolem}.
+
+\paragraph{Result 2: an exact qualitative quantifier-elimination threshold.}
+There is a polynomial-time constructible sequence of unambiguous
+existential 3-CNFs $\exists z\,\Phi_i(u,z)$ with $N_i$ free bits and
+$O(N_i)$ total variables and clauses. Let $S_i(k)$ be the minimum
+size after eliminating $z$ into an XOR of at most $k$ layered ordered
+parity branching programs. Then, for every sequence $k_i\ge1$,
+\[
+ \log_2 S_i(k_i)=o(N_i)\quad\Longleftrightarrow\quad k_i\to\infty.
+\]
+The quantitative bounds are $2^{\lfloor cN_i/2^k\rfloor}$ from below
+and $2^{O(N_i/\sqrt{\min\{k,\log N_i\}})}$ from above.
+They do not match quantitatively. The family already has linear-size
+Boolean circuits; the lower bound concerns its representation after
+quantifier elimination. See Corollaries~\ref{cor:diverging-orders-parity}
+and~\ref{cor:unambiguous-qe}.
+
+\paragraph{Result 3: restricted structure for all 3-CNF IPS certificates.}
+For any diverging order budget, every unsatisfiable $n$-variable 3-CNF
+has an integral, constant-free, syntactically multilinear Hilbert-like
+IPS certificate of total size $2^{o(n)}$ using at most that many
+orders. Its formal degree is at most $n$, and every gate has degree
+at most one in the clause placeholders. The order list can be fixed
+in advance. The uniform explicit clause-sensitive bound remains
+$2^{O((n+m)/\sqrt{\log(n+m+2)})}$. See
+Theorems~\ref{thm:few-order-ips} and~\ref{thm:universal-variable-order-ips}.
+
+\paragraph{Result 4: program equivalence and a named proof calculus.}
+For ordinary binary regular expressions of full encoding length $n$,
+universality, nonuniversality, equivalence, inequivalence, inclusion,
+and noninclusion are outside $\mathrm{NTIME}_{\rm mt}[t]$ for every
+$t(n)=o(n\sqrt{\log n})$. For every fixed $0<\epsilon<1/2$, fully
+written tree-like Kleene-algebra proofs of all valid equations cannot
+have worst-case total symbol size
+$O(n(\log n)^{1/2-\epsilon})$. This is a superlinear worst-case
+bound; we do not exhibit an explicit family of exponentially hard
+identities. See Theorems~\ref{thm:regex-nondet-lower}
+and~\ref{thm:ka-tree-superlinear}.
+
+\paragraph{Further results.}
+Section~\ref{sec:skolem} shows that, for a circuit with at most one
+witness per input, the acceptance bit and every witness bit have
+few-order representations whose total size obeys the bound of Result~1;
+when every input has a witness, these are Skolem functions.
+Section~\ref{sec:bounded-variable} separates a bounded-variable
+expansion-counting logic from vectorial partial fixed points of the
+same arity. Section~\ref{sec:few-order-frege-milestone} states a
+reflection hypothesis for the compiled certificates, which we do not
+prove, and shows that it would give $2^{o(n+m)}$-size Frege
+refutations of 3-CNFs; it also explains why known IPS-to-Frege
+simulations do not supply this hypothesis.
+
+\subsection{Dependencies and status}
+
+The results above are consequences of the manuscript~\cite{Cruz26} and
+of the explicitly cited published inputs listed below. The simulation
+and contraction identities of~\cite{Cruz26} are used as input theorems
+and are not reproved here. The new structural arguments, reductions,
+size transfers, and the lower-bound specialization are proved in full.
+The Frege-reflection hypothesis of Section~\ref{sec:few-order-frege-milestone}
+is explicitly conditional. No conjectural class separation is claimed
+as a theorem. Our literature searches did not establish priority for
+every consequence; the one relevant source we could not consult in full
+is identified in Section~\ref{sec:ka-proof-lower}.
+
+We refer to results of~\cite{Cruz26} by descriptive names: its
+\emph{simulation theorem} and \emph{counting-classes theorem} (labelled
+\texttt{thm:main} and \texttt{thm:counting-classes} in its source), its
+\emph{initial-clique lemma} (\texttt{lem:top}, proved in its appendix),
+its \emph{merge lemma} (\texttt{lem:merge}), its \emph{formula
+construction} (\texttt{sec:formula}), and its \emph{path-index lemma}
+(\texttt{lem:paths}). The inputs are used in the following roles.
+\begin{enumerate}
+\item The simulation theorem of~\cite{Cruz26} proves, for every function
+$t(n)\ge n$ and without a constructibility assumption,
+\[
+ \mathrm{NTIME}_{\rm mt}[t]\subseteq
+ \mathrm{DSPACE}[O(t/\sqrt{\log t})].
+\]
+The counting-classes theorem of~\cite{Cruz26} gives the analogous
+inclusions for the probabilistic, parity, fixed-modulus and
+equality-count acceptance criteria used below.
+\item The initial-clique lemma, the merge lemma, the formula
+construction, and the path-index lemma of~\cite{Cruz26} provide the
+clique recursion and its potential and path-index bounds. The initial
+clique uses $q=2^h$ nodes and has potential
+$O((M+q\Delta+q^3)^2)$ for an $M$-edge network of maximum degree
+$\Delta$. The proof uses only $q^3\le s$ until the final choice
+$h=\Theta(\log s)$.
+\item The integral weighted lift of the preceding
+note~\cite{PreviousNote} uses the integer coefficient identities
+of~\cite{Cruz26} before any numeric specialization. Give every symbolic
+weight block one owner vertex. A product of table entries combines
+disjoint groups of original vertices, so every product has disjoint
+owner scopes. Routing coefficients, tests, grades and split indices
+are independent of the symbolic weights. Thus the expanded integer
+formula is syntactically multilinear in those blocks. A vertex entry
+which is $0,1$, or a linear form in its owner block adds only bounded
+local formula size. A root-to-leaf sum of branch-index lengths
+$O(F)$ bounds the expanded tree size by $2^{O(F)}$: identify a leaf
+by its sequence of child indices, including delimiters charged to
+the node overhead in the path-index lemma. Different leaves have
+different addresses of $O(F)$ bits, hence there are at most $2^{O(F)}$
+leaves and nodes. These observations form the weighted-formula
+interface used here; they do not convert a general space algorithm
+into a multilinear formula.
+\item Disjoint counting sparsification \cite[Lemma~4]{Ant26}, also
+stated as assumption (A1) in \cite[Section~2]{Szeider26}: for every
+fixed $\epsilon>0$, a 3-CNF on a specified universe of $n$ variables
+has its model set partitioned into the model sets of at most
+$2^{\epsilon n}$ 3-CNFs, each with at most $M_\epsilon n$ clauses.
+This is used only for nonuniform variable-only size bounds. We do not
+infer a uniform sublinear-space implementation of sparsification.
+\end{enumerate}
+Further published inputs are used locally: fast codes with fast duals
+\cite{BR26,BIR26} and Homeister's lower-bound method \cite{Homeister03}
+in Section~\ref{sec:parity-findings}, the invalid-computation reduction
+of Gramlich and Schnitger \cite{GS05} in Section~\ref{sec:regex-lower},
+and Kozen's completeness theorem \cite{Kozen94} in
+Section~\ref{sec:ka-proof-lower}.
+
+\subsection{Conventions}
+\label{sec:conventions}
+
+All logarithms are base two unless a source explicitly uses another
+base. For a positive integer $N$, $[N]=\{1,\ldots,N\}$. Machine space counts work-tape cells; inputs are read only.
+Every machine has a fixed finite number of tapes and a fixed finite
+alphabet. Circuit size includes input vertices, so witness bits are
+not free. Arithmetic formula size counts gates and leaves. A
+constant-free formula uses only the constants $0,1,-1$. Arithmetic
+branching programs may have field constants produced by summing
+constant paths; the constant-free assertion applies to the formulas.
+Parity programs are over $\mathbb F_2$, and their size counts vertices
+and edges.
+
+\paragraph{Ordered formulas.}
+The ordered model (Definition~\ref{def:ordered-formula}) constrains
+products, not sums: a product must place all variable blocks of its
+left factor before all variable blocks of its right factor. Different
+branches of a sum may mention the same variables. Over $\mathbb F_2$
+addition is XOR, and a parity program accepts exactly when its number
+of active accepting paths is odd. These choices permit cancellation
+throughout the upper and lower bounds.
+
+\paragraph{Ordered parity programs.}
+An ordered parity branching program is layered: each variable
+has one layer, all variable layers follow one fixed permutation, and
+edges in a variable layer are labelled by $0$, $1$, or $\star$.
+An edge with Boolean label $b$ is active when that layer's input bit
+is $b$; a $\star$ edge is always active. Additional constant layers
+are permitted between variable layers. Multiple edges with the same
+label and parity nondeterminism are allowed. Its value is the parity
+of the number of active source-to-accepting-terminal paths.
+Its size counts vertices and edges, including terminals.
+A sum of $k$ such programs is the XOR of their computed functions; the
+orders may differ. Its total size is the sum of component sizes.
+
+
+\subsection{Organization}
+
+Section~\ref{sec:few-order} proves the few-order structure of the
+contraction formula, shows how to prescribe the orders in advance, and
+makes the number of orders a free parameter.
+Section~\ref{sec:ips-universal} derives weighted-model formulas and IPS
+certificates with universal order lists, and Section~\ref{sec:skolem}
+derives Skolem functions for unique witnesses.
+Section~\ref{sec:parity-findings} proves the matching qualitative lower
+bound from fast codes and explains why the existing lower bounds do not
+transfer to general circuits.
+Sections~\ref{sec:regex-lower} and~\ref{sec:ka-proof-lower} prove the
+regular-expression and Kleene-algebra lower bounds, and
+Section~\ref{sec:bounded-variable} the same-arity separation.
+Section~\ref{sec:few-order-frege-milestone} treats the conditional
+Frege transfer, and Section~\ref{sec:open-map} lists open problems.
+
+Several small instances are worked out along the way: a one-bit
+crossing, a $2\times2$ grid, all four $h=4$ cut histories, a
+four-clause unsatisfiable formula, prefix-block examples, a seven-bit
+code, a single AND-gate quantifier elimination, a three-cell
+transition, and a two-node Kleene-algebra proof. They illustrate the
+exact definitions; none replaces a general proof.
+
+\section{Logarithmically many variable orders suffice}
+\label{sec:few-order}
+
+This section proves the structural consequence of the integral
+contraction construction on which the rest of the paper rests. It uses
+the weighted-network lift and formula-size bound of the preceding
+note~\cite{PreviousNote}, together with the actual placement of the
+sums in the formula construction of~\cite{Cruz26}. The point is that
+the clique-value recursion chooses one \emph{global} row or column cut
+per merge. All these choices precede the final two-node product, after
+which table entries are unfolded, and no independently chosen cuts are
+introduced during table unfolding.
+
+Let $s$ be the network size parameter, and let $h$ be the initial name
+length, a power of two with $q=2^h$ initial clique nodes. In the choice
+made in~\cite{Cruz26}, $h$ is the largest power of two satisfying
+$2^{3h}\le s$, and the arithmetic formula has size
+$S=2^{O(s/\sqrt{\log s})}$. Original symbolic weights occur at unique
+owner vertices. All routing coefficients and consistency tests are
+constant with respect to these weights.
+
+\subsection{Cut histories and ordered components}
+
+We first define the class of formulas that the compiler produces.
+
+\begin{definition}[Ordered formulas]
+\label{def:ordered-formula}
+Fix a linear order $\pi$ of variable blocks. A formula is $\pi$-ordered
+if its leaves contain at most one variable block, and at each product
+gate every block used by the left child precedes every block used by the
+right child. A child with no variable blocks imposes no restriction.
+Addition gates may have arbitrary overlaps. Products of more than two
+factors are bracketed without changing their displayed order.
+\end{definition}
+
+\begin{lemma}[The order determined by a cut history]
+\label{lem:cut-history-order}
+Put $d=\log_2 h$. Each global cut history
+$\sigma\in\{R,C\}^d$ determines a linear order $\pi_\sigma$ of the
+initial clique nodes, independent of every grade, split, label, and
+table-entry choice. For that history, all products in the unfolded
+formula combine consecutive node groups in this order.
+\end{lemma}
+
+\begin{proof}
+Identify the positions of an original node name with the ordered list
+$I=(1,\ldots,h)$. Define a permutation $P_\sigma(I)$ recursively.
+If $|I|=1$, let $P_\varnothing(I)=I$. Otherwise split $I$ into its
+first and second halves $I_L,I_R$. Set
+\[
+ P_{R\tau}(I)=P_\tau(I_L)\,I_R,
+ \qquad
+ P_{C\tau}(I)=P_\tau(I_R)\,I_L,
+\]
+where juxtaposition concatenates lists. Order original clique nodes
+lexicographically by their name bits read in the order $P_\sigma(I)$.
+This is $\pi_\sigma$.
+
+At the first row merge, a new node is indexed by the bits $I_L$ and
+its table is a sum of products over the old nodes indexed by $I_R$,
+taken in lexicographic order. Thus the eventual order of the retained
+bits is followed by the unchanged lexicographic order of the discarded
+bits. This gives precisely the first recursion above. At a column merge,
+the same argument exchanges the two halves and gives the second
+recursion. Apply this reasoning at every subsequent merge. At name
+length one, the product of the two final tables takes bit values zero
+and one in that order, which is the base case.
+
+Consequently, the value expansion orders all original table factors
+by $\pi_\sigma$. More specifically, a current table represents the
+original nodes having a fixed setting of the retained coordinates.
+These coordinates form an initial segment in $P_\sigma(I)$, so its
+group is an interval of the final lexicographic node order. Its product
+of predecessor tables lists the consecutive subintervals in order.
+The intervening factors are routing coefficients or consistency tests
+and contain no symbolic weights. Sums over labels and splits change
+which entries are selected but not the order of these groups.
+\end{proof}
+
+\paragraph{Small order check.}
+For $h=2$, the two orders of a $2\times2$ grid are row-major
+$00,01,10,11$ and column-major $00,10,01,11$. For $h=4$, the four
+bit-position orders are $(1,2,3,4)$, $(2,1,3,4)$,
+$(3,4,1,2)$, and $(4,3,1,2)$. These result respectively from
+$RR,RC,CR,CC$. No grade index changes an order after its two cut choices
+have been fixed.
+
+The next lemma splits the formula into one component per cut history.
+
+\begin{lemma}[Filtering histories without enlarging a component]
+\label{lem:filter-histories}
+The weighted contraction polynomial computed by the formula
+of~\cite{Cruz26} can be written
+\[
+ W=\sum_{\sigma\in\{R,C\}^{\log_2h}} A_\sigma,
+\]
+where each $A_\sigma$ is an ordered, syntactically multilinear formula
+of size at most $S$, after an inessential constant-factor binary
+expansion. The order may depend on $\sigma$, but there are at most $h$
+orders in total.
+\end{lemma}
+
+\begin{proof}
+The clique-value part of the formula consists of nested sums over full
+grade-and-split lists, one list per merge. Once its grades are fixed,
+the orientation of that entire clique is a determined function of its
+budgets and those grades. For a fixed $\sigma$, replace by zero every
+child of one of these sum gates whose chosen orientation disagrees
+with the corresponding symbol of $\sigma$. Retain all other gates.
+Replacing a subtree by a constant leaf cannot enlarge the tree.
+
+Every complete grade-and-split history has one orientation string, so
+its contribution survives in exactly one component. Distribution of
+the clique-value sums therefore gives the displayed equality.
+Contributions from invalid encodings are harmless: their value is
+zero in each component where they remain.
+
+Choose once and for all an order of the original vertices within each
+initial clique group. In its initial table entry, put the vertex
+factors in that order. The coefficient ring is commutative, so this
+does not alter the polynomial. Read the weight owners in this order
+inside each group, and concatenate these lists in the node order
+$\pi_\sigma$ of Lemma~\ref{lem:cut-history-order}. This gives one
+global order of the weight blocks. Lemma~\ref{lem:cut-history-order}
+shows that all later table products respect this order. The constant-only coefficient
+recursions introduce no weight blocks. Thus $A_\sigma$ is ordered.
+The unique-owner scope invariant gives syntactic multilinearity.
+There are $2^{\log_2h}=h$ histories.
+\end{proof}
+
+\begin{lemma}[Ordered formulas to oblivious branching programs]
+\label{lem:ordered-formula-roabp}
+Let $A$ be a $\pi$-ordered arithmetic formula of size $S$ in $N$
+variable blocks, whose nonconstant leaves are linear forms in one
+block. Suppose a source--target path in its formula gadget uses at
+most one nonconstant edge from each block. It can be converted to an
+arithmetic oblivious branching program respecting $\pi$, of size
+$O((N+1)S^2)$, with entries affine in one block per layer. In particular,
+scalar blocks give a read-once oblivious arithmetic branching program.
+For a paired block $\{w_{i,0},w_{i,1}\}$, the matrix of that block
+may instead be refined into two scalar layers with a factor-two width
+increase.
+\end{lemma}
+
+\begin{proof}
+For each subformula construct a directed acyclic source--target
+gadget. A leaf is one edge; an affine label is split into parallel
+constant and homogeneous linear edges. At an addition gate, take disjoint child
+gadgets in parallel, with constant-one entrance and exit edges. At a
+product, join the first target to the second source in series. Path
+weights sum at an addition and multiply at a product, so the resulting
+gadget computes $A$ and has $O(S)$ edges. The ordered condition implies
+that nonconstant labels on any path occur in $\pi$ order.
+
+To make the conversion explicit, number the gadget vertices
+in topological order and let $v=O(S)$ be their number. Let $M$ be
+its matrix of constant-edge weights and let $E_j$ be its matrix of
+edges carrying a nonconstant linear form from the $j$th block.
+All matrices are $v\times v$.
+Since $M$ is strictly upper triangular, $M^v=0$. Set
+\[
+ D=I+M+\cdots+M^{v-1}.
+\]
+Its entry $D_{u,u'}$ is the sum of weights of constant-only paths from
+$u$ to $u'$, including the empty path when $u=u'$. If $a,b$ are the
+source and target, the polynomial of the gadget is
+\[
+ e_a^{\mathsf T}\left(\prod_{j=1}^{N}(I+D E_j)\right)D e_b.
+\]
+To verify the equality, expand the product. A term selects an increasing
+sequence of block positions. Each selected factor chooses a
+constant-only path followed by one edge carrying that block; the
+last $D$ chooses a constant-only suffix. Every original source--target
+path has exactly this decomposition into its nonconstant edges and
+maximal intervening constant segments. Conversely, every concatenation
+counted by this expansion is a path of the original graph. Orderedness
+ensures its nonconstant edges have distinct increasing positions.
+
+The displayed product is an ROABP of width at most $v$, with at most
+$O(Nv^2)$ edges, and constant source and target vectors. Every entry
+of $I+D E_j$ is affine in the $j$th block. Constant endpoint vectors
+can be incorporated into the first or last matrix. The case $N=0$
+is a scalar constant. This proves the claimed size bound.
+
+For a weight pair, write its matrix as
+$A_0+A_1w_{i,0}+A_2w_{i,1}$. The identity
+\[
+ A_0+A_1w_{i,0}+A_2w_{i,1}
+ =\begin{bmatrix}A_0+A_1w_{i,0}&A_2\end{bmatrix}
+  \begin{bmatrix}I\\w_{i,1}I\end{bmatrix}
+\]
+refines it into two consecutive scalar layers. The intermediate width
+doubles and the entrance and exit widths are unchanged.
+\end{proof}
+
+\subsection{The compiler and prescribed orders}
+
+Combining the three lemmas gives the compiler for weighted model
+counts.
+
+\begin{theorem}[Few-order weighted-count compiler]
+\label{thm:few-order-compiler}
+Every 3-CNF with $n$ specified variables and $m$ clauses has a weighted
+model polynomial that is a sum of $O(\log(n+m+2))$ ordered multilinear
+arithmetic formulas, each with constants $0,1,-1$, of total size
+\[
+ 2^{O((n+m)/\sqrt{\log(n+m+2)})}.
+\]
+Consequently it is a sum of that many ROABPs, with the same asymptotic
+total size over any field. More precisely, the number of orders is at
+most the initial name length $h$ of the construction in~\cite{Cruz26}.
+\end{theorem}
+
+\begin{proof}
+The unique-owner weighted network has size $O(n+m+2)$. Apply
+Lemma~\ref{lem:filter-histories}; multiplying the formula-size bound
+by $h=O(\log(n+m+2))$ preserves its displayed rate. Apply
+Lemma~\ref{lem:ordered-formula-roabp} for the final assertion. The
+formula identities are integral and hence specialize to any field.
+\end{proof}
+
+The orders in Theorem~\ref{thm:few-order-compiler} depend on how the
+initial clique groups the owner vertices. The next lemma fixes that
+grouping in advance, so that the order list depends only on the number
+of owners and on $h$.
+
+\begin{lemma}[Prescribing the owner groups]
+\label{lem:prescribed-owners}
+Let a network have $M$ edges, maximum degree $\Delta=O(1)$, and
+$N\ge1$ symbolic owner vertices of degrees between one and two.
+Fix their ordering $1,\ldots,N$. For any initial name length $h$
+allowed by the contraction construction, the initial groups can be
+chosen so that every owner order $\pi_\sigma$ depends only on $N,h$
+and $\sigma$, independently of the rest of the network. The initial
+potential remains
+\[
+ O\bigl((M+2^h\Delta+2^{3h})^2\bigr).
+\]
+The grouping remains logspace constructible in the full encoding length
+of the explicitly given network.
+\end{lemma}
+
+\begin{proof}
+Put $q=2^h$ and $K=q/2$. As in the proof of the initial-clique lemma
+of~\cite{Cruz26}, the first name bit distinguishes
+$K$ vertex groups from $K$ test groups. Put owner $i$ in vertex group
+\[
+ g(i)=\left\lfloor\frac{(i-1)K}{N}\right\rfloor.
+\]
+Each group contains at most $\lceil N/K\rceil$ owners. To verify
+this, its owner indices satisfy
+$jN/K\le i-1<(j+1)N/K$, an interval containing at most
+$\lceil N/K\rceil$ integers.
+
+Now list the nonowner vertices separately. Let $P$ be their total
+number of ports, and put $D=\max(1,\lceil P/K\rceil)$. Assign a
+nonowner $v$ to
+$\min(K-1,\lfloor\operatorname{pre}(v)/D\rfloor)$, where
+$\operatorname{pre}(v)$ counts only ports of preceding nonowners.
+The same prefix-count argument as in the initial-clique lemma bounds each
+group's nonowner ports by $D+\Delta$: the first such vertex starts
+at or after the group's left threshold, and the last crosses its
+right threshold by at most its own degree. The last group has at
+most $D$ ports. Thus a group's total port load $d_j$ satisfies
+\[
+ d_j\le 2\lceil N/K\rceil+D+\Delta=O(M/K+\Delta+1),
+\]
+because $N\le2M$ and $P\le2M$.
+
+Subdivide every network edge and distribute its equality-test vertex
+cyclically among test groups, separately for each unordered pair of
+vertex groups, exactly as in the initial-clique lemma. Its width estimate uses
+only the port load, not the original prefix assignment. Consequently
+each vertex--test pair has width at most
+$d_j/K+K+1=O(M/K^2+(\Delta+1)/K+K)$.
+There are at most $K^2$ nonzero budgets, and the potential estimate
+in that proof becomes
+$O((M+q\Delta+q^3)^2)$.
+
+Inside each vertex group list owners in increasing owner index and
+place all nonowners anywhere after them. Nonowners and test groups
+carry no symbolic variables. Therefore restricting any node order
+of Lemma~\ref{lem:cut-history-order} to the owners gives a variable
+order determined solely by $N,h,\sigma$. Owner groups use division
+of $O(\log(M+N+2))$-bit integers. The nonowner prefix counts and the
+cyclic test assignments use a constant number of nested scans and
+counters, as in the initial-clique lemma. Vertex names use logarithmic space
+in the full encoding length; for the intended CNF networks the number
+of vertices is polynomial in $M+N$. Hence the construction retains its
+logspace bound in the stated input model.
+\end{proof}
+
+\paragraph{Prescribed-group check.}
+For $N=5$ owners and $K=2$ vertex groups, the groups are
+$\{1,2,3\}$ and $\{4,5\}$, with loads at most
+$2\lceil5/2\rceil=6$ before nonowners are inserted. The owner
+subsequence within either group is unchanged if the network is
+replaced by a different sparsification branch.
+
+\begin{corollary}[Few-order Boolean compilation]
+\label{cor:few-order-boolean}
+Every bounded-fan-in Boolean circuit with $n$ inputs and $g$ gates,
+with $s=n+g+2$, is an XOR of $O(\log s)$ ordered read-once parity
+branching programs of total size $2^{O(s/\sqrt{\log s})}$.
+The orders may differ between summands.
+\end{corollary}
+
+\begin{proof}
+Take the parsimonious Tseitin 3-CNF of the circuit with an asserted
+output. Set both weights of every auxiliary gate variable to one
+already at the network stage. Only the original input pairs need
+symbolic owner vertices; all other vertices are nonowners. By unique
+extension the network polynomial is the model polynomial of the
+original Boolean function. Apply the weighted construction and, when
+universal orders are required, prescribe these input-owner groups by
+Lemma~\ref{lem:prescribed-owners}. Thus the order list depends only on
+the number of original inputs and $h$, not the circuit. Reduce
+modulo two and set $w_{i,1}=x_i$, $w_{i,0}=1+x_i$ in the
+\emph{block} matrix construction of
+Lemma~\ref{lem:ordered-formula-roabp}. Each weight pair occupies one
+matrix layer, whose entries become affine in the single variable
+$x_i$. Thus this produces a read-once program in the induced order
+of the original inputs. Its labels are
+$0,1,x_i,\neg x_i$ after constant-factor subdivision if needed. The
+sum becomes XOR. Substitution and deleting auxiliary positions do not
+increase size beyond a polynomial factor.
+\end{proof}
+
+\subsection{The number of orders as a parameter}
+
+The maximal choice of $h$ in~\cite{Cruz26} is needed only for the final
+size bound. Any smaller admissible $h$ trades size for fewer orders.
+
+\begin{lemma}[Order budget as a parameter]
+\label{lem:variable-order-budget}
+The few-order compiler is valid for every power-of-two name length
+$h\ge1$ with $2^{3h}\le s$, with at most $h$ orders and total size
+$2^{O(s/\sqrt h)}$. Its variable-order list may be fixed in advance
+from the number of owners and $h$.
+\end{lemma}
+
+\begin{proof}
+The initial-potential proof needs $2^{3h}\le s$ to give potential
+$O(s^2)$, and does not need maximality of $h$. The path-index lemma
+of~\cite{Cruz26} bounds the main index contribution by the square
+root of that potential divided by $\sqrt h$, namely $O(s/\sqrt h)$.
+The explicit routing and budget-bookkeeping terms are at most
+$O(2^{2h}\log s\log(h+2)+\log^2s)$. They are
+$O(s^{2/3}\log s\log\log(s+2)+\log^2s)
+ =o(s/\sqrt{\log s})$, hence are absorbed uniformly for
+$1\le h\le(\log_2s)/3$. There remain exactly
+$2^{\log_2h}=h$ histories. Multiplying by $h$ and making the
+polynomial overhead for branching programs preserves the stated
+rate. Apply Lemma~\ref{lem:prescribed-owners} for the last assertion.
+\end{proof}
+
+\begin{proposition}[Parameterized compiler]
+\label{prop:parameterized-parity-compiler}
+Lemma~\ref{lem:variable-order-budget} has the following Boolean form:
+for each power of two $h\ge1$ satisfying
+$2^{3h}\le s$, a circuit of size $s$ has a sum of at most $h$ ordered
+parity branching programs with total size $2^{O(s/\sqrt h)}$.
+The implicit constant is independent of $h$ in this range.
+\end{proposition}
+\begin{proof}
+The initial-clique lemma of~\cite{Cruz26}
+uses $q=2^h$ groups and bounds its potential by
+$O((M+q\Delta+q^3)^2)$.
+Here $M=O(s)$, $\Delta=O(\log s)$, and $q^3\le s$, so
+$q\Delta=O(s^{1/3}\log s)=O(s)$ and the potential is $O(s^2)$
+uniformly in the displayed range of $h$. (The bounded-degree networks
+of Lemma~\ref{lem:prescribed-owners} have $\Delta=O(1)$; only the
+consequence $q\Delta=O(s)$ is used here.)
+Maximality of $h$ is unnecessary for this bound.
+The potential-halving proof then gives the scale $F=s/\sqrt h$.
+The grade-and-split overhead is
+$O(2^{2h}\log s\log(h+2))$, as in Lemma~\ref{lem:variable-order-budget};
+dividing it by $F$ gives at most
+$O(s^{-1/3}(\log s)^{3/2}\log\log(s+2))=o(1)$.
+The table-index estimate and coefficient-recursion estimate in the
+path-index lemma of~\cite{Cruz26} are both $O(F)$ with constants
+independent of $h$, and the $O(\log^2s)$ charge is also $o(F)$.
+The expanded formula therefore has size $2^{O(F)}$.
+There are $\log_2h$ global orientation choices, hence at most $h$
+orientation strings, and Lemma~\ref{lem:filter-histories} puts each
+string into one ordered component.
+\end{proof}
+
+\paragraph{Cancellation between order classes is necessary.}
+The few-order decomposition cannot be verified by checking each
+component separately for zero. In the one-bit crossing of~\cite{Cruz26},
+at $(x,y,u,v)=(0,1,0,1)$ the three grades have values
+$\Pi_2=-1$, $\Pi_{-2}=-1$, and $\Pi_0=2$. A budget-minimizing merge
+uses columns for grade $2$ and rows for grade $-2$. Over
+$\mathbb F_2$, the grade-zero contribution vanishes and the two
+different-order contributions both equal one. Their sum is zero.
+This is already a cancellation between order classes on one crossing.
+
+\paragraph{Limitations.}
+The few-order structure does not by itself prove a general Boolean
+circuit lower bound. Such a lower bound needs a lower bound for the
+\emph{sum} of the allowed ordered programs; a lower bound for a single
+order does not suffice. Existing results must be
+compared in terms of the total number of Boolean variables, their field,
+the permitted number of summands, and the width allowed per summand.
+Nor does the representation directly give short Frege proofs. The
+known white-box PIT for sums of constantly many differently ordered
+ROABPs has double-exponential dependence on the number of summands
+\cite[Theorem~3.2]{GKST15}, and this dependence cannot be treated as
+a constant when the number of summands grows like $\log s$.
+
+
+\section{IPS certificates and weighted counts with universal orders}
+\label{sec:ips-universal}
+
+We now apply the compiler to refutations. The first theorem compiles a
+single network whose value is the first-failed-clause certificate
+(its IPS identity follows Grochow and Pitassi~\cite{GP18}). Its size
+is governed by the number of variables and clauses. The second and third theorems use disjoint
+counting sparsification and the prescribed owner groups of
+Lemma~\ref{lem:prescribed-owners} to obtain bounds in the number of
+variables alone, with one order list shared by all formulas on a
+given universe.
+
+\subsection{A few-order certificate from one network}
+\begin{theorem}[Few-order Hilbert-like IPS]
+\label{thm:few-order-ips}
+Let $F=\bigwedge_{j=1}^m\kappa_j$ be an unsatisfiable 3-CNF with
+$n\ge1$ variables and nonempty, nontautological clauses. Write
+$\eta_i(0)=1-x_i$, $\eta_i(1)=x_i$, and let
+$F_j(\mathbf x)$ be the product of the factors corresponding to the
+unique falsifying values of the variables of $\kappa_j$.
+There is a constant-free syntactically multilinear formula
+$C(\mathbf x,\mathbf y)$ of size
+\[
+ 2^{O((n+m)/\sqrt{\log(n+m+2)})}
+\]
+such that $C(\mathbf x,\mathbf0)=0$ and
+$C(\mathbf x,F_1,\ldots,F_m)=1$ over $\mathbb Z$.
+Moreover, $C$ is a sum of $O(\log(n+m+2))$ ordered multilinear
+formulas, or a sum of that many ROABPs with the same asymptotic size.
+The formula can be chosen to have formal degree at most $n$ and
+placeholder degree at most one at every gate.
+\end{theorem}
+
+\begin{proof}
+Build a network whose Boolean indices include an assignment
+$\alpha\in\{0,1\}^n$, clause-truth bits $b_j$, prefix flags $p_j$,
+and first-failure flags $z_j$. Impose
+\[
+ p_0=1,\qquad b_j=\kappa_j(\alpha),\qquad
+ p_j=p_{j-1}\wedge b_j,\qquad
+ z_j=p_{j-1}\wedge\neg b_j,
+\]
+and impose $p_m=0$. For each variable $i$, compute
+\[
+ r_i=\bigvee_{j:i\in\operatorname{vars}(\kappa_j)}z_j,
+\]
+where an empty disjunction is zero. These constraints have a unique
+extension for each assignment $\alpha$. They satisfy the last assertion
+precisely when $\alpha$ falsifies at least one clause. In that case
+exactly one $z_j$ equals one, and that $j$ is its first falsified clause.
+
+Add one symbolic owner table for each $x_i$, indexed by
+$(\alpha_i,r_i)$, whose value is $1$ when $r_i=1$ and
+$\eta_i(\alpha_i)$ when $r_i=0$. Add one symbolic owner table for
+each $y_j$, indexed by $z_j$, whose value is $y_j$ for $z_j=1$ and
+$1$ for $z_j=0$.
+
+The number of Boolean-gate constraints is $O(n+m)$. Each clause has
+width at most three, so its truth function uses a constant number of
+fan-in-two gates. Let $d_i$ be the number of clauses $\kappa_j$ with
+$i\in\operatorname{vars}(\kappa_j)$, that is, the number of inputs
+$z_j$ of the disjunction defining $r_i$. The disjunction trees defining
+the $r_i$ use $O(\sum_i d_i+n)=O(n+m)$ gates, because $\sum_i d_i$ is
+at most the total number of literal occurrences, which is at most $3m$. Each gate relation is ternary. Replace
+fan-out by degree-three equality trees; their total number of edges
+and vertices is linear in the total number of wire incidences.
+The two-index $x_i$ tables and one-index $y_j$ tables already have
+degree at most two. We obtain an $O(n+m)$-edge network of maximum
+degree three. Every indeterminate has exactly one owner table.
+
+For an assignment with first failed clause $j$, the product of the
+symbolic table entries is
+\[
+ y_j\prod_{i\notin\operatorname{vars}(\kappa_j)}\eta_i(\alpha_i).
+\]
+All consistency-test entries equal one on its unique extension.
+Thus the network value is exactly the first-falsified-clause
+certificate
+\[
+ C(\mathbf x,\mathbf y)
+ =\sum_jy_j\sum_{\alpha:\,j\text{ is first false}}
+      \prod_{i\notin\operatorname{vars}(\kappa_j)}\eta_i(\alpha_i).
+\]
+Its two IPS identities follow as in~\cite{PreviousNote}: after
+substituting $y_j=F_j$, the omitted factors are restored, and the
+assignment sets partition the Boolean cube because $F$ is
+unsatisfiable. Their sum is
+$\prod_i((1-x_i)+x_i)=1$.
+
+Apply the integral contraction formula construction directly to this
+single network. Its scalar table entries are $0,1,x_i,1-x_i,y_j$;
+each has a constant-free formula of bounded size. The owner-scope
+induction proves syntactic multilinearity in all $n+m$
+indeterminates, and initially gives formal degree at most $n+m$.
+The explicit displayed certificate has semantic degree at most $n$
+and is linear in the $y_j$'s. First apply
+Lemmas~\ref{lem:cut-history-order}--\ref{lem:ordered-formula-roabp}
+to this one network. Its total number of cut histories is logarithmic
+in $n+m+2$, independently of the number of clauses. This gives the
+sum of ordered formulas.
+
+We now remove the possible extraneous intermediate degrees without
+losing the size bound or any order. The path-index lemma
+of~\cite{Cruz26} bounds the sum of product-index lengths along a
+path by $O(\log(n+m+2))$. After replacing indexed products by balanced
+binary products, the product depth $H$ is therefore
+$O(\log(n+m+2))$. For each component $A_\sigma$, keep only its
+bihomogeneous terms of $\mathbf y$-degree one and $\mathbf x$-degree
+at most $n-1$. To implement this projection as a formula, associate
+with each gate its components indexed by $(a,b)$, with
+$0\le a\le n-1$ and $b\in\{0,1\}$. At a sum, add corresponding
+components. At a product $UV$, use
+\[
+ (UV)_{a,b}=\sum_{a_1+a_2=a,\ b_1+b_2=b}
+                 U_{a_1,b_1}V_{a_2,b_2}.
+\]
+All degrees are nonnegative, so discarding higher components cannot
+affect these identities. For each fixed output degree, a product
+duplicates any child component at most $2n$ times. Along any path
+there are at most $H$ products. Including the final sum over $a$,
+the whole projected tree therefore has at most $(2n)^{H+1}$ times
+as many nodes as the original tree. This factor is
+$2^{O(\log^2(n+m+2))}$ and is absorbed by the displayed size bound.
+Every retained product still combines disjoint variable scopes in
+their previous order. Each retained gate has its advertised pair of
+degrees, so the final formula has formal degree at most $n$ and
+placeholder degree at most one.
+
+The projection is linear, and the total certificate already has
+exactly placeholder degree one and $\mathbf x$-degree at most $n-1$:
+each nonempty failed clause omits at least one variable. Consequently
+the sum of the projected components is still $C$. Applying
+Lemma~\ref{lem:ordered-formula-roabp} after projection gives the
+claimed ROABPs.
+\end{proof}
+
+\paragraph{Four-clause check.}
+For $(x\vee z)\wedge(x\vee\neg z)\wedge
+(\neg x\vee z)\wedge(\neg x\vee\neg z)$, the four assignments
+have first-failure flags $1000,0100,0010,0001$, respectively.
+For each assignment both original variables occur in the failed
+clause, so both owner tables output one. The network value is
+$y_1+y_2+y_3+y_4$, agreeing with the direct IPS calculation.
+
+\subsection{Universal orders and variable-only bounds}
+
+The bound of Theorem~\ref{thm:few-order-ips} depends on the number $m$
+of clauses. Disjoint counting sparsification removes this dependence,
+at the cost of uniformity. Because the owner groups are prescribed by
+Lemma~\ref{lem:prescribed-owners}, all sparsification branches use
+the same order list, so components with the same history can be added.
+
+\begin{theorem}[Universal orders for arbitrary 3-CNFs]
+\label{thm:universal-variable-order-wmc}
+Fix any integer-valued function $h(n)$ taking power-of-two values,
+with $h(n)\to\infty$ and $2^{3h(n)}\le n$ for all sufficiently
+large $n$. There is, for each $n$, a list $\Pi_n$ of $h(n)$ orders
+of the $n$ weight pairs, depending only on $n$ and $h(n)$, with the
+following property. The weighted model polynomial of every 3-CNF
+on those $n$ specified variables is a sum of $h(n)$ formulas, one
+ordered by each member of $\Pi_n$, with worst-case total size
+$2^{o(n)}$. The formulas are constant-free and syntactically
+multilinear over $\mathbb Z$. The same assertion holds for sums of
+ROABPs over any field.
+\end{theorem}
+
+\begin{proof}
+Fix $\epsilon>0$. The disjoint counting sparsification lemma
+\cite[Lemma~4]{Ant26} (see also \cite[Section~2, assumption~(A1)]{Szeider26})
+gives
+at most $2^{\epsilon n}$ 3-CNFs $G_a$, each with at most
+$M_\epsilon n$ clauses, whose model sets partition the model set of
+the given formula. The universe of specified variables is kept equal
+to $\{1,\ldots,n\}$, including variables unused in a branch.
+Therefore $W_F=\sum_a W_{G_a}$ as integral polynomials.
+
+Compile each branch using the same initial name length $h(n)$.
+Its network has $O_\epsilon(n)$ edges, and its owner grouping is
+prescribed by $n$ and $h(n)$ using
+Lemma~\ref{lem:prescribed-owners}. Thus its initial potential is
+$O_\epsilon(n^2)$, and the size bound of Lemma~\ref{lem:variable-order-budget} gives
+$2^{O_\epsilon(n/\sqrt{h(n)})}=2^{o(n)}$ for each branch.
+Most importantly, the list of orders is the \emph{same} list
+$\Pi_n$ for every branch and every $\epsilon$.
+
+For each history $\sigma$, add all the branch formulas having that
+history. An addition of formulas ordered by one order is still
+ordered by that order. This produces $h(n)$ components, of total
+size at most $2^{\epsilon n+o(n)}$. If $B(n)$ denotes the largest
+minimum size needed over all 3-CNFs on this fixed universe and this
+fixed list, then $\limsup_{n\to\infty}\log_2 B(n)/n\le\epsilon$.
+Since this holds for every positive $\epsilon$, the limsup is zero.
+The integral, constant-free, and scope properties hold for each
+branch and are preserved by addition. The branching-program
+conversion has polynomial overhead, preserving $2^{o(n)}$.
+This is a nonuniform size-existence result; no effective uniform
+choice of a decreasing sparsification parameter is asserted.
+\end{proof}
+
+\begin{theorem}[Variable-only few-order IPS]
+\label{thm:universal-variable-order-ips}
+Use the function $h(n)$ and list $\Pi_n$ of the preceding theorem.
+Every unsatisfiable 3-CNF on $n$ variables, after removing duplicate
+and tautological clauses, has a Hilbert-like IPS certificate over
+$\mathbb Z$ which is a sum of $h(n)$ ordered, syntactically
+multilinear formulas of worst-case total size $2^{o(n)}$.
+The common lists of orders put all clause placeholders first in
+their index order, followed by one member of $\Pi_n$ on the original
+variables. The certificate has formal degree at most $n$ and
+placeholder degree at most one at every gate. The same size bound
+holds for the sum-of-ROABPs representation over any field.
+\end{theorem}
+
+\begin{proof}
+An empty clause has certificate equal to its placeholder, so assume
+all clauses are nonempty. Removing duplicates and tautologies leaves
+at most $\sum_{j=1}^3 2^j\binom nj=O(n^3)$ clauses. Let $S_j$
+be the variables in clause $j$. Form the 3-CNF $G_j$ consisting of
+the preceding clauses and the at most three unit clauses that force
+the assignment on $S_j$ falsifying clause $j$. Its models are
+precisely the assignments whose first false original clause is $j$.
+
+Apply Theorem~\ref{thm:universal-variable-order-wmc} to each $G_j$
+on the full universe of $n$ variables. In its formula put both
+weights of a variable in $S_j$ equal to one. For $i\notin S_j$,
+substitute $w_{i,0}=1-x_i$ and $w_{i,1}=x_i$. The resulting sum
+computes
+\[
+ Q_j(\mathbf x)=
+ \sum_{\alpha:\ j\text{ first false}}
+             \prod_{i\notin S_j}\eta_i(\alpha_i).
+\]
+These substitutions preserve each order as a full order with some
+positions unused. They preserve syntactic multilinearity because a
+product previously combined disjoint weight pairs. Every resulting
+formula has formal degree at most $n-|S_j|\le n-1$.
+
+Write $Q_j=\sum_\sigma Q_{j,\sigma}$ with the shared order list.
+Set
+\[
+ C_\sigma(\mathbf x,\mathbf y)=\sum_{j=1}^m
+                 y_j Q_{j,\sigma}(\mathbf x),\qquad
+ C=\sum_\sigma C_\sigma.
+\]
+Every displayed product respects the order putting all placeholders
+before the $x$-variables. Addition imposes no scope-order restriction,
+so $C_\sigma$ is ordered. No product combines two placeholders, and
+its formal degree is at most $n$. Multiplication by $y_j$ combines
+disjoint variable scopes. The factor $m=O(n^3)$ in total size is
+absorbed by $2^{o(n)}$.
+
+After substituting $y_j=F_j$, each assignment's missing factors on
+$S_j$ are restored. Since the formula is unsatisfiable, the
+first-false sets partition all assignments. Thus
+\[
+ C(\mathbf x,F_1,\ldots,F_m)
+ =\sum_{\alpha\in\{0,1\}^n}\prod_i\eta_i(\alpha_i)
+ =\prod_i((1-x_i)+x_i)=1.
+\]
+Every term contains one placeholder, giving $C(\mathbf x,0)=0$.
+All identities have integer coefficients, so they specialize to
+every field. The ROABP conversion is polynomial in formula size and
+in $n+m=O(n^3)$ and preserves the variable-only size bound.
+\end{proof}
+
+\paragraph{Universal-order check.}
+For the four-clause
+example above each coefficient $Q_j$ is one, so the universal-order
+construction returns $C=\sum_j y_j$ in every allowed order list.
+
+\section{Unique witnesses and explicit Skolem functions}
+\label{sec:skolem}
+
+The weighted few-order compiler also eliminates existentially
+quantified witnesses when they are unique. The resulting representation
+theorem applies even when no small deterministic circuit for the
+existentially defined function is given. It is not a claim that
+first-order logic over finite structures has the Beth property.
+
+\begin{theorem}[Few-order elimination and witness extraction]
+\label{thm:few-order-skolem}
+Let $V(u,z)$ be a Boolean circuit over a fixed finite basis of fan-in
+at most two, with public inputs
+$u\in\{0,1\}^n$ and witness bits $z\in\{0,1\}^w$. Assume that for
+each $u$ at most one $z$ satisfies $V(u,z)=1$. Let $s$ count all
+public and witness input vertices and all gates, plus two.
+For any integer $k\ge1$, the functions
+\[
+ A(u)=[\exists z\ V(u,z)=1],\qquad
+ Z_j(u)=[\exists z\ (V(u,z)=1\ \wedge\ z_j=1)]
+ \quad(1\le j\le w)
+\]
+each have an XOR of at most $k$ layered ordered parity programs,
+and the total size of all these representations is
+\[
+ 2^{O\!\left(s/\sqrt{\min\{k,\log(s+2)\}}\right)}.
+\]
+All outputs use the same order list, fixed from $n$ and the chosen
+recursion parameter, independently of $V$. If $A(u)=1$, the vector
+$(Z_1(u),\ldots,Z_w(u))$ is its unique witness; when $A(u)=0$ the
+vector is zero. If every public input has a witness, these are total
+Skolem functions for $V$.
+\end{theorem}
+
+\begin{proof}
+If $n=0$, all the outputs are constants and have constant-size
+representations, so assume $n\ge1$. Any other fixed bounded-fan-in
+basis can be converted to the stated one with a constant-factor
+size increase by expanding each of its finitely many truth tables.
+Tseitin-encode $V$ with its output asserted. For each public input
+and witness assignment, the gate clauses force exactly one extension
+to all gate variables, and that extension satisfies the asserted
+output precisely when $V$ accepts. The number of clauses and
+variables is $O(s)$.
+
+Build the corresponding weighted network. Give each public bit
+$u_i$ one owner with weights $w_{i,0},w_{i,1}$; give all witness
+and gate bits weight one. Its polynomial is
+\[
+ W(w)=\sum_{a\in\{0,1\}^n}
+      \#\{z:V(a,z)=1\}\prod_{i=1}^n w_{i,a_i}.
+\]
+For the $j$th output use the same circuit constraints and additionally
+assert $z_j=1$, yielding
+\[
+ W_j(w)=\sum_{a\in\{0,1\}^n}
+      \#\{z:V(a,z)=1,\ z_j=1\}\prod_{i=1}^n w_{i,a_i}.
+\]
+Both networks have $O(s)$ edges and bounded degree after equality
+trees replace fan-out. Their symbolic owners are the same $n$
+public inputs. Prescribe their initial groups by
+Lemma~\ref{lem:prescribed-owners}, using a common power of two $h$.
+All their components consequently respect the same history-order list.
+
+Substitute $w_{i,0}=1+u_i$ and $w_{i,1}=u_i$ over $\mathbb F_2$.
+On a Boolean assignment $u$, the product indexed by $a$ is one
+exactly when $a=u$ and zero otherwise. Thus the resulting outputs
+are the parity of the displayed witness counts. The promise makes
+each count zero or one. The first is therefore $A(u)$, and the
+$j$th is $Z_j(u)$.
+
+For sufficiently large $s$, choose the largest power of two at most
+$\min\{k,(\log_2s)/3\}$. Then $h\le k$, $2^{3h}\le s$, and
+$h=\Theta(\min\{k,\log s\})$. Apply
+Lemma~\ref{lem:variable-order-budget} and the block-matrix conversion
+in Lemma~\ref{lem:ordered-formula-roabp}; literal pinning uses one
+matrix layer per public input. The bound for each output is
+$2^{O(s/\sqrt h)}$. There are at most $s+1$ outputs, so their total
+size has logarithm $O(s/\sqrt h)+O(\log s)=O(s/\sqrt h)$.
+The finitely many smaller $s$ can use full assignment expansions
+in one fixed order, after increasing the absolute constant.
+Uniqueness proves that the simultaneous bits are the actual witness
+when one exists, and their definitions give zero otherwise.
+\end{proof}
+
+\paragraph{Hand checks.}
+For $V(x,z)=[z=x]$, every $x$ has one witness. The two polynomials
+are $W=w_{1,0}+w_{1,1}$ and $W_1=w_{1,1}$. Pinning gives
+$A(x)=1$ and $Z_1(x)=x$. In contrast, if $V(x,z)=1$ for both values
+of one witness bit, then $W=2(w_{1,0}+w_{1,1})$ reduces to zero
+modulo two, although existential acceptance is one. The unique-witness
+promise cannot be omitted. For acceptance alone it may be weakened
+to the promise that every nonzero witness count is odd; that weaker
+promise does not by itself justify extracting a consistent witness
+bit by bit. For example, a relation accepting exactly the witnesses
+$00,01,10$ has odd total count, but the two bitwise parities give
+$11$, which is not an accepted witness.
+
+\section{Fast codes and the exact order threshold}
+\label{sec:parity-findings}
+
+This section shows that the few-order upper bound is qualitatively
+tight. The code lower bound below does not use the counting simulation.
+It is a self-contained specialization of the mechanism of
+Homeister~\cite[Theorem~1]{Homeister03}, and we make no novelty claim
+for the method. The representation upper bound follows from the
+few-order compiler of Section~\ref{sec:few-order}. The combined result
+is a consequence of that compiler and of published 2026 code
+constructions~\cite{BR26,BIR26}; it is not a general Boolean circuit
+lower bound.
+
+\subsection{A lower bound for codes}
+
+We use the layered model of ordered parity branching programs from
+Section~\ref{sec:conventions}. All vector spaces in this section are
+over $\mathbb F_2$.
+
+The lower bound rests on a combinatorial lemma about prefixes of $k$
+orders, a rank bound for a diagonal tensor, and the standard extension
+property of codes with large dual distance.
+
+\begin{lemma}[Prefix blocks]
+\label{lem:prefix-blocks-parity}
+Let $\pi_1,\ldots,\pi_k$ be permutations of a set of $n$ variables,
+and let $1\le \ell\le n$.  Put $b=\lfloor\ell/2^k\rfloor$.
+If $b\ge1$, there are prefixes $P_i$ of $\pi_i$ and sets $B_i\subseteq P_i$
+such that
+\begin{enumerate}
+\item $|B_i|=b$ for every $i$;
+\item any two $B_i$ are equal or disjoint;
+\item $B_j\subseteq P_i$ if $B_j=B_i$, and
+      $B_j\cap P_i=\varnothing$ otherwise;
+\item $|P_1\cup\cdots\cup P_k|<\ell$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+For $i\ge1$, put $h_i=\lfloor\ell/2^i\rfloor$.
+We build prefixes and provisional blocks through stage $i$ so that
+properties 2 and 3 hold for the first $i$ indices, each provisional
+block has size at least $h_i$, and the union $U_i$ of the first $i$
+prefixes has size at most $\sum_{j=1}^{i}h_j$.
+For stage 1, take the first $h_1$ variables in $\pi_1$ as both $P_1$
+and $B_1$.
+
+Suppose stages through $i-1$ have been completed.
+Scan $\pi_i$ until its scanned prefix $P$ satisfies one of the following:
+$|P\setminus U_{i-1}|=h_i$, or
+$|P\cap D|=h_i$ for a distinct provisional block $D$.
+Such a prefix exists because every old block has at least
+$h_{i-1}\ge2h_i$ variables.  At the first stopping time just one
+condition becomes true: a newly scanned variable lies either outside
+$U_{i-1}$ or in at most one of its distinct old blocks.
+All other counters are at most $h_i-1$.
+Set $P_i=P$.
+
+If $|P\setminus U_{i-1}|=h_i$, set $B_i=P\setminus U_{i-1}$ and
+replace each old $B_j$ by $B_j\setminus P$.
+Each old block retains at least
+$h_{i-1}-(h_i-1)\ge h_i$ variables.
+The new block is outside every old prefix; old blocks retain their
+containment or disjointness relations with all old prefixes.
+Only the new block meets the new prefix.
+Thus properties 2 and 3 are preserved.
+
+Otherwise there is one distinct old block $D$ with $|P\cap D|=h_i$.
+Set $B_i=P\cap D$.  Replace every old block equal to $D$ by this same
+$B_i$, and replace every other old block $B_j$ by $B_j\setminus P$.
+The latter blocks retain at least $h_i$ variables.
+For any old prefix $P_m$, the block $D$ was either contained in $P_m$
+or disjoint from $P_m$.  The first alternative held precisely when
+the old block $B_m$ was $D$.  Consequently the new block $B_i$ has
+exactly the required relation with $P_m$.
+The other blocks preserve all old relations and avoid $P_i$.
+Properties 2 and 3 again hold.
+
+In both cases $|P_i\setminus U_{i-1}|\le h_i$, so the bound on $|U_i|$
+is preserved.  After stage $k$, shrink each distinct block to any
+$b$-element subset, making the same choice for all copies of that
+block.  The three block properties are preserved.  Finally,
+$|U_k|\le\sum_{i=1}^{k}\lfloor\ell/2^i\rfloor<\ell$.
+\end{proof}
+
+\paragraph{Hand checks for Lemma~\ref{lem:prefix-blocks-parity}.}
+For $k=2$ and $\ell=8$, let $P_1=\{1,2,3,4\}$ and let the second order
+start $5,1,6,2,\ldots$.  The second scan stops at
+$P_2=\{5,1,6\}$.  Its new block is $\{5,6\}$; the old block becomes
+$\{2,3,4\}$ and may be shrunk to $\{2,3\}$.
+The union of prefixes has size 6, and each prefix contains only its
+own surviving block.
+For the other stopping case, start the second order $3,5,1,6,\ldots$.
+It stops at $\{3,5,1\}$; both blocks become $\{1,3\}$, and the union
+has size 5.
+For $k=3$ and $\ell=16$, take the first prefix $\{1,\ldots,8\}$ and
+let the second order start $9,1,10,2,11,3,12,4,\ldots$.
+The first two blocks become $\{4,5,6,7,8\}$ and $\{9,10,11,12\}$.
+Let the third order start $4,9,13,10,\ldots$.
+The third prefix is $\{4,9,13,10\}$; the second and third blocks both
+become $\{9,10\}$, while the first block may be shrunk to $\{5,6\}$.
+The prefix union is $\{1,\ldots,13\}$, of size $13<16$.
+
+\begin{lemma}[A diagonal tensor with one protected factor]
+\label{lem:protected-diagonal-parity}
+Let $D\ge1$ and $q\ge1$.  Define a tensor on $[D]^{q+1}$ by
+\[
+ T(a_1,\ldots,a_q,t)=\prod_{j=1}^{q}[a_j=t].
+\]
+Suppose
+\[
+ T=\sum_{j=1}^{q}\sum_{v=1}^{r_j}
+       u_{jv}(a_j)\,v_{jv}(a_1,\ldots,a_{j-1},a_{j+1},\ldots,a_q,t).
+\]
+Then $\sum_jr_j\ge D$.
+\end{lemma}
+\begin{proof}
+Let $U_j\le\mathbb F_2^D$ be the span of the vectors $u_{jv}$.
+It has dimension at most $r_j$, so it contains at most $r_j$ of the
+coordinate unit vectors $e_1,\ldots,e_D$: any collection of these
+vectors is linearly independent.
+If $\sum_jr_j<D$, choose $t_0$ such that $e_{t_0}\notin U_j$ for
+every $j$.  There is a linear functional vanishing on $U_j$ but taking
+value 1 on $e_{t_0}$: extend a basis of $U_j$ by $e_{t_0}$ and then
+to a basis of the whole space, and prescribe its values on that basis.
+Write that functional as inner product with $\lambda_j\in\mathbb F_2^D$.
+Thus $\lambda_j(t_0)=1$ and
+$\sum_a\lambda_j(a)u_{jv}(a)=0$ for every $v$.
+
+Contract the displayed tensor identity against
+$\prod_j\lambda_j(a_j)$, summing over every $a_j$.
+Every term on its right is zero because the contraction in its
+designated coordinate kills $u_{jv}$.
+Its left becomes the vector $t\mapsto\prod_j\lambda_j(t)$, which
+takes value 1 at $t_0$.  This contradiction proves the claim.
+\end{proof}
+
+\paragraph{Hand check for Lemma~\ref{lem:protected-diagonal-parity}.}
+For $D=2,q=2$, the only nonzero entries of the tensor are
+$T(1,1,1)=T(2,2,2)=1$.
+If $r_1+r_2<2$, at least one coordinate vector is absent from both
+designated spans.  Contracting at that coordinate leaves its diagonal
+entry equal to 1 and kills every proposed slice.
+For $D=4$, the proposed spans
+$U_1=\langle e_1\rangle$ and
+$U_2=\langle e_2,e_3\rangle$ are killed by contraction with $e_4$
+in both coordinates, whereas the diagonal entry indexed by 4 survives.
+
+\begin{lemma}[Distance implies extensions]
+\label{lem:code-extensions-parity}
+Let $C\le\mathbb F_2^n$ have dual distance $d^\perp$.
+For any $U\subseteq[n]$ with $|U|<d^\perp$, every assignment to $U$
+extends to a codeword of $C$.
+\end{lemma}
+\begin{proof}
+If the image of the linear projection $C\to\mathbb F_2^U$ were a
+proper subspace, extending a basis would give a nonzero linear
+functional on $\mathbb F_2^U$ vanishing on that image.
+Extend its coefficient vector by zeros outside $U$.
+The resulting vector belongs to $C^\perp$, is nonzero, and has weight
+at most $|U|<d^\perp$.  This contradicts the definition of dual distance.
+\end{proof}
+
+\begin{theorem}[Code membership requires many orders or large size]
+\label{thm:code-orders-parity}
+Let $C\le\mathbb F_2^n$ have minimum distance $d$ and dual minimum
+distance $d^\perp$.  Put $\ell=\min\{d,d^\perp\}-1$.
+If its characteristic function is the XOR of $k$ ordered parity
+branching programs of total size $S$, then
+\[
+             S\ \ge\ 2^{\lfloor\ell/2^k\rfloor}.
+\]
+\end{theorem}
+\begin{proof}
+If $\lfloor\ell/2^k\rfloor=0$, the assertion is $S\ge1$ and follows
+because the characteristic function accepts the zero codeword.
+Otherwise apply Lemma~\ref{lem:prefix-blocks-parity} to the $k$ orders.
+Write $U=\bigcup_iP_i$ and enumerate the distinct surviving blocks as
+$D_1,\ldots,D_q$, each of size $b=\lfloor\ell/2^k\rfloor$.
+Fix every variable in $U\setminus\bigcup_jD_j$ to 0.
+
+For each $t\in\{0,1\}^{b}$, assign $t$ to every $D_j$, using a fixed
+enumeration of each block.  By Lemma~\ref{lem:code-extensions-parity},
+this assignment to $U$ extends to a codeword; choose one extension
+$z(t)$ on $[n]\setminus U$.
+If instead the block assignments are $a_1,\ldots,a_q$, while the
+outside assignment remains $z(t)$, the resulting word belongs to $C$
+exactly when all $a_j=t$.
+One direction follows from the choice of $z(t)$.
+For the other, a different accepted word would differ from this
+codeword only within $U$, and hence have Hamming distance at most
+$|U|<\ell<d$, a contradiction.
+The evaluations of the characteristic function therefore form the
+tensor of Lemma~\ref{lem:protected-diagonal-parity} with $D=2^b$.
+
+For the $i$th program, cut its layering just after the last variable
+of $P_i$, placing any subsequent constant layers on the suffix side.
+Every accepting path crosses exactly one vertex in the cut layer.
+Decomposing paths by that vertex writes the
+computed function as
+\[
+                  \sum_{v} A_v(x_{P_i})B_v(x_{[n]\setminus P_i}),
+\]
+where the number of summands is at most the program's size.
+The formula counts prefix and suffix paths modulo 2; concatenation
+at their common cut vertex is a bijection with accepting paths.
+After our restriction, $A_v$ depends on only the one residual block
+contained in $P_i$.  Substitution of the outside assignment $z(t)$
+leaves the other factor depending on the other blocks and $t$.
+Thus the $k$ programs give a slice representation of the protected
+diagonal tensor with at most $S$ slices.  The preceding lemma yields
+$S\ge2^b$.
+\end{proof}
+
+\paragraph{Hand check for the code step.}
+Take the binary Hamming code of length 7 with parity-check columns
+$001,010,011,100,101,110,111$.  It has distance 3: no one column is
+zero, no two columns coincide, and the first three sum to zero.
+Every nonzero combination of the three check rows has weight 4, so
+the dual distance is 4.  Hence $\ell=2$, and with one order the block
+size in the proof is 1.  Take $U=\{1\}$.
+The assignments $x_1=0$ and $x_1=1$ extend to $0000000$ and
+$1110000$.  Using outside strings $000000$ and $110000$, respectively,
+the four evaluations form the $2\times2$ identity matrix: the two
+off-diagonal words have syndromes $001$.  This checks both extension
+and uniqueness in the smallest example used here.
+
+\paragraph{Relation to Homeister.}
+Theorem~\ref{thm:code-orders-parity} is a fixed-order, layered
+specialization with no graph-ordering denominator: its prefix cuts
+require no pigeonhole choice of graph-ordering nodes.
+Homeister~\cite[Theorem~1]{Homeister03} proves
+$2^{\Omega(\min\{d,d^\perp\}/2^k)}/\prod_i|G_i|$ for graph-driven
+components. The proof above is a specialization of that method, and we
+claim no new lower-bound technique.
+
+\subsection{An explicit separation from fast codes}
+
+To apply Theorem~\ref{thm:code-orders-parity} to a function with small
+circuits, we need codes whose membership test is cheap. Transposition
+reduces this to a fast encoder for the dual code.
+
+\begin{lemma}[Transposing a linear encoder]
+\label{lem:transpose-parity}
+If an $n$-output linear map $u\mapsto Mu$ over $\mathbb F_2$ has a
+fan-in-two XOR circuit with $a$ gates, then $x\mapsto M^\top x$ has
+an XOR circuit of size $O(a+n)$.  Consequently, if a code's dual
+has such an encoder, membership in the code has a Boolean circuit
+of size $O(a+n)$.
+\end{lemma}
+\begin{proof}
+Attach a formal output variable $x_j$ to the vertex producing output
+$j$.  Process the original circuit backwards.  At a gate $v=p+q$,
+send the accumulated value at $v$ to both $p$ and $q$; whenever a
+vertex receives several values, combine them by binary XOR gates.
+At an original input the accumulated value is the corresponding
+coordinate of $M^\top x$.
+Indeed the coefficient of $x_j$ at input $u_i$ is the parity of the
+number of paths from $u_i$ to the original output $j$, which is the
+coefficient $M_{ji}$ obtained by expanding the original XOR circuit.
+There are $2a$ gate-input edges and $n$ output attachments, so all
+accumulations use $O(a+n)$ gates.
+If the columns of $M$ span $C^\perp$, then $x\in C$ exactly when
+$M^\top x=0$.  Testing this with a binary OR tree and one negation
+adds $O(n+a)$ gates.
+\end{proof}
+
+\paragraph{Hand check for transposition.}
+For $M(u_1,u_2)=(u_1,u_2,u_1+u_2)$, one XOR gate suffices.
+Reversing it yields $M^\top(x_1,x_2,x_3)=(x_1+x_3,x_2+x_3)$.
+The common contribution $x_3$ is sent to both original inputs.
+
+\paragraph{Fast codes with fast duals.}
+Brehm and Resch~\cite[Theorem~2]{BR26} give binary rate-$1/2$ codes
+$C,C^\perp$ with both distances $\Omega(n)$ and both encoders of
+linear size.  Their construction is randomized; it does not directly
+give a uniform deterministic choice of a good code.
+Brehm, Ishai and Resch~\cite[Theorem~9]{BIR26} strengthen this to
+polynomial-time-uniform randomized systematic encoders with $O(n)$
+random bits, $O(n)$ wires, and both distances $\Omega(n)$ except with
+probability $2^{1-\Omega(n)}$.
+Section~2.2 of~\cite{BIR26} defines uniformity as polynomial-time
+construction of circuit descriptions and defines size as the number of
+wires, and Remark~3 there states logarithmic depth.
+The formal theorem is expressed on an increasing sequence of block
+lengths $n_i$; the conclusions below are stated on that sequence.
+
+\begin{theorem}[An explicit representation separation]
+\label{thm:fast-code-order-separation}
+Use the few-order compiler of Corollary~\ref{cor:few-order-boolean}.
+There is a polynomial-time-uniform family of functions $F_i$ on
+$N_i=\Theta(n_i)$ bits, each having a Boolean circuit with $O(N_i)$
+gates and depth $O(\log N_i)$, such that
+\begin{enumerate}
+\item every representation of $F_i$ as the XOR of $k$ ordered parity
+      branching programs has size at least
+      $2^{\lfloor cN_i/2^k\rfloor}$, for one absolute $c>0$;
+\item $F_i$ has such a representation using $O(\log N_i)$ orders
+      and total size $2^{O(N_i/\sqrt{\log N_i})}$.
+\end{enumerate}
+For each fixed $k$, the lower bound is exponential in $N_i$.
+For any fixed $K>0$, a representation of size at most
+$2^{K N_i/\sqrt{\log N_i}}$ must use at least
+$\tfrac12\log_2\log_2N_i-O_K(1)$ orders.
+\end{theorem}
+\begin{proof}
+Use \cite[Theorem~9]{BIR26} with $q=2$, limiting rate $1/2$,
+and any fixed $\epsilon\in(0,1/4)$.
+Let $E_i(r,m)=(m,P_i(r,m))$ be its systematic encoder, with $r$
+denoting its $O(n_i)$ random bits, now treated as ordinary input bits.
+For $x=(m,y)\in\{0,1\}^{n_i}$ define
+\[
+                    F_i(r,m,y)=[y=P_i(r,m)].
+\]
+Replacing field additions and multiplications by XOR and AND gates,
+respectively, gives an $O(n_i)$-size circuit for $P_i$.
+Bitwise comparison followed by a balanced AND tree adds $O(n_i)$
+gates and $O(\log n_i)$ depth.
+The circuit family remains polynomial-time uniform.
+Since $n_i\le N_i\le A n_i$ for a constant $A$, its size and depth
+have the claimed bounds in $N_i$.
+
+For all sufficiently large $i$, the failure probability for either
+distance is less than 1.  Choose a good seed $r_i$ solely for the
+lower-bound argument.  Its code and dual have distance at least
+$\delta n_i$ for one fixed $\delta>0$.
+Restricting the seed bits of any ordered parity branching program
+cannot increase its size or create an additional order: delete the
+inactive edges in a fixed-bit layer and make its other edges constant.
+Keep that layer as a constant layer, retaining path parity.
+Thus any $k$-order representation of $F_i$ restricts to one of
+the characteristic function of the good code.
+Theorem~\ref{thm:code-orders-parity} applies with
+$\ell\ge\delta n_i-2\ge cN_i$, after decreasing $c$ and discarding
+finitely many initial indices.  This proves the lower bound.
+
+Apply the compiler of Corollary~\ref{cor:few-order-boolean} to the
+explicit $O(N_i)$-size circuit to
+obtain the upper bound.  If $S\le2^{K N_i/\sqrt{\log N_i}}$, the lower
+bound implies
+\[
+ \frac{cN_i}{2^k}-1\le\log_2S
+       \le\frac{K N_i}{\sqrt{\log_2N_i}}.
+\]
+For all sufficiently large $i$, this yields
+$2^k\ge(c/(K+1))\sqrt{\log_2N_i}$, and taking logarithms proves
+the final assertion.
+\end{proof}
+
+\paragraph{Why the seed trick is legitimate.}
+No algorithm for finding a good seed is asserted or needed.
+The input function evaluates every seed using one explicit circuit.
+The lower bound uses existence of a good restriction, and restrictions
+preserve the representation model.  This gives a uniform hard function
+from a randomized code construction without derandomizing that
+construction.  The uniformity is polynomial-time uniformity, not
+DLOGTIME uniformity.
+
+\paragraph{Scope of the separation.}
+Theorem~\ref{thm:fast-code-order-separation} shows an
+exponential-to-subexponential change when the number of
+allowed variable orders grows from any fixed constant to logarithmic.
+The current lower and upper order counts for the displayed
+subexponential size are $\Omega(\log\log N)$ and $O(\log N)$.
+It also refutes a proposed universal lower bound $2^{\Omega(n)}$
+against $O(\log n)$ orders based solely on positive rate and linear
+primal and dual distance: the fast-code family supplies counterexamples.
+It gives no lower bound against unrestricted Boolean circuits;
+the exhibited functions already have linear-size circuits.
+
+Combining the code lower bound with the parameterized compiler
+(Proposition~\ref{prop:parameterized-parity-compiler}) gives the
+qualitative threshold.
+
+\begin{corollary}[Exact qualitative threshold]
+\label{cor:diverging-orders-parity}
+For the explicit family $F_i$ of
+Theorem~\ref{thm:fast-code-order-separation}, let $S_i(k)$ be its
+minimum total size as an XOR of at most $k$ ordered parity programs.
+For any sequence of positive integers $k_i$,
+\[
+             \log_2 S_i(k_i)=o(N_i)
+             \quad\Longleftrightarrow\quad k_i\longrightarrow\infty.
+\]
+The forward implication uses only the code lower bound.
+The reverse implication holds for every family with linear-size
+Boolean circuits under the parameterized compiler.
+\end{corollary}
+\begin{proof}
+If $k_i$ does not tend to infinity, some fixed $K$ satisfies $k_i\le K$
+at infinitely many indices.  On those indices the code lower bound
+gives $\log_2 S_i(k_i)\ge cN_i/2^K-1$, which is not $o(N_i)$.
+If $k_i\to\infty$, let $s_i=O(N_i)$ be the linear-size circuit bound,
+including all input vertices.  Choose $h_i$ as the largest power of
+two at most $\min\{k_i,(\log_2s_i)/3\}$.
+Then $h_i\to\infty$, and the parameterized compiler gives at most
+$h_i\le k_i$ orders and log size $O(s_i/\sqrt{h_i})=o(N_i)$.
+\end{proof}
+
+\paragraph{Interpretation of the threshold.}
+An arbitrarily slowly diverging number of permitted orders suffices
+for subexponential size, whereas any bounded number fails on the
+explicit fast-code family.  This is an exact qualitative threshold
+for this representation model.  It is not an exact quantitative
+size--order tradeoff: the lower exponent is proportional to $N/2^k$,
+whereas the compiler's upper exponent is $O(N/\sqrt{k})$ until
+$k$ reaches order $\log N$.
+
+\begin{corollary}[Unambiguous quantifier elimination]
+\label{cor:unambiguous-qe}
+There is a polynomial-time constructible family of 3-CNFs
+$\Phi_i(u,z)$ with $O(N_i)$ clauses and variables, with $N_i$ free
+bits $u$, such that each free assignment has at most one satisfying
+extension to $z$, and the relation
+\[
+                \exists z\,\Phi_i(u,z)
+                \ =\ \bigoplus_z\Phi_i(u,z)
+\]
+has the size--order threshold of
+Corollary~\ref{cor:diverging-orders-parity}.
+Here the normal form after elimination is an XOR of ordered parity
+branching programs; cancellation is permitted both inside and between
+its components.
+\end{corollary}
+\begin{proof}
+Take the explicit linear-size circuit for $F_i$ and give each gate
+output a fresh witness bit.
+For a fan-in-two gate $w=B(a,b)$, forbid each of the four triples
+$(a,b,w)$ inconsistent with its Boolean truth table by a width-three
+clause.  For a forbidden triple $(\alpha,\beta,\gamma)$, the clause
+has literal $a$ when $\alpha=0$ and $\neg a$ when $\alpha=1$, and
+the corresponding choices for $b$ and $w$.
+This clause is false on exactly that triple.
+Constant gates use unit clauses, and one final unit clause requires
+the circuit output to be 1.
+
+For each free assignment, processing the circuit in topological order
+forces exactly one value on every gate output.  This unique complete
+assignment satisfies the final unit clause precisely when the circuit
+accepts.  Thus zero or one witness exists, as asserted, and its
+existential and parity projections both equal $F_i$.
+There are at most four clauses per binary gate, one per constant gate,
+and one final clause, so the formula size is $O(N_i)$ and its
+construction is polynomial-time uniform.
+The preceding representation bounds apply to its projected relation.
+\end{proof}
+
+\paragraph{Hand check for the quantifier step.}
+For an AND gate $z=x\wedge y$ followed by acceptance of $z$, one may
+use the four truth-table exclusion clauses and the unit clause $z$.
+The triples $000,010,100,111$ are exactly the four gate-consistent
+triples.  The unit clause retains only $111$.
+Each free pair $(x,y)$ therefore has one accepting witness exactly
+when $x=y=1$, and none otherwise.
+
+\subsection{Why existing lower bounds do not transfer to circuits}
+
+A lower bound for the few-order representation of a function with
+small circuits would give a circuit lower bound through the compiler,
+so it is important to compare the known lower bounds with the
+compiler's parameters. None of the following results is strong
+enough.
+
+\paragraph{Set-multilinear branching programs.}
+We use the corrected revision~2 of Chatterjee, Kush, Saraf and
+Shpilka~\cite{CKSS24}. The original title and abstract incorrectly
+identified their set-multilinear model with arbitrary sums of ROABPs;
+the revision records the correction.
+Theorem~1.6 of~\cite{CKSS24} proves $\exp(\Omega(n^{1/3}))$ total-width lower bounds
+for polynomials in $\Theta(n^2)$ variables and degree $\Theta(n)$.
+Theorem~1.9 proves $n^{\Omega(d)}$ for a \emph{single} ordered
+set-multilinear ABP, not for arbitrary sums.
+Lemma~3.1 gives, for $t\le e^{d/96}$ summands of maximum width $w$,
+\[
+ t w^q\ge n^{\sqrt{dq}/20},
+ \qquad q\ge 12\ln(2t\sqrt d),\quad q\le d/4,
+\]
+with its stated integrality conventions; the alternative in the
+lemma is $t>e^{d/96}$.
+For $t=O(\log s)$ this gives an exponent roughly
+$\sqrt{d/\log d}\log n$, below the $d\log n$ bits needed to index a
+coefficient.  It therefore does not provide a superlinear Boolean
+circuit lower bound through the compiler.
+The arc polynomial used for some statements is analyzed over
+characteristic zero; reducing its coefficients modulo 2 cannot be
+assumed to preserve the lower bound.
+
+\paragraph{Sums of graph-driven parity programs.}
+Homeister's paper~\cite{Homeister03} (journal version in TCS, 2006)
+covers sums of graph-driven parity programs, so it
+does apply to sums of parity OBDDs. Its dependence on $k$ is
+$2^k$ in the denominator of the exponent.
+Even with distance $\Omega(n)$, this becomes only
+$2^{\Omega(n^{1-c})}$ when $k=c\log_2n$.
+This is below the compiler's $2^{O(n/\sqrt{\log n})}$, so the existing
+lower bound cannot imply a superlinear general circuit bound.
+
+\paragraph{Identity testing for sums of ROABPs.}
+Gurjar, Korwar, Saxena and Thierauf~\cite[Theorem~3.2]{GKST15} give
+white-box PIT time $(nd\,w^{2^c})^{O(c)}$ for $c$ summands of width $w$,
+$n$ variables, and individual degree $d$.
+The dependence on $c$ is not polynomial or merely single exponential.
+Putting $c=\Theta(\log s)$ and $\log w=O(s/\sqrt{\log s})$ into this
+bound does not yield a polynomial-time verifier in the original size
+$s$, or a near-linear-exponent verifier for the compiled certificate.
+The compiler therefore does not by itself supply efficient proof
+checking for this arithmetic representation.
+
+\paragraph{General multilinear ABPs.}
+Bor\'em Fabris, Limaye, Srinivasan and
+Yehudayoff~\cite[Question~1 and Theorems~3 and~7]{FLSY26} state the
+open problem
+of explicit superpolynomial multilinear ABP lower bounds and analyze
+limitations of full min-partition rank.  This remains a different
+model from a logarithmic sum of ordered ABPs.
+Neither a formula lower bound nor a lower bound for one order can
+be substituted for the needed few-order lower bound.
+
+\subsection{A conditional coefficient-predicate bridge}
+
+The following proposition makes precise which few-order lower bound
+would give a circuit lower bound. It requires an extension of the
+compiler to owner vertices of logarithmic arity, which we do not
+prove.
+
+\begin{proposition}[Conditional coefficient bridge]
+\label{prop:coefficient-bridge}
+Suppose the few-order weighted-network compiler also permits a
+vertex of arity $O(\log s)$ whose table entries are distinct formal
+weight variables owned by that vertex.
+Let $g:[N]^d\to\{0,1\}$ have a Boolean circuit of size $s$ on
+$d\lceil\log_2N\rceil$ input bits, where $N\le s^{O(1)}$ and inputs
+count toward $s$.  Then
+\[
+ P_g(X)=\sum_{a\in[N]^d}g(a)\prod_{j=1}^{d}X_{j,a_j}
+\]
+is a sum of $O(\log s)$ ordered set-multilinear ABPs, of total size
+$2^{O(s/\sqrt{\log s})}$, over $\mathbb F_2$.
+\end{proposition}
+\begin{proof}
+Give each Boolean circuit wire a Boolean network edge and each gate
+its truth-table constraint.  For every input tuple accepted by the
+circuit, all internal wire values are uniquely determined.
+Enforce acceptance at the output.  For block $j$, place one owner
+vertex on its $\lceil\log_2N\rceil$ input bits, with table value
+$X_{j,a}$ on a valid encoding of $a\in[N]$ and 0 on unused encodings.
+The contraction of this network is exactly $P_g$, because accepted
+inputs have one extension and rejected inputs have none.
+The network has $O(s)$ edges and vertices.  Each owner has arity
+$O(\log s)$ and a polynomial-size table.
+The assumed compiler gives the claimed bound; since every product
+combines disjoint vertex sets, every monomial uses at most one
+variable from each owner block.  Grouping by global orientation
+strings preserves this property and gives the asserted ordered
+set-multilinear components.
+\end{proof}
+
+\paragraph{Hand check for the coefficient bridge.}
+For $d=2,N=2$ and $g(a,b)=[a=b]$, the two accepted input tuples
+produce exactly
+$X_{1,1}X_{2,1}+X_{1,2}X_{2,2}$.
+An equality gate has one valid internal extension for each accepted
+tuple, so the coefficients are 1, not path counts larger than 1.
+
+\paragraph{The required lower bound.}
+If one could prove $N^{\Omega(d)}$ total size for
+$O(\log(d\log N))$ different-order components for such a polynomial,
+then the coefficient predicate, on $b=d\log N$ Boolean bits,
+would require $\Omega(b\sqrt{\log b})$ general Boolean circuit size.
+Indeed the lower and upper bounds imply
+$s/\sqrt{\log s}=\Omega(b)$.
+If $s\ge b^2$ the conclusion already holds; otherwise
+$b\le s<b^2$ makes $\log s=\Theta(\log b)$ and yields the claim.
+The lower bound of~\cite{CKSS24} falls far short of
+$N^{\Omega(d)}$ for a sum of logarithmically many orders.
+
+\section{A nondeterministic lower bound for regular-expression equivalence}
+\label{sec:regex-lower}
+
+This section derives a consequence of the nondeterministic and counting
+time--space simulations of~\cite{Cruz26}. The invalid-computation
+reduction is classical; the new deduction is its superlinear
+nondeterministic-time consequence at the scale of the full bit length.
+We spell out a linear-size version for ordinary expressions, because
+citing PSPACE-completeness or an $O(n)$-state NFA alone would leave a
+logarithmic encoding gap. The expressions below use only letters,
+$\epsilon$, $\varnothing$, binary union, binary concatenation, and
+Kleene star. There is no intersection, complement operator, squaring
+operator, binary exponent, or shared subexpression. Every exponent in
+the proof abbreviates an explicit list of that many copies.
+
+\paragraph{The published reduction.}
+Gramlich and Schnitger~\cite[Lemma~7 and the appendix proof of
+Theorem~4]{GS05} construct invalid-computation automata with $O(|x|)$
+states from fixed deterministic in-place machines, and explain that
+the regular-expression version gives the analogous linear gap. We use
+the extended version of their conference paper. The proofs below supply
+the details for ordinary expressions and their encoding that we need.
+
+\subsection{A linear-size reduction}
+
+\begin{lemma}[A local configuration model]
+\label{lem:regex-local-machine}
+For every $L\in\mathrm{DSPACE}[n]$ there is a fixed deterministic
+one-tape decider $M$ whose configurations on an input $x$ of length $n$
+have a fixed length $S=n+2$, over a fixed finite alphabet $B$, with
+exactly one state-marked tape cell. Its initial configuration
+$c_0(x)=a_1\cdots a_S$ is obtainable by a fixed letterwise encoding of
+$x$ with endpoint markers. There is a fixed finite relation
+\[
+ T\subseteq (B\cup\{\#\})\times B\times
+                  (B\cup\{\#\})\times B
+\]
+such that, for well-formed configurations $c,c'$ of length $S$, $c'$ is
+a one-step successor of $c$ if and only if
+\[
+ (\hat c_{j-1},\hat c_j,\hat c_{j+1},c'_j)\in T\quad(1\leq j\leq S),
+\]
+where $\hat c=\#c\#$ is $c$ padded by separators, so that
+$\hat c_j=c_j$ for $1\le j\le S$ and $\hat c_0=\hat c_{S+1}=\#$.
+No halting configuration has a successor. The separator $\#$ is not
+in $B$.
+\end{lemma}
+\begin{proof}
+Fix a finite multitape decider for $L$ using at most $cn$ cells, increasing
+$c$ to an integer. Retain the input in a read-only track and represent
+all work symbols and virtual head markers in a fixed number of tracks
+of length $n$. A cell of the new tape stores the tuple of symbols and
+head-marker bits at one position. This uses a fixed finite alphabet.
+The one physical head can sweep these tracks to locate the finitely many
+virtual heads, retain their scanned symbols and original-machine state
+in finite control, and perform a simulated transition in further sweeps.
+Crossing from one length-$n$ work segment to the next is implemented
+by a sweep to the opposite endpoint and a finite-control change of
+segment. The simulation's time is immaterial here. Put fixed endpoint
+markers in two additional cells. It never moves outside these $S=n+2$
+cells and halts exactly when the original decider halts. Its initial
+tracks are the letterwise input encoding, blanks, and designated head
+markers.
+
+Encode a physical-head cell holding tape symbol $b$ and state $q$ by
+$(q,b)$, and other cells by their plain tape symbols. The successor
+symbol at a position depends on its three-cell neighborhood. At the
+head position it is the newly written symbol, with a state marker
+retained only for a stationary move. At a neighboring position it
+acquires the new state marker exactly when the head moves into it;
+otherwise its symbol is unchanged. A position not adjacent to the head
+keeps its symbol. These are finitely many rules, hence give the finite
+relation $T$. For a halting state, permit no next symbol for a triple
+whose center has that state marker. Reject illegal boundary moves.
+On a well-formed nonhalting configuration these rules determine exactly
+its machine successor. On a halting configuration its head-position
+rule forbids every proposed successor. This proves both directions.
+\end{proof}
+
+For a fixed finite set of letters $A$, write $[A]$ for their union as an
+ordinary regular expression. This notation never denotes an operator
+that complements a regular language. Put $\Gamma=B\cup\{\#\}$.
+The set $H\subseteq B$ consists of state-marked letters, and
+$H_{\mathrm{acc}}\subseteq H$ consists of those with accepting state.
+
+\begin{lemma}[Linear-length invalid-computation expressions]
+\label{lem:linear-regex-reduction}
+For each fixed machine $M$ in Lemma~\ref{lem:regex-local-machine}, there
+is a deterministic multitape transducer mapping $x$ to an ordinary
+regular expression $R_x$ over $\Gamma$ such that
+\[
+ L(R_x)=\Gamma^*\setminus
+ \{\#c_0(x)\#c_1\#\cdots\#c_t\#:
+          c_0,\ldots,c_t\text{ is an accepting computation of }M\}.
+\]
+The output has syntax length $\Theta_M(n+1)$ and is produced in
+$O_M(n+1)$ time. Its symbol at a given output position can be recovered
+in $O_M(\log(n+2))$ workspace. In particular,
+\[
+ x\in L(M)\quad\Longleftrightarrow\quad L(R_x)\ne\Gamma^*.
+\]
+Since $M$ is deterministic and halts, the omitted set is either empty
+or a singleton.
+\end{lemma}
+\begin{proof}
+For $n\geq1$ we have $S\geq3$; finitely many smaller inputs can be
+handled separately. Form $R_x$ as the union of the following constant
+number of expressions. Constants here may depend on $M$.
+
+\emph{Wrong delimiters or block lengths.} Include
+\[
+ \epsilon\; +\; \#\; +\; [B][\Gamma]^*\; +\;
+ [\Gamma]^*[B]\; +\;
+ [\Gamma]^*\#(\epsilon+[B])^{S-1}\#[\Gamma]^*
+ \; +\;[\Gamma]^*[B]^{S+1}[\Gamma]^*.
+\]
+The first four alternatives cover the empty word, the single separator,
+and words without a leading or trailing separator. For a remaining
+word, the blocks between consecutive separators consist of letters of
+$B$. The fifth alternative detects a block of length less than $S$,
+since $(\epsilon+[B])^{S-1}$ denotes all $B$-words of length at most
+$S-1$. The sixth detects a block of length greater than $S$. Therefore
+these alternatives accept exactly the words failing the shape
+$\#B^S(\#B^S)^*\#$.
+
+\emph{An ill-formed configuration.} Include
+\[
+ [\Gamma]^*\#[B\setminus H]^*\#[\Gamma]^*
+ \quad+\quad
+ [\Gamma]^*[H][B]^*[H][\Gamma]^*.
+\]
+On words of the required shape, the first finds a block without a head
+marker and the second finds two head markers in the same block. They
+accept no word all of whose configurations have exactly one head.
+
+\emph{A wrong initial configuration.} Write $c_0(x)=a_1\cdots a_S$.
+Define an expression recursively by
+\[
+ D(\epsilon)=\varnothing,\qquad
+ D(a_1u)=[B\setminus\{a_1\}][\Gamma]^*+a_1D(u),
+\]
+and include $\#D(c_0(x))$.
+On a word of the required shape, this accepts exactly when the first
+configuration differs from $c_0(x)$: choose the first differing
+position, match its correct prefix, use the corresponding mismatch
+alternative, and accept the remaining suffix. Conversely every match
+of this expression identifies a differing position. The recursive
+expression has length $O_M(S)$ because $D(u)$ occurs once, not twice.
+This factoring is the point that avoids the quadratic union over all
+possible mismatch positions.
+
+\emph{A nonaccepting last configuration.} Include
+\[
+ [\Gamma]^*\#[B\setminus H_{\mathrm{acc}}]^*\#.
+\]
+Because the expression ends at the end of the word and its last starred
+alphabet excludes $\#$, it checks precisely the last block. On a
+well-formed block, it accepts exactly when its state is not accepting.
+
+\emph{A bad transition.} For every fixed forbidden quadruple
+$(a,b,c,d)\notin T$, with $b,d\in B$ and $a,c\in\Gamma$, include
+\[
+ [\Gamma]^*abc[\Gamma]^{S-1}d[\Gamma]^*.
+\]
+In a word of the required shape, a match with center $b$ at a cell of
+one configuration places $d$ at the corresponding cell of the next
+configuration. Indeed, the start of the next block is $S+1$ positions
+later; after $c$, exactly $S-1$ intervening symbols precede $d$.
+The letters $a,c$ can be separators at the two boundary cells.
+If there is no next block, the required $d\in B$ cannot be matched.
+Thus these alternatives detect precisely a position violating the
+local transition relation. Lemma~\ref{lem:regex-local-machine} proves
+that absence of every such violation is equivalent to a correct step.
+
+Every invalid word violates one of the five requirements. Every valid
+accepting computation satisfies all five and is rejected by all
+alternatives. This proves the language identity.
+
+There are only $O_M(1)$ forbidden quadruples. Every displayed power is
+expanded into that many explicit copies, and every such power has
+exponent $O(S)$. The recursively factored initial test has $O(S)$ nodes.
+Consequently the full syntax length is $O_M(S)$, and the long-block test
+also makes it $\Omega_M(S)$.
+
+A fixed number of left-to-right scans of $x$ produces all repeated
+blocks and the initial-configuration test. To serialize the latter
+in prefix notation, emit its constant template and current letter,
+then the template and next letter, finishing with $\varnothing$.
+Fully parenthesized notation is obtained by a further scan emitting
+the requisite closing delimiters. All syntax tokens have constant
+bit length over the fixed alphabet. Endpoint padding costs a constant.
+Thus the transducer takes $O_M(n+1)$ time.
+For access to one output symbol, regenerate the output while counting
+positions; all loop counters and input positions use $O_M(\log(n+2))$
+bits. This gives the required small-space input interface.
+\end{proof}
+
+\begin{lemma}[One fixed binary alphabet]
+\label{lem:regex-binary}
+The reductions in Lemma~\ref{lem:linear-regex-reduction} can all target
+ordinary expressions over the single fixed alphabet $\{0,1\}$, with
+the same asymptotic length, construction-time, and access-space bounds.
+\end{lemma}
+\begin{proof}
+For the fixed alphabet $\Gamma$ of a particular reduction choose an
+injective fixed-length code $h:\Gamma\to\{0,1\}^d$; $d$ is constant
+for that reduction. Replacing each letter of $R_x$ by its code gives
+an ordinary expression $h(R_x)$ whose language is the encoded language.
+Let $A=0+1$, and let $K$ be the finite set of unused $d$-bit codewords.
+The following constant-length expression accepts exactly the binary
+strings which are not concatenations of valid codewords:
+\[
+ B_h=(A^d)^*(A+A^2+\cdots+A^{d-1})
+       +(A^d)^*[K]A^*.
+\]
+When $d=1$, the first summand is $\varnothing$. The first summand
+checks a nonzero length residue modulo $d$. For lengths divisible by
+$d$, the second finds an invalid aligned block; it also harmlessly
+accepts some strings with a nonzero residue.
+Put $\widehat R_x=B_h+h(R_x)$. If a word is not properly coded,
+$B_h$ accepts it. If it is $h(w)$, injectivity of the block code gives
+$h(w)\in L(\widehat R_x)$ exactly when $w\in L(R_x)$.
+Therefore universality and nonuniversality are preserved, and the
+complement is a singleton when the original complement is a singleton.
+All added expressions and letter replacements have size bounded by a
+constant depending on $M$, so all three bounds are preserved.
+\end{proof}
+
+\subsection{The lower bound and its variants}
+
+\begin{theorem}[Natural superlinear nondeterministic lower bound]
+\label{thm:regex-nondet-lower}
+Assume the simulation theorem of~\cite{Cruz26},
+$\mathrm{NTIME}_{\mathrm{mt}}[t]\subseteq
+\mathrm{DSPACE}[O(t/\sqrt{\log t})]$ for $t(n)\geq n$.
+Let $\mathrm{RE\mbox{-}UNIV}$ be universality of ordinary binary
+regular expressions, encoded as syntax trees in prefix or fully
+parenthesized notation, and let $\mathrm{RE\mbox{-}NONUNIV}$ be its
+complement on valid encodings. Neither problem belongs to
+\[
+ \mathrm{NTIME}_{\mathrm{mt}}[t(n)]
+ \qquad\text{for any }t(n)=o(n\sqrt{\log n}).
+\]
+The same assertion holds for regular-expression equivalence and inclusion,
+and for their complementary decision problems. The size parameter $n$
+is full encoding length, not number of states or variable names.
+\end{theorem}
+\begin{proof}
+Every $L\in\mathrm{DSPACE}[n]$ reduces by the preceding lemmas to
+$\mathrm{RE\mbox{-}NONUNIV}$ with output length $\Theta_L(n)$ and
+deterministic construction time $O_L(n)$. Applying the construction to
+a decider for the complement of $L$ gives the same reduction to
+$\mathrm{RE\mbox{-}UNIV}$.
+
+Suppose either target had an $o(n\sqrt{\log n})$-time nondeterministic
+multitape algorithm. Compose it with the appropriate reduction, storing
+the linear-length output on a tape and then running that algorithm.
+No monotonicity of its time bound $t$ is needed.  For suitable fixed
+constants $C_L,D_L$, a bound on the composed time is
+\[
+ T_L(n)=D_L(n+1)+D_L\max_{1\le m\le C_L(n+1)}\lceil t(m)\rceil.
+\]
+This is at least $n$ after increasing $D_L$.
+It is also $o(n\sqrt{\log n})$: given $\eta>0$, beyond a fixed
+$m_0$ we have $t(m)\le\eta m\sqrt{\log(m+2)}$.
+The finitely many smaller values have a fixed maximum, while all
+remaining terms in the displayed maximum are bounded by
+$\eta C_L(n+1)\sqrt{\log(C_L(n+1)+2)}$.
+Dividing by $n\sqrt{\log n}$ and then letting $\eta$ tend to zero
+proves the assertion.  This envelope need not be constructible:
+the simulation theorem of~\cite{Cruz26} explicitly permits arbitrary
+time bounds. That theorem gives a deterministic space bound
+\[
+ O\!\left(\frac{T_L(n)}{\sqrt{\log T_L(n)}}\right)
+ \leq O\!\left(\frac{T_L(n)}{\sqrt{\log n}}\right)=o(n).
+\]
+This would put every language in $\mathrm{DSPACE}[n]$ in
+$\mathrm{DSPACE}[o(n)]$, contradicting the deterministic space hierarchy.
+For completeness we give a single-language diagonalization against the
+whole union $\mathrm{DSPACE}[o(n)]$. Enumerate one-binary-work-tape deterministic machines with
+an endmarker-bounded read-only input tape by finite descriptions
+$M_1,M_2,\ldots$, using length-lexicographic enumeration of descriptions
+and default machines for malformed descriptions. Description $i$ has
+length $O(\log(i+2))$. On unary length $n$, put $i=1+\nu_2(n)$ and
+simulate $M_i$ using at most $n$ binary work cells. If it tries to
+cross that cap, give the bounded simulation a fixed rejecting outcome.
+If $q_i$ is its state count, the number of capped configurations is
+at most $q_i(n+2)(n+1)2^{n+O(1)}$. Stop after this many steps and
+give a nonhalting simulation the same default outcome. Because
+$i\le1+\log_2n$, its description, tape contents, head positions,
+and a configuration counter all fit in $O(n)$ space. Define a tally
+language to return the opposite of this bounded outcome, and reject
+nonunary inputs.
+
+Every fixed multitape $o(n)$-space decider has an equivalent normalized
+machine in this enumeration with $o(n)$ space: encode its fixed
+alphabet and tapes by constant-length blocks and tracks and simulate
+a transition by sweeps. If $M_j$ decided the diagonal language, it
+would fit the $n$-cell cap for all sufficiently large lengths with
+$1+\nu_2(n)=j$. There are infinitely many such lengths. On each of
+them it halts and cannot repeat a configuration before halting, so
+the bounded simulation returns its actual answer. The diagonal
+language returns the opposite answer, a contradiction. Thus the
+language lies in $\mathrm{DSPACE}[n]$ outside the whole union
+$\mathrm{DSPACE}[o(n)]$.
+
+Finally, universality of $R$ is its equivalence to $(0+1)^*$, and is
+also the inclusion $(0+1)^*\subseteq L(R)$. Pairing $R$ with this
+fixed expression increases input length and construction time by a
+constant. Nonuniversality gives the complementary decisions.
+\end{proof}
+
+The same argument applies to the counting acceptance criteria, using
+the counting-classes theorem of~\cite{Cruz26}.
+
+\begin{corollary}[Counting and probabilistic acceptance]
+\label{cor:regex-counting}
+Under the corresponding counting-class simulations of~\cite{Cruz26},
+all the problems in Theorem~\ref{thm:regex-nondet-lower} are outside
+$\mathrm{PPTIME}[t]$, $\mathrm{BPTIME}[t]$, $\oplus\mathrm{TIME}[t]$,
+$\mathrm{Mod}_q\mathrm{TIME}[t]$ for fixed $q$, and
+$\mathrm C_=\mathrm{TIME}[t]$, for every
+$t(n)=o(n\sqrt{\log n})$.
+\end{corollary}
+\begin{proof}
+The simulations of~\cite{Cruz26} count the two transition choices as distinct
+computations even when their transition functions agree, so the
+deterministic prefix must be implemented with its acceptance
+interpretation in mind.  For probabilistic machines, identical
+transitions in the prefix leave all eventual acceptance probabilities
+unchanged, and thus preserve both bounded and unbounded error.
+For $\mathrm C_=\mathrm{TIME}$, if the prefix takes $r(x)$ steps,
+identical choices multiply the eventual accepting and rejecting
+computation counts by the same positive factor $2^{r(x)}$.
+Their equality is preserved.
+
+For parity and $\mathrm{Mod}_q\mathrm{TIME}$, instead give each
+prefix step one continuing transition and one transition that halts
+and rejects immediately.  There is exactly one continuing computation
+through the full prefix.  All other prefix computations reject, so
+the number of accepting computations is exactly the target machine's
+number, with no multiplicative factor.  This preserves its parity
+and its residue modulo $q$.
+Once the reduction and input-head initialization are complete,
+simulate each transition choice of the target machine without adding
+further branching steps.
+
+In every case the composition has time
+$T_L(n)=o(n\sqrt{\log n})$. Apply the small-space simulation
+of~\cite{Cruz26} for the relevant acceptance interpretation and repeat
+the space-hierarchy contradiction.
+\end{proof}
+
+\begin{corollary}[A verification-work obstruction]
+\label{cor:regex-verifier}
+For every fixed $0<\epsilon<1/2$, there is no sound and complete
+certificate verifier for ordinary binary regular-expression universality
+which (i) runs in deterministic multitape time $O(n+|\pi|)$ on an
+expression of length $n$ and certificate $\pi$, and (ii) supplies every
+universal expression with some certificate of length
+$O(n(\log n)^{1/2-\epsilon})$.
+\end{corollary}
+\begin{proof}
+Guess a certificate up to the stated, explicitly clockable bound and
+run the verifier. Completeness supplies an accepting branch exactly
+on universal expressions, and soundness forbids one otherwise. The
+running time is $O(n(\log n)^{1/2-\epsilon})$, which is
+$o(n\sqrt{\log n})$, contradicting
+Theorem~\ref{thm:regex-nondet-lower}.
+\end{proof}
+
+\paragraph{Scope.}
+Theorem~\ref{thm:regex-nondet-lower} is an unconditional superlinear
+nondeterministic-time lower bound for a familiar formal-language
+decision problem, derived from the simulation theorem of~\cite{Cruz26}.
+It is not an exponential lower bound and does not separate NP from
+PSPACE. Corollary~\ref{cor:regex-verifier} is parameterized by
+its stated verification cost; a particular Kleene-algebra proof calculus
+must have that cost verified before the corollary is applied to it.
+No deterministic linear-space upper bound for NFA universality is used.
+The usual nondeterministic subset-search upper bound is linear in the
+number of NFA states; invoking Savitch only gives a quadratic
+space bound at that parameter.
+
+\paragraph{Hand check of the reduction.}
+For $S=3$, take two blocks $abc$ and $def$, so the word is
+$\#abc\#def\#$. To inspect the center $b$ and corresponding next
+letter $e$, the pattern is $abc[\Gamma]^2e$: the two intervening
+characters are $\#$ and $d$. For the first cell, $\#ab[\Gamma]^2d$
+has intervening characters $c,\#$; for the last cell,
+$bc\#[\Gamma]^2f$ has intervening characters $d,e$.
+The short-block expression $(\epsilon+[B])^2$ accepts lengths
+zero, one and two, while $[B]^4$ detects lengths at least four.
+The initial-prefix test on $abc$ expands as
+\[
+ [B\setminus\{a\}][\Gamma]^*
+ +a\bigl([B\setminus\{b\}][\Gamma]^*
+          +b([B\setminus\{c\}][\Gamma]^*+c\varnothing)\bigr),
+\]
+which rejects a correct $abc$ prefix and accepts each possible first
+mismatch in exactly the corresponding branch.
+
+\section{Proof size in tree-like Kleene algebra}
+\label{sec:ka-proof-lower}
+
+We now derive a proof-size consequence from the regular-expression
+lower bound of Section~\ref{sec:regex-lower} and the simulation
+of~\cite{Cruz26}. It is a superlinear symbol-size lower bound for a
+precisely specified tree-like presentation of Kleene algebra. It is not
+a superpolynomial proof lower bound, and it does not assert the same
+verification rate for arbitrary proofs with shared references.
+
+\paragraph{Kozen's axioms.}
+We use Kozen's axiomatization~\cite{Kozen94}. Section~2 of the author
+version, equations (3)--(17), gives the finite equational and Horn
+axioms, and Theorem~19 (completeness) states that equal regular
+languages have a Kleene-algebra proof. We checked these statements
+directly in the author version.
+
+
+\begin{definition}[The ground tree presentation of Kleene algebra]
+\label{def:tree-ka}
+Fix two alphabet letters $a,b$. A term is an ordinary fully written
+regular expression over $a,b,0,1$ using the binary operations $+$
+and concatenation and unary star. The constants $0,1$ denote the
+empty language and the language containing the empty word.
+Terms have no sharing, exponent notation, or extension names.
+An inequality $u\le v$ abbreviates the equation $u+v=v$.
+
+The initial equations are all ground instances of Kozen's
+equations (3)--(15). The two induction rules are the ground instances
+\[
+ \frac{b+ax\le x}{a^*b\le x},
+ \qquad
+ \frac{b+xa\le x}{ba^*\le x}.
+\]
+The letters $a,b,x$ in these two displayed schemas denote term
+metavariables, not the fixed alphabet letters. The equality rules
+are reflexivity, symmetry, transitivity, and congruence for $+$,
+concatenation, and star. Congruence for a binary operation takes two
+equality premises, and congruence for star takes one. Every rule is
+thus one of finitely many fixed patterns with at most two premises
+and a constant number of term metavariables.
+
+A proof is a finite rooted tree whose nodes are full equations,
+with a rule name and, if desired, its explicit instantiating terms.
+Its size is its total number of symbols over a fixed finite encoding
+alphabet. We count all copies of every term and judgment.
+\end{definition}
+
+\begin{lemma}[Soundness and completeness of the ground presentation]
+\label{lem:tree-ka-complete}
+An equation over the fixed alphabet has such a finite proof if and
+only if its two regular languages are equal.
+\end{lemma}
+
+\begin{proof}
+Each semiring axiom holds for regular languages under union and
+concatenation. The star-unfolding axioms hold because every word in
+$1+AA^*$ or $1+A^*A$ belongs to $A^*$. If $B+AX\subseteq X$,
+then $B\subseteq X$ and $AX\subseteq X$. Induction on $k$ gives
+$A^kB\subseteq X$: the case $k=0$ is $B\subseteq X$, and the
+next case follows by multiplying the preceding inclusion on the
+left by $A$. Taking the union over all $k$ gives
+$A^*B\subseteq X$. The other induction rule is proved by right
+multiplication in the same way. Equality rules preserve equality
+of languages. Induction up a finite proof tree proves soundness.
+
+For completeness, let $u\sim v$ mean that the ground equation
+$u=v$ has a finite tree proof. Reflexivity, symmetry, transitivity,
+and congruence make this a congruence on the term algebra. The
+quotient by $\sim$ satisfies all the Kleene-algebra axioms. For
+the Horn axioms, if a premise holds in the quotient, its ground
+equation has a proof by the definition of $\sim$; placing the
+corresponding induction rule above that proof gives a proof of its
+conclusion. Thus the quotient is a Kleene algebra. Kozen's
+Theorem 19 says that equality of the two regular languages implies
+their equality in every Kleene algebra, including this quotient.
+Hence $u\sim v$, which by definition gives a finite tree proof.
+\end{proof}
+
+\begin{lemma}[Linear-time verification]
+\label{lem:tree-ka-linear-check}
+There is a deterministic machine with a fixed finite number of
+ordinary work tapes that verifies an explicitly annotated tree
+proof of size $L$, and checks that its conclusion is a supplied
+equation of length $n$, in time $O(L+n)$.
+Moreover, any tree proof with full judgments and rule names can be
+annotated for this checker with at most a constant-factor increase
+in total symbol size.
+\end{lemma}
+
+\begin{proof}
+Encode each term in prefix notation; each symbol's arity is zero,
+one, or two. A term's boundary and syntactic validity can be checked
+in linear time with a unary pending-argument counter: start with
+one pending position, remove one when reading a symbol and add its
+arity, and require the first return to zero to be the end of the
+term. This uses a fixed number of tape moves per symbol.
+
+List proof nodes in postorder. Each node contains its rule tag,
+the instantiating terms for that fixed rule, and its full conclusion.
+The verifier maintains a stack of the conclusions of the already
+verified subtrees. On reading a rule with $k\le2$ premises, it pops
+the last $k$ conclusions, rejecting if fewer are present. Copy those
+conclusions onto $k$ scratch tapes. A stack block can be copied in
+reverse while popping and then read from the opposite end; this
+costs at most twice its length and needs no random-access operation.
+Copy each instantiating term onto
+a separate scratch tape; the number of these tapes is bounded by
+the maximum number of metavariables in the finite rule list.
+
+For each fixed premise pattern, scan the pattern and the corresponding
+popped conclusion simultaneously. At a constructor symbol compare
+that symbol. At a metavariable, scan its stored term against the
+corresponding segment of the conclusion and then return the term
+tape to its left endpoint. Each metavariable occurs only a bounded
+number of times in the finite pattern, so the work is linear in the
+total length of the local instantiating terms and premise judgments.
+Check the node's conclusion against the instantiated conclusion
+pattern by the same procedure. Push its verified full conclusion
+onto the stack. Clearing and resetting a scratch tape costs at most
+its previous contents plus its new contents, so summed over all
+nodes these resets preserve the linear total bound.
+
+Each judgment is pushed once and popped at most once because the
+proof is a tree. Every full term is scanned a bounded number of
+times per local rule use. Stack movement is charged to symbols
+written or removed; it never scans earlier unrelated stack blocks.
+At the end require exactly one stack entry, compare it with the
+supplied equation, and reject any trailing malformed input.
+These operations have total time $O(L+n)$ on a fixed finite number
+of tapes. Postorder tags also check that the input describes one
+tree: each rule removes exactly its arity many completed subtrees
+and replaces them by one.
+
+For the size comparison, remove unused metavariables from every
+rule schema. Each remaining instantiating term appears at least
+once in a premise or conclusion of that local rule. Therefore the
+sum of the lengths of a node's instantiating terms is at most the
+sum of lengths of its local judgments. Across a tree, each judgment
+is charged at most twice, once as its node's conclusion and once
+as its parent's premise. The complete annotation has $O(L)$ size.
+\end{proof}
+
+\begin{theorem}[Superlinear Kleene-algebra tree proof size]
+\label{thm:ka-tree-superlinear}
+Assume the simulation theorem of~\cite{Cruz26} and the linear-size,
+linear-time reduction of Section~\ref{sec:regex-lower} from
+linear-space computations to ordinary binary regex equivalence.
+For every fixed $0<\epsilon<1/2$, there
+is no constant $c$ such that every valid equation of ordinary binary
+regular expressions of total length $n$ has a ground tree
+Kleene-algebra proof of at most
+\[
+ c\,n(\log(n+2))^{1/2-\epsilon}
+\]
+symbols. More generally, no time-constructible function
+$B(n)\ge n$ with $B(n)=o(n\sqrt{\log n})$ can uniformly bound
+all these shortest proof sizes up to a constant factor.
+\end{theorem}
+
+\begin{proof}
+Suppose first that the displayed bound holds. Replace $\epsilon$
+by a smaller positive rational number if necessary; the hypothesized
+bound then still holds, and its exponent is computable. On input an equation
+of length $n$, guess an annotated proof of at most a fixed constant
+multiple of that length bound. The constant accounts for the
+annotation in Lemma~\ref{lem:tree-ka-linear-check}. Reject a guess
+exceeding the bound. Run that verifier and accept precisely if it
+accepts. All branches halt within
+$O(n(\log(n+2))^{1/2-\epsilon})$ steps. The bound is
+time-constructible, so a clock enforces it with the same order of
+time. Soundness rejects every invalid equation, and completeness
+together with the hypothesized size bound accepts every valid one.
+This would put regex equivalence in
+\[
+ \operatorname{NTIME}
+   [O(n(\log(n+2))^{1/2-\epsilon})],
+\]
+contradicting the lower bound of Theorem~\ref{thm:regex-nondet-lower},
+$\mathrm{REGEX\mbox{-}EQUIV}\notin
+\operatorname{NTIME}[o(n\sqrt{\log n})]$.
+For a time-constructible $B$, use its clock in the identical argument.
+\end{proof}
+
+\paragraph{Small-instance check.}
+The one-node proof of $(a+b)+0=a+b$ instantiates $x+0=x$
+with $x=a+b$. Its annotation and judgment both have constant size.
+For a two-node proof, take this judgment as the premise of symmetry
+to conclude $a+b=(a+b)+0$. The postorder verifier pushes the first
+judgment, pops it at symmetry, compares it with the premise pattern,
+and pushes the reversed equation. It never searches a list of earlier
+proof lines.
+
+\paragraph{Limits and related work.}
+The proof does not establish a superpolynomial lower bound for
+Kleene algebra and does not settle $\mathsf{NP}\ne\mathsf{PSPACE}$.
+An arbitrary nonconstructible little-$o$ upper envelope of shortest
+proof lengths does not immediately furnish a clocked nondeterministic
+algorithm; the theorem therefore states the explicit logarithmic
+powers and the time-constructible generalization. Reusing previously
+proved equations by arbitrary binary line references also requires
+a different verification analysis.
+
+The chapter of Beier and Holzer~\cite{BH24} on the proof complexity
+of Salomaa's axiom system $F_1$ is directly relevant to novelty. We
+checked its publisher table of contents but could not obtain the full
+chapter, and no theorem from it is used as an input to a proof. A
+reproduced abstract states a tower upper bound for $F_1$ and the
+equivalence between polynomially bounded general regex-equivalence
+proof systems and $\mathsf{NP}=\mathsf{PSPACE}$; those statements do
+not by themselves provide an existing stronger lower bound for the
+tree model above. We do not claim a completed literature search
+establishing novelty for Theorem~\ref{thm:ka-tree-superlinear}.
+
+
+\section{A same-arity separation for bounded-variable counting}
+\label{sec:bounded-variable}
+
+The following separation is a corollary of the clause-parameter
+counting simulation of~\cite{Cruz26}. It applies to arbitrary
+relational $k$-variable first-order matrices, not only to noncrossing
+certificates. It is not a solution of Fagin's arity hierarchy
+problem, which allows arbitrarily many first-order variables. We make
+no priority claim for this restricted-fragment separation. In
+particular, the $k=2$ existential fragment on successor words was
+already shown to be regular by Gr\"adel and Rosen~\cite{GR99}.
+
+\paragraph{Models.}
+Fix an integer $k\geq2$. Structures have a universe $[N]$, $N\geq2$,
+a fixed finite relational vocabulary of maximum arity $k$, and a linear
+order. A word uses unary letter predicates with the order and endpoints
+implicit. A relation table can equivalently be supplied explicitly;
+its entries can be addressed by tuples in $O(\log N)$ workspace.
+No function symbols are allowed. The formula is fixed, not input.
+For a sentence $\varphi(\bar R)$ of $\mathrm{FO}^k$, using at most
+$k$ variable names but permitting their reuse and arbitrary quantifier
+nesting, let $c_\varphi(A)$ be the number of interpretations of a fixed
+finite tuple $\bar R$ of additional relations of arity at most $k$
+which make $\varphi$ true. Unused relation entries are counted as choices.
+Let $\mathcal K_k$ be the class defined by finite Boolean combinations
+of comparisons $c_\varphi\leq c_\psi$ and fixed-modulus tests on these
+counts. Count operators are not nested in first-order matrices.
+
+The first step grounds a bounded-variable sentence as a 3-CNF whose
+size is governed by the arity, not by the length of the formula.
+
+\begin{lemma}[Parsimonious bounded-variable grounding]
+\label{lem:fo-grounding}
+For every fixed $\varphi$ there is a logspace-accessible $3$-CNF
+$G_{A,\varphi}$ with $O_\varphi(N^k)$ variables and clauses such that
+\[
+ \#G_{A,\varphi}=c_\varphi(A).
+\]
+Here logspace accessibility means that a clause and one of its literals
+can be recovered from their indices in $O_\varphi(\log N)$ workspace
+with read-only access to $A$.
+\end{lemma}
+\begin{proof}
+Introduce one Boolean input for every tuple in every quantified relation.
+Their number is $O(N^k)$. For each syntactic subformula $\theta$ and
+each assignment to its free variables, introduce a gate for its truth
+value under that assignment. There are at most $N^k$ gates per
+subformula before replacing unbounded fan-in.
+
+A relation atom refers to its corresponding Boolean input or to a
+fixed input-structure bit. Equality and order atoms become constants.
+At a Boolean connective, the gate refers to its child gates with the
+assignment restricted to the child's free variables. At a quantifier
+$\exists x\,\theta$ or $\forall x\,\theta$, combine the $N$ child
+gates by OR or AND. If $x$ does not occur freely in $\theta$, remove
+this vacuous quantifier. Otherwise, if the quantified formula has $r$
+free variables, its child has $r+1\leq k$. Binary bracketing of all its
+quantifier gates costs $O(N^{r+1})=O(N^k)$. The resulting bounded-fan-in
+circuit has $O_\varphi(N^k)$ gates.
+
+Encode every gate by its three-or-fewer Tseitin clauses and assert the
+output. Each assignment to the relation-entry inputs determines exactly
+one assignment to all gate outputs by evaluation in syntax order. It
+satisfies the output assertion precisely when the corresponding
+expansion satisfies $\varphi$. This proves parsimony, including the
+unconstrained input variables for unused relation entries.
+
+Name a gate by its subformula, assignment tuple, and its position in a
+quantifier's binary bracketing. These fields use $O_\varphi(\log N)$
+bits. All child indices are obtained by tuple restriction, replacement
+of one coordinate, and counter arithmetic on fixed-length tuples.
+Input-structure atoms are queried by scanning the supplied table for
+the requested tuple if necessary. Time is not charged to the decoder
+at this step. Thus every requested clause is accessible in the claimed
+space.
+\end{proof}
+
+\begin{theorem}[Counting upper bound]
+\label{thm:fo-counting-upper}
+Every property in $\mathcal K_k$ can be decided simultaneously in
+\[
+ \mathrm{DSPACE}\left[O\!\left(\frac{N^k}{\sqrt{\log N}}\right)\right]
+ \quad\hbox{and time}\quad
+ 2^{O(N^k/\sqrt{\log N})}.
+\]
+The constants may depend on the fixed formulas and vocabulary.
+\end{theorem}
+\begin{proof}
+Apply the Boolean-network counting theorem of~\cite{Cruz26} to the
+logspace-accessible Tseitin instance of Lemma~\ref{lem:fo-grounding}. If some relation inputs
+are unused, include their unary weight vertices as in the weighted
+network construction; alternatively factor their free choices into
+an explicitly known power of two. The network still has $O(N^k)$
+edges, so requested count bits use the stated bounds.
+
+There are $O(N^k)$ guessed relation bits, hence every count has
+$O(N^k)$ output bits. Compare two counts from their most significant
+bits down, querying them afresh one bit at a time. Store the current
+position in $O(\log N)$ bits, and stop at the first unequal pair.
+For a fixed modulus, update a fixed-size residue accumulator while
+scanning the bits. The polynomial number of count-bit calls does not
+change the displayed exponential running-time rate. A fixed Boolean
+combination costs a constant number of such computations.
+\end{proof}
+
+The lower bound side is a standard tally diagonalization at the scale
+$N^k/\sqrt{\log N}$.
+
+\begin{lemma}[Unary space separation at this scale]
+\label{lem:tally-separation}
+For every fixed $k\geq1$ there is a tally language $L_k$ in
+$\mathrm{DSPACE}[N^k]$ but not in
+$\mathrm{DSPACE}[N^k/\sqrt{\log N}]$.
+\end{lemma}
+\begin{proof}
+Enumerate all deterministic machines with one read-only endmarker-bounded
+input tape and one binary work tape by binary descriptions $M_i$.
+Every fixed finite multitape machine can be encoded in this model with
+constant-factor space overhead: use fixed-length blocks for symbols
+and head markers and sweep to simulate a transition.
+
+On input $1^N$, put $i=\nu_2(N)$, with a fixed default index when $i=0$.
+Each fixed positive $i$ occurs for infinitely many unbounded values of
+$N$. A description of $M_i$ can be recovered from its index using
+$O(\log N)$ space. Set
+\[
+ b(N)=\left\lfloor
+ \frac{N^k}{\lceil\log_2\log_2(N+4)\rceil}
+ \right\rfloor.
+\]
+Simulate $M_i$ on $1^N$ with at most $b(N)$ work cells. Reject a
+simulation that crosses this boundary, and stop a simulation after a
+configuration-count bound. If $q_i$ is its state count, at most
+$q_i(N+2)(b(N)+1)2^{b(N)}$ configurations are possible; the logarithm
+of this bound is $b(N)+O(\log N)$, so its counter fits in $O(b(N)+\log N)$
+space. Define $L_k$ to accept exactly when this bounded simulation does
+not accept. Thus $L_k\in\mathrm{DSPACE}[N^k]$.
+
+Suppose a fixed $M_i$ decides $L_k$ in at most
+$cN^k/\sqrt{\log N}$ cells. Since
+$b(N)/(N^k/\sqrt{\log N})\to\infty$, that machine fits in the
+simulation bound for every sufficiently large $N$. Choose such an $N$
+with $\nu_2(N)=i$. The machine halts, and it cannot repeat a
+configuration before halting. Therefore the bounded simulation returns
+its actual answer, while the definition of $L_k$ returns its opposite.
+This is a contradiction.
+\end{proof}
+
+\paragraph{Vectorial fixed points.}
+Let $\mathrm{vPFP}_k$ permit simultaneous partial fixed points of a
+fixed finite number of relation variables, each of arity at most $k$,
+and Boolean flags. Its first-order update formulas have no variable
+bound. The iteration starts empty, yields its limiting tuple if a
+fixed point is reached, and yields empty relations otherwise.
+
+\begin{theorem}[Same-arity logical separation]
+\label{thm:same-arity}
+On ordered structures of maximum input-relation arity at most $k$,
+\[
+ \mathcal K_k\subsetneq\mathrm{vPFP}_k.
+\]
+The noncontainment is already witnessed by a property of the cardinality
+of a pure finite order.
+\end{theorem}
+\begin{proof}
+A fixed tuple of $k$-ary relations has $O(N^k)$ bits. Iteration of its
+fixed first-order update formulas uses two copies of that tuple, a
+configuration counter of $O(N^k)$ bits, and $O(\log N)$ workspace to
+evaluate each fixed formula. Nested fixed points multiply the space
+by a fixed constant. Thus $\mathrm{vPFP}_k$ uses $O(N^k)$ space.
+
+Conversely, a deterministic machine using $cN^k$ work cells is encoded
+by a fixed number of tracks indexed by $[N]^k$ in lexicographic order.
+Unary tape symbols in the machine become $k$-ary predicates, head
+positions become singleton $k$-ary predicates, and machine states become
+flags. Lexicographic successor on $k$-tuples is first-order definable
+from the domain order: a successor changes one coordinate to its
+successor, resets the following coordinates to minimum, and leaves
+preceding coordinates unchanged. There are $k$ cases in this fixed
+definition. Input heads for relation-table encodings use the same tuple
+representation with a finite flag for the input symbol's relation.
+First-order conditions retrieve the corresponding input-relation bit.
+The finite transition table therefore yields fixed first-order updates.
+Initialize by a flag and make halting configurations stationary.
+This defines every such deterministic space computation in
+$\mathrm{vPFP}_k$.
+
+Theorem~\ref{thm:fo-counting-upper} now gives the inclusion. Apply
+Lemma~\ref{lem:tally-separation} to $L_k$, identifying $1^N$ with the
+pure order on $[N]$. Its machine has a fixed $\mathrm{vPFP}_k$
+definition. If this property belonged to $\mathcal K_k$,
+Theorem~\ref{thm:fo-counting-upper} would contradict
+Lemma~\ref{lem:tally-separation}. This proves strictness.
+\end{proof}
+
+\paragraph{Hand check.}
+For $k=2$, take one guessed binary relation $R$ and
+$\varphi=\forall x\exists y\,R(x,y)$. On a two-element domain each
+row of $R$ has three permitted nonempty subsets, independently. Thus
+$c_\varphi=3^2=9$. The grounding has four relation-input bits and
+asserts $(R(1,1)\vee R(1,2))\wedge(R(2,1)\vee R(2,2))$; each of its
+nine assignments has exactly one Tseitin extension.
+
+\paragraph{Relation to the arity hierarchy problem.}
+Durand, Grandjean and Olive~\cite[Introduction]{DGO04} explicitly
+formulate the
+open arity hierarchy question with \emph{no bound on the number of
+first-order variables}. The bound above is not an upper bound for that
+whole fragment. With $v>k$ first-order variables, a direct grounding may
+have $\Theta(N^v)$ gates and clauses, giving
+$O(N^v/\sqrt{\log N})$ space rather than $o(N^k)$.
+Allowing quantified functions also changes the interface: a general
+$k$-ary function has $N^k\log N$ bits, not $N^k$.
+
+\paragraph{A stronger target.}
+For the universal, quantifier-free relational fragment with guessed
+arity at most $k$, grounding produces a bounded-width CNF on
+$O(N^k)$ guessed bits but potentially $N^v$ clauses. A uniform
+\emph{variable-parameter} $o(n)$-space algorithm for bounded-width CNF
+counting, with polynomial-length read-only input, would remove this
+particular first-order-variable obstruction for that fragment.
+The known subexponential variable-parameter time/formula-size bounds
+from sparsification do not by themselves establish this space claim:
+the branch generator and its leaf-instance decoder must also fit in
+$o(n)$ space. We state this as the missing lemma; it is not asserted
+as a consequence of anything proved here.
+
+\paragraph{Related work.}
+The conference abstract of Gr\"adel and Rosen~\cite{GR99} states the
+regular-language characterization for $\Sigma^1_1(\mathrm{FO}^2)$.
+Grandjean~\cite[Theorem~0.1 and introduction]{Gra84} distinguishes
+symbol arity from the number of universal quantifiers; function
+symbols are permitted there, unlike in our relational grounding
+lemma. Grandjean and Olive~\cite{GO04} use unit-cost nondeterministic
+RAMs, so their capture theorem cannot simply be substituted for a
+bit-cost multitape Turing-machine bound.
+
+
+\section{A conditional route to subexponential Frege refutations}
+\label{sec:few-order-frege-milestone}
+
+This section isolates what is missing for Frege. The reflection
+hypothesis~\eqref{eq:frege-reflection-hypothesis} below is
+\emph{conditional}; we do not prove it. The size-transfer implications
+from that hypothesis are proved. The hypothesis is a target for the
+specific contraction certificates, not a claimed simulation of
+arbitrary commutative IPS. Section~\ref{sec:frege-obstacles} explains
+why the known simulations of IPS by Frege do not supply it.
+
+\subsection{The reflection hypothesis and the size transfer}
+
+\paragraph{Proof model and certificate promise.}
+Fix one finite Frege system over the connectives $\neg,\wedge,\vee$,
+with the usual substitution of formulas for schematic variables.
+A refutation of a CNF $F$ means a Frege proof of the tautology
+$\neg F$. Proof size is total written symbol size, counting all
+formula copies; variable names may be written in binary.
+Put $s=n+m+2$ for a 3-CNF with $n$ specified variables and $m$
+clauses. Its bit encoding has size $O(s\log(s+2))$.
+
+For every allowed power of two $h$ with $2^{3h}\le s$, the
+constructions of Sections~\ref{sec:few-order} and~\ref{sec:ips-universal}
+give an integral Hilbert-like IPS
+certificate $C(x,y)$ of total formula size
+\[
+ S\le 2^{K s/\sqrt h}
+ \tag{F1}\label{eq:frege-compiled-size}
+\]
+for an absolute constant $K$. It is a sum of at most $h$ ordered,
+syntactically multilinear formulas. The orders belong to the
+universal list arising from the global row/column histories and
+prescribed owner placement. Its binary product depth is
+$O(\log(s+2))$, formal degree is at most $n$, and placeholder
+degree is at most one at every gate. One can obtain all these
+properties simultaneously by compiling each first-failed-clause
+coefficient with the same $h$ and owner groups, putting all
+placeholders before the original variables, and grouping the
+coefficients by history. The factor $m$ in size is absorbed in
+\eqref{eq:frege-compiled-size}; it adds no product-depth factor.
+Reduction modulo two gives a certificate over $\mathbb F_2$.
+These explicitly generated certificates, together with their
+construction data, form the promised input class below.
+
+\paragraph{Conditional reflection hypothesis.}
+There are constants $A,c,C>0$ such that every promised size-$S$
+certificate with order parameter $h$ for an unsatisfiable 3-CNF
+$F$ has a Frege refutation of size at most
+\[
+ S^{A(1+\log(h+1))^c}\,
+       2^{A(\log(s+2))^C}.
+ \tag{F2}\label{eq:frege-reflection-hypothesis}
+\]
+This hypothesis includes the necessary internal proof of soundness
+or identity implications. An external identity-testing algorithm
+with this running time alone is not asserted to imply
+\eqref{eq:frege-reflection-hypothesis}. The hypothesis is only a
+proof-size statement; no automatization claim is included.
+
+\begin{proposition}[Conditional subexponential Frege transfer]
+\label{prop:conditional-frege-transfer}
+If \eqref{eq:frege-reflection-hypothesis} holds, every unsatisfiable
+3-CNF with parameter $s=n+m+2$ has a Frege refutation of size
+\[
+ 2^{\,O\!\left(
+      \dfrac{s(\log\log(s+3))^c}{\sqrt{\log(s+2)}}
+        +(\log(s+2))^C\right)}
+ =2^{o(s)}.
+\]
+In particular, this gives $2^{o(n)}$ Frege refutations when
+$m=O(n)$.
+\end{proposition}
+
+\begin{proof}
+For all sufficiently large $s$, choose $h$ to be the largest power
+of two at most $(\log_2s)/3$. Then $2^{3h}\le s$, and rounding
+down to a power of two loses a factor smaller than two. Hence
+$h=\Theta(\log s)$. Taking base-two logarithms in
+\eqref{eq:frege-reflection-hypothesis} and using
+\eqref{eq:frege-compiled-size} gives, for the resulting refutation
+$\mathcal P_F$ of $F$,
+\[
+ \log_2|\mathcal P_F|
+ \le AK\frac{s}{\sqrt h}(1+\log(h+1))^c
+                  +A(\log(s+2))^C.
+\]
+The first term is
+$O(s(\log\log s)^c/\sqrt{\log s})$.
+To see that it is $o(s)$, put $u=\log s$. Its ratio to $s$ is
+$O((\log u)^c/u^{1/2})$, which tends to zero: after taking
+logarithms of that ratio, the negative term
+$-\tfrac12\log u$ dominates $c\log\log u$.
+The second term is $o(s)$ because every fixed power of $\log s$
+is $o(s)$. This proves the claimed bound. If $m=O(n)$, then
+$s=O(n)$ and $s\ge n$, so $o(s)=o(n)$.
+\end{proof}
+
+\begin{proposition}[The exponent-loss threshold]
+\label{prop:frege-loss-threshold}
+Suppose instead that the promised certificates admit Frege
+refutations of size
+\[
+ S^{p(h)}2^{O((\log(s+2))^C)}
+\]
+for a nonnegative function $p$ and a fixed $C$.
+For any allowed choice $h=h(s)\to\infty$, this bound and
+\eqref{eq:frege-compiled-size} imply $2^{o(s)}$ refutations whenever
+\[
+ \frac{p(h(s))}{\sqrt{h(s)}}\longrightarrow0.
+\]
+In particular, $p(h)=o(\sqrt h)$ suffices. This is the threshold
+for preserving the saving by substitution in these bounds; it is
+not a lower bound ruling out a sharper simulation.
+\end{proposition}
+
+\begin{proof}
+The logarithm of the resulting size bound is
+\[
+ O\!\left(s\frac{p(h(s))}{\sqrt{h(s)}}
+                  +(\log(s+2))^C\right).
+\]
+Its ratio to $s$ tends to zero under the displayed assumption.
+If $p(h)$ is only bounded by a constant multiple of $\sqrt h$,
+substitution gives only an $O(s)$ exponent. A larger displayed loss
+does not yield a vanishing ratio from this computation. This last
+observation is a limitation of the available upper-bound estimate,
+not a claim that the actual shortest Frege proof must be large.
+\end{proof}
+
+\subsection{Why known simulations do not supply the hypothesis}
+\label{sec:frege-obstacles}
+
+\paragraph{Identity testing for sums of ROABPs.}
+Gurjar, Korwar, Saxena and Thierauf~\cite[Theorem~3.2 and the explicit
+bound in the introduction]{GKST15} give white-box time
+$(Nd\,w^{2^r})^{O(r)}$ for a sum of $r$ ROABPs on $N$ variables,
+individual degree $d$, and width $w$.
+With $r=h$ and parameters bounded polynomially by $S$, the displayed
+time bound is $S^{O(h2^h)}$. The corresponding exponent-loss
+estimate divided by $\sqrt h$ grows like $\sqrt h\,2^h$ instead of
+tending to zero. Thus directly substituting that bound cannot
+give the desired saving, even if a matching Frege formalization
+were available. Choosing $h$ to grow more slowly does not repair
+this displayed loss. Keeping $h$ constant leaves the original
+certificate-size exponent proportional to $s$.
+
+\paragraph{The two-bucket simulation.}
+Chatterjee, Chatterjee, Ghosal and Mukhopadhyay~\cite[Definition~1.1
+and Theorems~1.2 and~3.3]{CCGM26} simulate a class of IPS certificates
+in Frege. Their partition of the variables into two buckets is global.
+Variables in the same bucket do not commute; variables in distinct
+buckets do commute. Placeholder variables receive no extra commutation
+relations. The general Frege simulation is quasipolynomial in
+certificate size. The following proposition shows that the history
+orders do not fit a fixed bucket system with few buckets.
+
+\begin{proposition}[Antidiagonal obstruction]
+\label{prop:antidiagonal}
+Consider a $g\times g$ array of distinct formal symbols $X_{a,b}$.
+Suppose row-major and column-major products of all symbols are to be
+identified solely through a global bucket system in which symbols
+commute only across different buckets. Then at least $g$ buckets are
+necessary.
+\end{proposition}
+
+\begin{proof}
+The antidiagonal symbols $X_{1,g},X_{2,g-1},\ldots,X_{g,1}$ occur in
+that order in the row-major word and in the reverse order in the
+column-major word. In a partially commutative word algebra, projection
+onto the symbols of one bucket is invariant under all permitted swaps:
+swapping symbols from different buckets does not change either
+within-bucket projected word. If two antidiagonal symbols belonged to
+one bucket, its two projected words would put that pair in opposite
+orders. They would therefore differ, so the original words would not
+be equal. Each antidiagonal symbol needs a different bucket.
+\end{proof}
+
+For $g=3$, the symbols $X_{1,3},X_{2,2},X_{3,1}$ already require
+three buckets. This proves failure of the literal two-bucket lifting.
+It does not rule out every proof with additional commutator
+certificates, and constructing small certificates for the required
+reorderings remains a possible route.
+
+\paragraph{Quasipolynomial dependence on certificate size.}
+A bound $S^{(\log S)^b}$ with any fixed $b>0$ substitutes to
+\[
+ 2^{O((s/\sqrt h)^{b+1})}.
+\]
+Even the maximal allowed $h=\Theta(\log s)$ gives an exponent
+estimate whose ratio to $s$ is
+$s^b/(\log s)^{(b+1)/2}$, which diverges. In the same way, if a
+simulation costs $S^{(\log S)^c}$ and $S=2^{O(n/\sqrt{\log n})}$,
+substitution alone yields $2^{O((n/\sqrt{\log n})^{c+1})}$, which is
+not subexponential in $n$ for any fixed $c\ge1$. The two-bucket
+simulation~\cite[Theorems~1.2 and~3.3]{CCGM26} has such a
+quasipolynomial dependence on certificate size. It also has further
+quasipolynomial ABP-to-formula and witness costs after its initial
+homogenization~\cite[Appendices~B.4 and~B.6]{CCGM26}. Thus observing
+that the original weight polynomial is homogeneous is not enough to
+make that theorem preserve the counting saving. Its fixed global
+two-bucket commutation model also does not directly match the history
+orders, by Proposition~\ref{prop:antidiagonal}. Citing that theorem
+therefore supplies neither the structural applicability nor the
+needed quantitative reflection.
+
+\paragraph{A useful positive refinement.}
+The path-index lemma of~\cite{Cruz26} bounds the sum of product-index
+lengths along a path by $O(\log s)$. After binary expansion, the
+product depth is therefore $O(\log s)$ even though the formula size is
+exponential in $s/\sqrt{\log s}$. Degree-tracking homogenization of
+such a formula has at most $(n+1)^{O(\log s)}$ copies per node. For
+$n\le s$ this is $2^{O(\log^2s)}$, absorbed by the original
+formula-size rate. This removes one potential homogenization loss. It
+does not supply the missing global noncommutative lift or remove the
+later witness costs in the two-bucket Frege simulation.
+
+\subsection{Scope and a numerical check}
+
+\paragraph{Scope of the variable bound.}
+The conclusion above is $2^{o(n+m)}$, and becomes $2^{o(n)}$ for
+linear-size CNFs. Counting sparsification alone does not justify
+extending this Frege conclusion to arbitrary 3-CNFs in the number
+of variables. Such an extension would additionally need a Frege
+derivation that combines the sparse-branch refutations with a
+proof of the sparsification decomposition, within the required
+size. No such proof-efficient sparsification step is assumed or
+proved here.
+
+\paragraph{A numerical check.}
+For $s=2^{12}$ the largest admissible power-of-two name length is
+$h=4$, with two binary cut decisions and four history orders.
+Substitution changes the certificate logarithmic-size bound
+$Ks/2$ to at most
+$AKs(1+\log5)^c/2+A(\log(s+2))^C$. This verifies the
+parameter substitution on one actual allowed recursion size;
+the asymptotic saving follows from the proved limit, not from
+this finite check.
+
+\section{Open problems}
+\label{sec:open-map}
+
+\paragraph{1. Frege reflection for the actual history orders.}
+We regard this as the most important next target. The conditional
+implication of Section~\ref{sec:few-order-frege-milestone} needs a loss
+controlled by the number of merge levels, rather than by the logarithm
+of the full expanded certificate size. The sufficient bound is
+$S^{\operatorname{polylog}h}2^{\operatorname{polylog}s}$.
+A first step would be a proof of the row/column switching identity
+with explicit certificates for reordering its variable factors; a
+second would be a composition theorem across all global histories that
+does not distribute the full assignment sum. There is also an explicit
+criterion for when to stop: by Proposition~\ref{prop:frege-loss-threshold},
+a construction whose proved exponent loss is $\Omega(\sqrt h)$ does
+not yield a subexponential bound through the transfer established
+here. This is not an assertion that all such proofs must be large.
+
+The October 2026 two-bucket Frege paper~\cite{CCGM26} is directly
+relevant but does not establish the needed lift. Its commutation
+partition is global, and its size dependence is quasipolynomial in
+$S$. Proposition~\ref{prop:antidiagonal} and the substitution
+calculation of Section~\ref{sec:frege-obstacles} identify two distinct
+failures of applying it verbatim.
+
+A natural approach is a proof of the contraction identities in Frege
+that tracks the global merge history. By the results of
+Section~\ref{sec:few-order}, only a slowly growing family of highly
+structured orders is needed, so the proof no longer has to organize
+the full assignment space. A concrete first goal would be a
+reordering certificate for one merge that composes with loss
+polynomial in the number of merge levels. A bound polynomial in
+$\log h$, combined with the conditional transfer of
+Proposition~\ref{prop:conditional-frege-transfer}, would turn the
+counting construction into subexponential Frege proofs for every
+linear-size 3-CNF.
+
+\paragraph{2. The quantitative size--order tradeoff.}
+The qualitative threshold is proved, but the number of orders needed
+at size $2^{O(N/\sqrt{\log N})}$ is only known to lie between
+$\Omega(\log\log N)$ and $O(\log N)$
+(Theorem~\ref{thm:fast-code-order-separation}). Closing this interval
+is a focused open question. More generally, the exponents
+$\Omega(N/2^k)$ and $O(N/\sqrt k)$ are far apart.
+The Homeister-style proof loses a factor two in residual block size
+each time it accommodates another order. The compiler loses a square
+root when potential is converted to index length. Neither calculation
+identifies the true tradeoff. A first step would be to analyze the
+specific recursively permuted order list instead of arbitrary
+permutations. No sharper tradeoff is claimed here.
+
+\paragraph{3. A few-order lower bound strong enough for Boolean circuits.}
+Proposition~\ref{prop:coefficient-bridge} gives a precise target:
+$N^{\Omega(d)}$ lower bounds against logarithmically many
+different-order set-multilinear ABPs for a Boolean coefficient
+polynomial. This would force
+$\Omega(b\sqrt{\log b})$ Boolean circuit size on its
+$b=d\log N$-bit coefficient predicate. The code lower bound of
+Section~\ref{sec:parity-findings} cannot do this for linear-size
+functions, since the compiler itself supplies small enough
+representations once the number of orders grows.
+The bound of~\cite{CKSS24} has the required scale only
+for a single order; its sum-of-orders theorem is quantitatively weaker.
+The 2026 min-partition-rank paper~\cite{FLSY26} is relevant to the
+choice of measure; its full-rank examples prevent treating full rank
+alone as a sufficient lower-bound argument.
+
+\paragraph{4. Extending the program-proof lower bound.}
+Theorem~\ref{thm:ka-tree-superlinear} measures total symbols in a
+fully written proof tree. The next tasks are to establish a comparable
+verification rate for an ordinary shared proof representation, and to
+construct an explicit family of valid identities with a quantitative
+proof-length lower bound. A verifier costing $O(L\log L)$ already
+uses more than the available logarithmic saving when $L\ge n$, so
+the present transfer does not automatically extend to
+arbitrary binary line references. Existing linear-checkable
+certificates, if any, should be analyzed by their actual encoding.
+
+The chapter of Beier and Holzer~\cite{BH24} concerns the proof
+complexity of Salomaa's $F_1$. Its full text was not available to us;
+its publisher metadata and a reproduced abstract were. Schweigler's
+2025 thesis~\cite[Section~5, pp.~29--31]{Sch25} records general
+polynomial-proof characterizations, not a quantitative tree-like
+bound of the form proved here. This search does not establish a
+complete priority claim for the Kleene-algebra result.
+
+\paragraph{5. The first-order-variable obstruction in arity problems.}
+The same-arity separation of Section~\ref{sec:bounded-variable}
+requires an $\mathrm{FO}^k$ matrix. The classic arity question permits
+arbitrarily many first-order variables; Durand, Grandjean and
+Olive~\cite[Introduction, pp.~1--2]{DGO04} explicitly distinguish
+those parameters. Guessing relations of arity $k$ uses $O(N^k)$ bits,
+but grounding a $v$-variable matrix may require $N^v$ constraints.
+When $v>k$, a clause-sensitive saving in $N^v$ does not become a
+space saving below $N^k$. This is a polynomial gap in the parameters,
+not a missing constant. A variable-parameter, uniformly sublinear-space
+bounded-width counting theorem with polynomial-size read-only input
+would address that interface; the existing nonuniform
+sparsification argument does not supply it. We claim no solution to
+Fagin's full arity hierarchy problem or to Asser's spectrum-complement
+problem.
+
+\paragraph{Related current work and attributions.}
+The public list of STOC 2027 submissions~\cite{STOC27}, consulted on
+19 November 2026, contains \#43, \emph{Hard Instances for Strong
+Semantic Proof Systems: CNFs for Depth-Four PC and Deep Instances for
+$\mathsf{AC}^0[2]$-Frege}; \#1046, \emph{Progress on AC0[2]-Frege Lower
+Bounds}; \#1284, \emph{Fine-Grained Proof Complexity for Elementary
+Arithmetic in Extended Frege}; and \#1702, \emph{The Contraction Lemma
+Beyond ETH: Algorithms and Lower Bounds}. These titles show current
+activity; they do not certify the contents or settle the novelty of
+this paper. We checked the two-bucket Frege paper, the fast-code
+theorems, the sum-of-ROABPs PIT bound, and the cited ABP lower bounds
+in their primary texts. The code lower-bound mechanism is due to
+Homeister~\cite{Homeister03}, the invalid-computation reduction is
+classical~\cite{GS05}, and the first-failed-clause IPS identity follows
+Grochow and Pitassi~\cite{GP18}.
+
+\begin{thebibliography}{99}
+
+\bibitem{Ant26} Claude (Anthropic).
+\newblock A $2^{o(n)}$ time algorithm for 3-SAT.
+\newblock Manuscript, 2026.
+\newblock \url{https://drive.google.com/file/d/1u1XufQIU-PZafNWRO1Is-SUlX760agVp/view}.
+
+\bibitem{BH24} Simon Beier and Markus Holzer.
+\newblock On regular expression proof complexity of Salomaa's axiom
+system~$F_1$.
+\newblock In \emph{Taming the Infinities of Concurrency}, pages 72--100.
+Springer, 2024.
+\newblock \url{https://doi.org/10.1007/978-3-031-56222-8_4}.
+
+\bibitem{BIR26} Martijn Brehm, Yuval Ishai, and Nicolas Resch.
+\newblock Fast bounded-independence functions and their duals.
+\newblock In \emph{ITC 2026}, LIPIcs 385, Article~8, 2026.
+\newblock \url{https://doi.org/10.4230/LIPIcs.ITC.2026.8}.
+
+\bibitem{BR26} Martijn Brehm and Nicolas Resch.
+\newblock Linear time encodable binary code achieving GV bound with
+linear time encodable dual achieving GV bound.
+\newblock In \emph{ITCS 2026}, LIPIcs 362, Article~28, 2026.
+\newblock \url{https://doi.org/10.4230/LIPIcs.ITCS.2026.28}.
+
+\bibitem{CCGM26} Abhranil Chatterjee, Prerona Chatterjee,
+Utsab Ghosal, and Partha Mukhopadhyay.
+\newblock Quasi-polynomial Frege simulation of IPS beyond
+noncommutativity.
+\newblock ECCC TR26-166, revision~1, 30 October 2026.
+\newblock \url{https://eccc.weizmann.ac.il/report/2026/166/revision/1/download/}.
+
+\bibitem{CKSS24} Prerona Chatterjee, Deepanshu Kush, Shubhangi Saraf,
+and Amir Shpilka.
+\newblock Lower bounds for set-multilinear branching programs.
+\newblock In \emph{CCC 2024}. Corrected version: ECCC TR23-212,
+revision~2, 17 February 2024.
+\newblock \url{https://eccc.weizmann.ac.il/report/2023/212/revision/2/download/}.
+
+\bibitem{Cruz26} Charlie Cruz.
+\newblock Separating nondeterministic time from deterministic space.
+\newblock Manuscript supplied by the author; source file
+\texttt{separating-ntime-from-space.tex}, consulted 19 November 2026.
+
+\bibitem{DGO04} Arnaud Durand, Etienne Grandjean, and Fr\'ed\'eric Olive.
+\newblock New results on arity vs.\ number of variables.
+\newblock Manuscript, 31 March 2004.
+\newblock \url{https://webusers.imj-prg.fr/~arnaud.durand/papers/dgo.pdf}.
+
+\bibitem{FLSY26} Th\'eo Bor\'em Fabris, Nutan Limaye,
+Srikanth Srinivasan, and Amir Yehudayoff.
+\newblock Multilinear algebraic branching programs and the
+min-partition rank method.
+\newblock In \emph{CCC 2026}, LIPIcs 383, Article~22, 2026.
+\newblock \url{https://doi.org/10.4230/LIPIcs.CCC.2026.22}.
+
+\bibitem{GR99} Erich Gr\"adel and Eric Rosen.
+\newblock Two-variable descriptions of regularity.
+\newblock In \emph{LICS 1999}, pages 14--23, 1999.
+\newblock \url{https://lics.siglog.org/archive/1999/GradelRosen-TwoVariableDescript.html}.
+\newblock (The word-structure result uses successor, endpoints and
+letters; we do not extend it to a supplied full-order predicate.)
+
+\bibitem{GS05} Gregor Gramlich and Georg Schnitger.
+\newblock Minimizing NFA's and regular expressions.
+\newblock In \emph{STACS 2005}, LNCS 3404, pages 399--411, 2005.
+\newblock Extended version:
+\url{https://citeseerx.ist.psu.edu/document?doi=cb9486498319bae7bf0d28e5960115e2571bf2f2&repid=rep1&type=pdf}.
+
+\bibitem{Gra84} Etienne Grandjean.
+\newblock The spectra of first-order sentences and computational
+complexity.
+\newblock \emph{SIAM J. Comput.}, 13(2):356--373, 1984.
+
+\bibitem{GO04} Etienne Grandjean and Fr\'ed\'eric Olive.
+\newblock Graph properties checkable in linear time in the number of
+vertices.
+\newblock \emph{J. Comput. System Sci.}, 68:546--597, 2004.
+
+\bibitem{GP18} Joshua A. Grochow and Toniann Pitassi.
+\newblock Circuit complexity, proof complexity, and polynomial identity
+testing: The ideal proof system.
+\newblock \emph{J. ACM}, 65(6), Article~37, 2018.
+\newblock \url{https://doi.org/10.1145/3230742}.
+
+\bibitem{GKST15} Rohit Gurjar, Arpita Korwar, Nitin Saxena, and
+Thomas Thierauf.
+\newblock Deterministic identity testing for sum of read-once
+oblivious arithmetic branching programs.
+\newblock In \emph{CCC 2015}, 2015.
+\newblock \url{https://www.cse.iitb.ac.in/~rgurjar/papers/sumROABP.pdf}.
+
+\bibitem{Homeister03} Matthias Homeister.
+\newblock Lower bounds for the sum of graph-driven read-once parity
+branching programs.
+\newblock ECCC TR03-068, 2003.
+\newblock \url{https://eccc.weizmann.ac.il/report/2003/068/download/}.
+
+\bibitem{Kozen94} Dexter Kozen.
+\newblock A completeness theorem for Kleene algebras and the algebra of
+regular events.
+\newblock \emph{Information and Computation}, 110(2):366--390, 1994.
+\newblock Author version: \url{https://www.cs.cornell.edu/~kozen/Papers/ka.pdf}.
+
+\bibitem{PreviousNote}
+\newblock Logical consequences of integral counting.
+\newblock Preceding note in this series, 19 November 2026; source file
+\texttt{logic\_implications\_of\_integral\_counting.tex}.
+
+\bibitem{Sch25} Manuel Schweigler.
+\newblock Proof systems for regular expressions.
+\newblock Bachelor's thesis, TU Wien, 5 March 2025.
+\newblock \url{https://www.dmg.tuwien.ac.at/hetzl/teaching/b_schweigler.pdf}.
+
+\bibitem{STOC27} STOC 2027 submissions.
+\newblock Public list, consulted 19 November 2026. Submission numbers
+denote listed submissions, not accepted papers.
+\newblock \url{https://sigact-stoc.github.io/stoc2027/}.
+
+\bibitem{Szeider26} Stefan Szeider.
+\newblock Consequences of the ETH refutations for proof complexity and
+knowledge compilation.
+\newblock Version~2, 16 November 2026.
+\newblock \url{https://doi.org/10.5281/zenodo.24299623}.
+\newblock See Section~2, assumption~(A1), and Section~7, Open Problem~5.
+
+\end{thebibliography}
+\end{document}

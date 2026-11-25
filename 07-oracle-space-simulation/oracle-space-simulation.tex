@@ -1,0 +1,381 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{xurl}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\DTIME}{\mathsf{DTIME}}
+\newcommand{\DSPACE}{\mathsf{DSPACE}}
+\newcommand{\NTIME}{\mathsf{NTIME}}
+\newcommand{\SAT}{\textup{\textsc{CNF-SAT}}}
+\hypersetup{pdftitle={Simulating time T with a space-s oracle in space O(s(T)+T/log T)},
+  pdfauthor={Charlie Cruz},
+  pdfkeywords={time-space simulation, oracle machines, relativization, space complexity, multitape Turing machines, CNF-SAT}}
+\title{Simulating Time $T$ with a Space-$s$ Oracle\texorpdfstring{\\}{ }in Space $O(s(T)+T/\log T)$}
+\author{Charlie Cruz}
+\date{November 24, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+Williams showed that multitape time $t$ can be simulated in space
+$O(\sqrt{t\log t})$, and that the simulation survives an oracle provided
+every query is short. We treat long queries. An oracle machine makes
+\emph{fresh queries} if it writes each query from scratch, one symbol per
+step, on a query tape that is erased after the answer arrives. We show
+that a deterministic machine running in time $T$, with adaptive fresh
+queries to an oracle $A$ decidable in space $s$, can be simulated without
+any oracle in space $O(s(T)+T/\log T)$. The simulation stores neither the
+machine's tapes nor its queries. It keeps a table of the answers to all
+short queries and a transcript of the answers to the long ones. Whenever
+the algorithm for $A$ asks for a bit of a long query, the simulation
+regenerates that bit by replaying the whole computation inside
+Williams's simulation. For example, \SAT{} with binary variable names is
+in space $O(N/\log N)$, so linear space is not contained in time
+$o(n\log n)$ with fresh queries to a \SAT{} oracle.
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Background}
+Hopcroft, Paul and Valiant showed that
+$\DTIME[t]\subseteq\DSPACE[t/\log t]$ \cite{HPV}. Nearly fifty years
+later, Williams improved this to
+$\DTIME[t]\subseteq\DSPACE[\sqrt{t\log t}]$ \cite{Wil25}, building on the
+tree evaluation algorithm of Cook and Mertz \cite{CM}. Both results are
+for multitape Turing machines.
+
+We ask what happens when the time-bounded machine has an oracle. Oracle
+machines model algorithms that call subroutines whose internals we do
+not want to examine, so it is natural to ask whether the square-root
+simulation is robust to such calls. Williams observed that his
+simulation relativizes in a restricted sense: if every query has length
+at most $\sqrt{t\log t}$, then each query fits inside one block of the
+simulation and can be passed along \cite[Theorem~5.1]{Wil25}. A machine
+running in time $T$ can also write queries of length $\Theta(T)$, and it
+can ask many of them, each depending on all the previous answers. A long
+query depends on an entire region of the tape at once, which destroys
+the locality that drives every known simulation. The obvious simulation
+stores the whole configuration, which costs space $\Theta(T)$.
+
+If the simulator keeps the oracle and is only required to use small
+space, nothing can be gained. A small-space machine cannot even write
+the queries that a time-$T$ machine can, and there are oracles relative
+to which time and space coincide \cite{HCCRR,CW04}. We therefore ask a
+different question. Suppose the oracle language $A$ is itself decidable
+in space $s$. Can we remove the oracle and still use space less than
+$T$?
+
+\subsection{Results}
+The answer is yes, provided each query has to be written out. Say that
+an oracle machine writes \emph{fresh queries} if it writes each query
+from scratch on a query tape that is erased after the answer arrives,
+paying one step per symbol. Some convention of this kind is necessary;
+see Remark~\ref{rem:fresh}.
+
+\begin{theorem}\label{thm:main}
+Let $A\subseteq\{0,1\}^*$ be decidable in space $s(m)$, where
+$s(m)\ge\log m$ is nondecreasing and $s(2m)=O(s(m))$. Then for every
+$T(n)\ge n$, every language decided by a deterministic oracle machine
+with fresh queries to $A$ in time $T$ is in
+\[
+\DSPACE\bigl[O\bigl(s(T)+T/\log T\bigr)\bigr].
+\]
+\end{theorem}
+
+The two terms have a direct interpretation. The term $s(T)$ is the cost
+of answering a single query of length up to $T$. The term $T/\log T$ is
+the number of \emph{long} queries the machine can afford to write. Their
+answers are the only information in the computation that we cannot
+regenerate from scratch, so we write them down. Everything else, namely
+the machine's work tapes, its short queries and the contents of its long
+queries, is either tabulated or recomputed on demand within space
+$O(T^{2/3}\log T)$.
+
+Theorem~\ref{thm:main} uses nothing about $A$ except its space
+complexity. For an explicitly encoded CNF formula of length $N$, there
+are only $O(N/\log N)$ variables, so \SAT{} is in space $O(N/\log N)$
+(Lemma~\ref{lem:sat}). This gives the following.
+
+\begin{corollary}\label{cor:sat}
+For every $t(n)\ge n$ with $t(n)=o(n\log n)$, linear space is not
+contained in deterministic time $t$ with fresh queries to a \SAT{} oracle:
+\[
+\DTIME^{\SAT}[t]\subsetneq\DSPACE[n].
+\]
+\end{corollary}
+
+Corollary~\ref{cor:sat} is a linear-time analogue of
+$\mathsf{P}^{\mathsf{NP}}\neq\mathsf{PSPACE}$: a machine that can solve
+any satisfiability instance in one step still cannot decide all of
+linear space in slightly superlinear time. Its scope is limited. The
+NP-hardness of \SAT{} plays no role, since only its space complexity is
+used. The $O(N/\log N)$ space bound comes from writing variable names in
+binary, and the result is sensitive to that encoding. The corollary says
+nothing about $\mathsf{P}^{\mathsf{NP}}$ versus $\mathsf{PSPACE}$, because
+separations do not pad upward. Still, we do not see how to prove
+Corollary~\ref{cor:sat} without a result like Theorem~\ref{thm:main}.
+Diagonalizing over oracle machines in linear space requires simulating
+them in sublinear space, and that is what was missing.
+
+The same argument applies to any oracle that is decidable in slightly
+sublinear space. For example:
+
+\begin{corollary}\label{cor:ntime}
+Suppose $\NTIME[m]\subseteq\DSPACE[O(m/\sqrt{\log m})]$. Then for every
+$A\in\NTIME[n]$ and every $t(n)\ge n$ with $t(n)=o(n\sqrt{\log n})$,
+\[
+\DTIME^{A}[t]\subsetneq\DSPACE[n].
+\]
+\end{corollary}
+
+\subsection{Techniques}
+Long queries cause difficulty only because we cannot afford to store
+them, so we do not store them. When the algorithm for $A$ asks for bit
+$i$ of the current query, we rerun the whole computation from the
+beginning, feeding in the stored answers, and stop when bit $i$ of that
+query is written. The rerun is a long deterministic computation. It is
+slightly longer than the original, because short queries are answered by
+scanning a table, but it uses no oracle, so Williams's simulation runs it
+in roughly the square root of its time. The older bound of \cite{HPV}
+would not suffice here. Because short queries are answered by scanning a
+table, the rerun takes about $T^{4/3}$ steps, so \cite{HPV} would need
+space about $T^{4/3}/\log T$ to regenerate a single bit, which exceeds
+$T$. The argument works because Williams's simulation regenerates a bit in
+space polynomially smaller than $T$.
+
+\subsection{Status of imported results}
+The proof of Theorem~\ref{thm:main} uses Williams's simulation
+(Theorem~\ref{thm:williams}) as a black box, and Corollary~\ref{cor:sat}
+also uses the space hierarchy theorem \cite{SHL}. Corollary~\ref{cor:ntime}
+is conditional on its hypothesis. That hypothesis is claimed in a recent
+preprint of Ben Daniel \cite{BD26}. It also follows from the alternating
+simulation in our note \cite{AS}, which uses random access to the input,
+combined with the classical fact that random-access alternating time $t$
+is in deterministic space $O(t)$ \cite{CKS}.
+
+\section{Preliminaries}
+Machines are multitape Turing machines over the binary alphabet, apart
+from delimiters. An oracle machine also has a write-only query tape. To
+ask a query, it writes a string $z\in\{0,1\}^*$ on that tape from the left
+end, one cell per step, and enters a query state. In one step it then
+receives $A(z)$, and the query tape is erased. So a query of length $m$
+costs at least $m$ steps.
+
+We use the following standard fact about composing space-bounded
+computations. Suppose a space-$f$ machine reads its input $y$ through a
+read-only input tape, and each symbol $y_j$ can be computed from $j$ in
+space $g$. Then the machine can be run on $y$ in space
+$O(f+g+\log|y|)$ without ever writing $y$ down: keep the position of
+the input head as a counter, and recompute $y_j$ whenever it is read.
+
+\begin{theorem}[\cite{Wil25}]\label{thm:williams}
+For every $t(n)\ge n$, $\DTIME[t]\subseteq\DSPACE[O(\sqrt{t\log t})]$.
+\end{theorem}
+
+\section{The simulation}
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Let $M$ be an oracle machine with fresh queries running in time $T(n)$,
+and fix an input $x$ of length $n$. We first suppose that we are given a
+power of two $U$ with $n\le U$ and $T(n)\le U$, and we remove this
+assumption at the end.
+
+\emph{Short and long queries.}
+Put $h=\lfloor(\log U)/3\rfloor$. A query is \emph{short} if its length is
+at most $h$, and \emph{long} otherwise. Writing a long query costs more
+than $h$ steps, so $M$ makes at most $U/(h+1)=O(U/\log U)$ long queries.
+
+\emph{What we store.}
+We store a table $\tau$ of the bits $A(z)$ for all $z\in\{0,1\}^{\le h}$,
+in lexicographic order. It has at most $2^{h+1}\le2U^{1/3}$ bits, and we
+fill it in by running the space-$s$ algorithm for $A$ on each short
+string, reusing the same workspace. We also store a transcript $\beta$
+of the answers to the first $|\beta|$ long queries of $M^A$ on $x$. It
+starts empty and never exceeds $O(U/\log U)$ bits.
+
+\emph{The replay machine.}
+Let $R$ be the following deterministic machine without an oracle. Its
+input has the form $y=\langle x,\tau,\beta,i,1^U\rangle$. It first checks
+that $\tau$ has length $2^{h+1}-1$ and that $|\beta|\le U$, and it rejects
+otherwise, so that its running time is bounded on all inputs. It simulates $M$
+on $x$, using the padding $1^U$ as a clock, and stops after $U$ steps of
+$M$. It answers each short query by scanning $\tau$. It answers the
+$\ell$-th long query with $\beta_\ell$, keeping a head on $\beta$ that
+moves right once per long query. When $M$ halts, times out, or completes
+its $(|\beta|+1)$-st long query $z$, the machine $R$ stops. It then reports
+which of these happened, together with $M$'s answer, or $|z|$ in binary,
+or the bit $z_i$. We regard $R$ as deciding the language of pairs
+$(y,j)$ for which bit $j$ of this report is $1$.
+
+As long as $\beta$ holds true answers, $R$ follows the actual
+computation of $M^A$ on $x$. Each short-query lookup costs
+$O(2^hh)$ steps, and there are at most $U$ queries, so $R$ halts within
+$O(U^{4/3}\log U)$ steps. Its input length is $\Theta(U)$, because of the
+padding. So $R$ runs in time $O(|y|^{4/3}\log|y|)$, and by
+Theorem~\ref{thm:williams} it can be simulated in space
+$O(|y|^{2/3}\log|y|)=O(U^{2/3}\log U)$. We never write $y$ down. Its
+symbols come from the true input, from the stored $\tau$ and $\beta$, from
+a counter holding $i$, and from the padding, which is generated on the
+fly.
+
+\emph{The main loop.}
+Repeat the following.
+\begin{enumerate}
+\item Read the report of $R$ by simulating it. If $M$ halted, output its
+answer and stop. If $M$ timed out, abandon this value of $U$.
+\item Otherwise $M$ has just written a long query $z$ of known length
+$m\le U$. Run the space-$s$ algorithm for $A$ on $z$, which exists only
+virtually. Each time that algorithm reads position $i$ of $z$, simulate
+$R$ with index $i$ to compute $z_i$.
+\item Append $A(z)$ to $\beta$.
+\end{enumerate}
+By induction, $\beta$ always holds true answers, so the loop follows
+$M^A$ on $x$ exactly. It runs for at most $O(U/\log U)$ iterations.
+
+\emph{Space.}
+The table takes $O(U^{1/3})$ space and the transcript $O(U/\log U)$. The
+algorithm for $A$ takes $O(s(U))$, plus an index of $O(\log U)$ bits.
+The simulation of $R$ takes $O(U^{2/3}\log U)$ and is reused across
+calls. The total is $O(s(U)+U/\log U)$.
+
+\emph{Removing the clock.}
+Run the procedure for $U=2^{\lceil\log n\rceil},2^{\lceil\log n\rceil+1},\dots$
+until some run does not time out. Every run uses true oracle answers
+only, so the first run to finish gives the right output. A run with
+$U\ge T(n)$ never times out, so the last $U$ is at most the larger of
+$2^{\lceil\log n\rceil}<2n$ and the least power of two that is at least
+$T(n)$. Either way it is less than $2T(n)$. Space is reused between runs,
+so the total is $O(s(2T)+T/\log T)=O(s(T)+T/\log T)$.
+\end{proof}
+
+\begin{remark}\label{rem:fresh}
+The fresh-query convention is used in exactly one place, to bound the
+number of long queries by $O(U/\log U)$. If a machine could edit a long
+query in place and ask it again, then $T$ steps would buy $\Omega(T)$
+long queries, and the transcript alone would take linear space. Any
+convention that charges at least $h$ steps per long query works as
+well.
+\end{remark}
+
+\section{Applications}
+\begin{lemma}\label{lem:sat}
+Encode a CNF formula as a list of clauses, each literal given by a sign
+bit and a binary variable identifier, with delimiters coded over the
+binary alphabet. Then \SAT{} is in $\DSPACE[O(N/\log N)]$ on inputs of
+length $N$.
+\end{lemma}
+\begin{proof}
+Let $v$ be the number of distinct identifiers. Fewer than $v/2$ binary
+strings have length less than $\lfloor\log v\rfloor-1$, so at least $v/2$
+identifiers have length at least $\log v-2$. Hence $N\ge(v/2)(\log v-2)$,
+and $v=O(N/\log N)$.
+
+Run through all assignments $a\in\{0,1\}^v$ with a $v$-bit counter. The
+number $v$, and the rank of any identifier among the distinct
+identifiers, can be computed in space $O(\log N)$ by comparing
+occurrences pairwise and counting first occurrences. For each assignment,
+evaluate every clause, looking up each literal in $a$ by its rank. The
+space is $v+O(\log N)$.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:sat}]
+By Lemma~\ref{lem:sat} and Theorem~\ref{thm:main} with $s(m)=m/\log m$,
+a machine running in time $t$ can be simulated in space
+$O(t/\log t)\le O(t/\log n)=o(n)$. By the space hierarchy theorem
+\cite{SHL}, some language in $\DSPACE[n]$ is not in $\DSPACE[o(n)]$.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:ntime}]
+Use Theorem~\ref{thm:main} with $s(m)=m/\sqrt{\log m}$. The space is
+$O(t/\sqrt{\log t})=o(n)$ for $t=o(n\sqrt{\log n})$, and we conclude as
+before.
+\end{proof}
+
+\section{Discussion}
+\paragraph{Related work.}
+Theorem~5.1 of \cite{Wil25} covers the case where all queries
+have length at most $\sqrt{t\log t}$, with the simulator keeping access to
+the oracle. Chen and Wang make the same observation, under the name
+localization \cite{CW26}. Tretkoff studied length-restricted
+relativizations of earlier simulations inside linear space \cite{Tre86}.
+We have not been able to check whether that paper treats long queries
+against a space-bounded oracle. A search of the follow-ups to
+\cite{Wil25} turned up no treatment of oracle machines with long queries.
+
+\paragraph{Open problems.}
+\begin{itemize}
+\item \emph{Can the transcript be compressed?} The $T/\log T$ term is the
+only place where adaptivity costs anything. Is
+$\DTIME^{\SAT}[t]\subseteq\DSPACE[o(t/\log t)]$? This would push
+Corollary~\ref{cor:sat} beyond time $n\log n$. A lower bound for this
+kind of simulation would also be interesting, since the answer bits
+look incompressible but we see no proof that they are.
+\item \emph{Nondeterministic outer machines.} For $\NTIME^A$ the
+simulator must check guessed answers. When $A$ has certificates for both
+answers, for instance $A\in\NTIME[n]\cap\mathsf{coNTIME}[n]$, the standard
+argument that multiplies gap functions gives a linear-time reduction to
+counting. The general case is the second level of the hierarchy, and it
+seems to require new ideas.
+\item \emph{Other models.} Williams's simulation has recently been
+extended beyond multitape machines \cite{SW26}. Does
+Theorem~\ref{thm:main} extend in the same way?
+\end{itemize}
+
+\begin{thebibliography}{99}
+\bibitem{AS}
+C.~Cruz. Alternating speedups for nondeterministic computations. Note,
+November 2026, Theorem~1.1.
+
+\bibitem{BD26}
+S.~Ben Daniel. Randomized, quantum and postselected multitape time in
+deterministic space $t/\sqrt{\log t}$. arXiv:2611.01884, 2026.
+
+\bibitem{CW04}
+J.-Y. Cai and O.~Watanabe. On proving circuit lower bounds against the
+polynomial-time hierarchy. \emph{SIAM Journal on Computing},
+33(4):984--1009, 2004.
+
+\bibitem{CKS}
+A.~K. Chandra, D.~C. Kozen, and L.~J. Stockmeyer. Alternation.
+\emph{Journal of the ACM}, 28(1):114--133, 1981.
+
+\bibitem{CW26}
+L.~Chen and Y.~Wang. Separating RAM and multitape Turing machines with
+short random oracles. ECCC TR26-006, 2026.
+
+\bibitem{CM}
+J.~Cook and I.~Mertz. Tree evaluation is in space
+$O(\log n\cdot\log\log n)$. In \emph{Proceedings of STOC 2024}, 2024.
+
+\bibitem{HCCRR}
+J.~Hartmanis, R.~Chang, S.~Chari, D.~Ranjan, and P.~Rohatgi.
+Relativization: a revisionistic retrospective. In \emph{Current Trends in
+Theoretical Computer Science}, World Scientific, 1993.
+
+\bibitem{HPV}
+J.~Hopcroft, W.~Paul, and L.~Valiant. On time versus space.
+\emph{Journal of the ACM}, 24(2):332--337, 1977.
+
+\bibitem{SW26}
+D.~Sibgatullin and R.~R. Williams. Space-efficient simulations beyond
+multitape Turing machines. ECCC TR26-223, 2026.
+
+\bibitem{SHL}
+R.~E. Stearns, J.~Hartmanis, and P.~M. Lewis~II. Hierarchies of memory
+limited computations. In \emph{6th Annual Symposium on Switching Circuit
+Theory and Logical Design}, 1965.
+
+\bibitem{Tre86}
+C.~Tretkoff. Bounded oracles and complexity classes inside linear space.
+In \emph{Structure in Complexity Theory}, LNCS 223, pages 347--361, 1986.
+
+\bibitem{Wil25}
+R.~R. Williams. Simulating time with square-root space. In
+\emph{Proceedings of STOC 2025}, 2025. arXiv:2502.17779.
+\end{thebibliography}
+\end{document}

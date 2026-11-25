@@ -5,7 +5,7 @@
 \usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{booktabs,longtable,array}
 \usepackage{xcolor,xurl}
-\usepackage[colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
 \setlength{\emergencystretch}{2em}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -15,75 +15,167 @@
 \newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
-\title{\textbf{Subexponential Extended Frege refutations}\\[0.4em]
-\large From signed contraction to a proof of the witness inequality}
-\author{}
+\title{\textbf{Subexponential Extended Frege refutations of unsatisfiable 3-CNFs}\\[0.4em]
+\large relative to an integral grid-contraction construction}
+\author{Charlie Cruz}
 \date{19 November 2026}
-\hypersetup{pdftitle={Subexponential Extended Frege refutations},pdfauthor={}}
+\hypersetup{pdftitle={Subexponential Extended Frege refutations of unsatisfiable 3-CNFs},pdfauthor={Charlie Cruz}}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Taking the supplied integral grid-contraction construction as an input,
-we give an Extended Frege refutation of every unsatisfiable 3-CNF with
-$n$ variables and $m$ clauses in size
-$2^{O((n+m)/\sqrt{\log(n+m+2)})}$. Proof-efficient sparsification
-then gives $2^{o(n)}$-size Extended Frege refutations for all normalized
-$n$-variable 3-CNFs. No assumption that Extended Frege simulates
-general IPS or proves general PIT correctness is used.
+We take as an input the supplied integral grid-contraction
+construction, including its local identities, formula construction,
+and index bounds. Relative to this input, every unsatisfiable 3-CNF
+with $n$ variables and $m$ clauses has an Extended Frege refutation
+of size $2^{O((n+m)/\sqrt{\log(n+m+2)})}$. Proof-efficient
+sparsification then gives $2^{o(n)}$-size Extended Frege refutations
+of all unsatisfiable normalized $n$-variable 3-CNFs. The argument does
+not assume that Extended Frege simulates general IPS or proves the
+correctness of general PIT.
 
-The proof puts an independent weight pair at every edge endpoint
-after the initial subdivision. Pinning these pairs makes each initial
-clique table a scalar times a product of functions of individual
-incident labels. This property is preserved by every fixed
-grade-and-split merge. It provides a short arithmetic derivation of
-the pinning identity, whose size and exact integer bit widths are
-both $2^{O((n+m)/\sqrt{\log(n+m+2)})}$. A conditional-expectation
-argument with shared Boolean selectors converts the pinning identity
-and count zero into an Extended Frege refutation.
+The proof attaches an independent pair of weights to every edge
+endpoint of the constraint network after its initial subdivision.
+Pinning these pairs to a Boolean assignment makes each initial clique
+table a scalar times a product of functions of individual incident
+labels, and every fixed grade-and-split merge of the contraction
+preserves this form. This yields a short arithmetic derivation of the
+pinning identity, whose size and exact integer bit widths are both
+$2^{O((n+m)/\sqrt{\log(n+m+2)})}$. A conditional-expectation argument
+with shared Boolean selectors converts the pinning identity and a zero
+count into an Extended Frege refutation. The same ingredients give
+CLIP plus Extended Frege proofs of exact model counts within the same
+size bound.
 
-The selected assertion for \emph{ordinary Frege} remains unproved.
-Its additional obstacle is removing the sequential extension
+The corresponding statement for \emph{ordinary Frege} remains
+unproved. The additional obstacle is removing the sequential extension
 definitions without losing the subexponential size bound. Two
 appendices prove obstructions to particular replacement strategies:
-single-order normalization of coefficients, even with an adaptive
-order, and explicit real sums of polynomial squares.
+normalizing coefficients in a single variable order, even an
+adaptively chosen one, and certifying positivity by explicit real sums
+of polynomial squares.
 \end{abstract}
 
-\section{Statement, dependencies, and status}
+\tableofcontents
+\bigskip
 
-\paragraph{Main result: proved relative to the supplied construction.}
-The argument below proves the Extended Frege version of the selected
-target. The supplied manuscript's integral local identities, formula
-construction, and index bounds are imported as proved inputs. The
-new derivation is a mathematical proof with explicit proof-size
-accounting; it has not been translated into Lean or a generated EF
-proof file. This distinction does not change which hypotheses the
-mathematical theorem uses.
+\section{Introduction}
+\label{sec:introduction}
 
-\paragraph{Relation to the open problem.}
-Szeider's supplied version 2, \S7, Open Problem 1, printed p.~10,
-asks whether every unsatisfiable 3-CNF has a $2^{o(n)}$-size
-Extended Frege refutation without the hypothesis $(S_p)$ that EF
-polynomially simulates IPS over an odd-prime field. The result here
-answers that version of the question from the supplied contraction
-construction. His following paragraph, printed p.~11, explains why
-an invariant asserting that every signed intermediate is a partial
-model count fails. Our invariant permits arbitrary signed factors.
-The stronger ordinary-Frege question is not answered.
+Szeider~\cite{szeider} (version~2, \S7, Open Problem~1, printed
+p.~10) asks whether every unsatisfiable 3-CNF has a $2^{o(n)}$-size
+Extended Frege (EF) refutation without the hypothesis $(S_p)$ that EF
+polynomially simulates IPS~\cite{gp} over an odd-prime field. The paragraph that
+follows it (printed p.~11) explains why a soundness invariant asserting
+that every signed intermediate is a partial model count fails. The
+invariant used here, edge factorization
+(Section~\ref{sec:direct-ef}), permits arbitrary signed factors. We
+answer this version of the question relative to the supplied
+contraction construction~\cite{cruz-ntime}. The stronger
+ordinary-Frege question is not answered.
 
-\paragraph{What is imported.}
-From \texttt{separating-ntime-from-space.tex} we use
-\texttt{lem:codes}, \texttt{lem:top}, \texttt{lem:atone},
-\texttt{cor:cuts}, \texttt{lem:transport}, \texttt{lem:merge},
-\texttt{lem:paths}, and the explicit formulas in
-\texttt{sec:merge} and \texttt{sec:formula}. The input includes
-the fact that the orientation is selected from the entire grade
-list before summing over splits. From the literature we use
-elementary binary-arithmetic EF proofs and the IPZ sparsification
-tree, with locators supplied in their respective sections.
+\subsection{Main results}
 
-\paragraph{Size and input conventions.}
+The integral local identities, formula construction, and index bounds
+of the supplied manuscript~\cite{cruz-ntime} are imported as proved
+inputs (Section~\ref{sec:imported}). Relative to them we prove the
+following.
+\begin{enumerate}
+\item Every unsatisfiable 3-CNF with $n$ variables and $m$ clauses
+has an EF refutation of size $2^{O((n+m)/\sqrt{\log(n+m+2)})}$; in
+particular, every fixed-density family has refutations of size
+$2^{O(n/\sqrt{\log n})}$ (Theorem~\ref{thm:direct-subexp-ef}).
+\item Every unsatisfiable normalized $n$-variable 3-CNF has an EF
+refutation of size $2^{o(n)}$ (Theorem~\ref{thm:all-3cnf-ef}). This
+follows from the first result and the sparsification tree of
+Impagliazzo, Paturi, and Zane~\cite{ipz}.
+\item Every 3-CNF with $n$ variables and $m$ clauses has a CLIP plus
+EF proof of its exact model count, in the sense of Chede, Chew, and
+Shukla~\cite{ccs}, of size $2^{O((n+m)/\sqrt{\log(n+m+2)})}$
+(Theorem~\ref{thm:clip-counting}).
+\item The refutations can be output within the same time bound
+(Corollary~\ref{cor:ef-proof-output}), and the same upper bounds hold
+for Extended Resolution (Section~\ref{sec:ef-boundaries}).
+\end{enumerate}
+The new derivation is a mathematical proof with explicit proof-size
+accounting. It has not been translated into Lean or into a generated
+EF proof file. This does not change which hypotheses the theorems use.
+
+\subsection{What is imported}
+\label{sec:imported}
+
+From the supplied manuscript \texttt{separating-ntime-from-space.tex}
+\cite{cruz-ntime} we use \texttt{lem:codes}, \texttt{lem:top},
+\texttt{lem:atone}, \texttt{cor:cuts}, \texttt{lem:transport},
+\texttt{lem:merge}, \texttt{lem:paths}, and the explicit formulas in
+\texttt{sec:merge} and \texttt{sec:formula}. (These are labels in that
+source file.) The input includes the fact that the orientation is
+selected from the entire grade list before summing over splits.
+
+From the literature we use elementary binary-arithmetic EF
+proofs~\cite{kls} (Section~\ref{sec:integer-ef-interface}) and the
+IPZ sparsification tree~\cite{ipz} (Section~\ref{sec:ef-sparsification}).
+Exact locators are given in those sections.
+
+\subsection{What remains open}
+
+The corresponding statement for ordinary Frege, with total written
+proof size, is not proved. In the negative-descent argument each
+selector bit is an extension variable defined from the earlier
+selectors, and a bound on EF proof size does not bound the formulas
+obtained by expanding these definitions.
+Lemma~\ref{lem:extension-depth-transfer} shows that extension
+dependency depth $o(n)$ would suffice; the present proof does not
+establish such a bound (Section~\ref{sec:ef-boundaries}).
+Appendices~\ref{sec:sos-length-obstruction}
+and~\ref{sec:all-orders-coefficient-barrier} prove obstructions to two
+particular replacement strategies. No Boolean circuit lower bound and
+no separation between Frege and EF is claimed.
+
+\subsection{Overview of the proof}
+
+Section~\ref{sec:integer-ef-interface} fixes the arithmetic interface:
+an explicitly listed integer derivation whose expressions have bounded
+full-result bit width translates into EF with polynomial overhead
+(Lemmas~\ref{lem:integer-derivation-ef}
+and~\ref{lem:formula-integer-width}).
+
+Section~\ref{sec:direct-ef} contains the main argument. We start from
+the Boolean constraint network of the 3-CNF, apply the supplied
+initial-clique construction, and only then attach a weight pair
+$(w_{p,0},w_{p,1})$ to every port $p$. Let $W(\mathbf w)$ be the
+compiled contraction formula. Substituting the indicator weights
+$\operatorname{pin}(a)$ of a Boolean port assignment $a$ makes every
+initial clique table \emph{edge-factorized}: a scalar times a product
+of one factor per incident pair label
+(Lemma~\ref{lem:initial-port-pinning}). Edge factorization survives
+each merge with fixed grades and splits
+(Lemma~\ref{lem:rankone-closure}), and after the split sum the result
+no longer depends on the orientation chosen for those grades
+(Lemma~\ref{lem:rankone-fixedgrade}). Induction on the recursion gives
+the pinning identity $W(\operatorname{pin}(a))=f_{\rm net}(a)$
+(Corollary~\ref{cor:port-pinning-identity}). The negative-descent
+lemma (Lemma~\ref{lem:ef-negative-descent}) then converts the pinning
+identity into the witness inequality $W(\mathbf1)\ge f(a)$: if it
+failed, a sequence of extension-variable selectors would find a
+Boolean $b$ at which the pinned value is negative, which the pinning
+identity forbids. Together with the numerical fact $W(\mathbf1)=0$
+for an unsatisfiable input, this gives the refutation.
+
+Section~\ref{sec:rankone-size-audit} bounds the size and bit widths of
+the pinning derivation by $2^{O(s/\sqrt{\log s})}$.
+Section~\ref{sec:ef-sparsification} removes the dependence on the
+number of clauses by sparsification, and
+Section~\ref{sec:clip-counting} derives the CLIP counting proofs.
+Section~\ref{sec:ef-boundaries} records consequences and the remaining
+ordinary-Frege problem. Appendix~\ref{sec:sos-length-obstruction}
+shows that explicit sums of squares cannot replace the signed formula
+in general, and Appendix~\ref{sec:all-orders-coefficient-barrier}
+shows that coefficient normalization fails in every variable order.
+Appendix~\ref{sec:verification} records the checks that were made.
+
+\subsection{Conventions}
+
 All logarithms are base two. Small parameter values are covered by
 increasing absolute constants. A 3-CNF has clauses of width at most
 three; clauses are treated as sets and duplicate clauses are removed.
@@ -91,68 +183,70 @@ Consequently a formula on $n$ variables has $O(n^3)$ distinct
 non-tautological clauses. If a literal presentation contains
 arbitrarily many repetitions and the proof must write its entire
 negation, an additional polynomial term in that presentation length
-must be included. A refutation can equivalently be given from its
+must be included. A refutation can equivalently be given from the
 clauses or as a proof of the negated conjunction; the deduction
 conversion has polynomial overhead. Fresh extension variables are
 renamed when separate proofs are combined.
 
-\paragraph{Novelty check.}
-The supplied Szeider note and its November 16 announcement on the
-ETH discussion site were checked, along with the current ECCC 2026
-list and relevant STOC 2027 submissions. No unconditional EF
-upper bound of this form was located in those checks. That is a
-bounded literature search, not a claim to have ruled out all
-independent work. The arithmetic library, sparsification method,
-and Gram-matrix lower-bound method are credited to existing work.
+\subsection{Novelty and prior work}
 
-\tableofcontents
-\bigskip
+We checked the supplied Szeider note and its November 16 announcement
+on the ETH discussion site, the current ECCC 2026 list, and relevant
+STOC 2027 submissions. These checks located no unconditional EF upper
+bound of this form. This was a bounded literature search; it does not
+rule out independent work. The arithmetic library~\cite{kls},
+the sparsification method~\cite{ipz}, and the Gram-matrix lower-bound
+method~\cite{clr} are credited to existing work.
 
-
-
-\section{The arithmetic proof interface}
+\section{Integer arithmetic in Extended Frege}
 \label{sec:integer-ef-interface}
 
-\paragraph{Imported results and their exact role.}
+This section states the single arithmetic input we import and derives
+the form in which the later sections use it:
+Lemma~\ref{lem:integer-derivation-ef} translates explicit integer
+derivations into EF, and Lemma~\ref{lem:formula-integer-width} bounds
+the bit widths that the translation needs.
+
+\paragraph{Proof-size conventions.}
 We use Extended Frege in its usual finite propositional basis, with
 fresh extension variables naming Boolean gates. Size means total written
 symbol length. Circuit-style gate and inference counts differ from this
-measure by a polynomial factor: gate identifiers have logarithmic length,
-and each gate definition has constant fan-in.
+measure by a polynomial factor, because gate identifiers have
+logarithmic length and each gate definition has constant fan-in.
 
-The following publicly stated proof-library result is the only arithmetic
-proof-complexity input. Krapivin--Li--Shi, \emph{Fine-Grained Proof
-Complexity for Elementary Arithmetic in Extended Frege}, STOC 2027
-submission 1284, Appendix A.1, printed pp.~43--44, specifies full-result
+\paragraph{The arithmetic library.}
+The only arithmetic proof-complexity input is the following publicly
+stated proof library. Krapivin, Li, and Shi~\cite{kls} (STOC 2027
+submission 1284, Appendix~A.1, printed pp.~43--44) specify full-result
 signed binary addition, subtraction, negation, and schoolbook
-multiplication. Lemma C.1, printed pp.~63--65, gives polynomial-width
-EF derivations of addition identities (62), multiplication identities
-(63), distributivity (64)--(67), and order rules (68)--(76).
-Take scale zero in that lemma; its words then represent integers.
-The parameter $W$ in its statement is an arbitrary bound on the operand
-and intermediate word widths. Its use of the name ``short-word'' does
-not restrict that quantifier.
+multiplication. Their Lemma~C.1 (printed pp.~63--65) gives
+polynomial-width EF derivations of the addition identities~(62),
+multiplication identities~(63), distributivity~(64)--(67), and order
+rules~(68)--(76). We take scale zero in that lemma, so that its words
+represent integers. The word-width parameter in its statement is an
+arbitrary bound on the operand and intermediate word widths; the name
+``short-word'' does not restrict that quantifier.
 
-This input is a proof of finitely many elementary arithmetic schemata,
+This input proves finitely many elementary arithmetic schemata. It is
 not a reflection principle for arbitrary arithmetic identities or for
 the counting algorithm. The cited lemma obtains its polynomial bounds
-from Cook's propositional translation. A precise statement of that
-translation is Theorem 2.3 of Arteche--Atserias--de Rezende--Khaniki,
-\emph{The Proof Analysis Problem}, June 19, 2025 version, printed
-p.~18 (PDF p.~20): every fixed universal quantifier-free theorem of
-$\mathrm{PV}_1$ has polynomial-time constructible EF proofs of its
-propositional translations. Krapivin--Li--Shi explicitly identify the
-binary circuits and the elementary schemata to which this fact is
-applied. Their stronger quasilinear theorem is not needed here.
+from Cook's propositional translation~\cite{cook75}, stated precisely as Theorem~2.3
+of Arteche, Atserias, de Rezende, and Khaniki~\cite{aadk} (June 19,
+2025 version, printed p.~18, PDF p.~20): every fixed universal
+quantifier-free theorem of $\mathrm{PV}_1$ has polynomial-time
+constructible EF proofs of its propositional translations. Krapivin,
+Li, and Shi explicitly identify the binary circuits and the elementary
+schemata to which this fact is applied. Their stronger quasilinear
+theorem is not needed here.
 
-For clarity about source checking, the complete 148-page STOC
-submission was obtained and its Appendix A.1, Lemma C.1, Theorem A.2,
-and Appendix J.3 were inspected. Lemma C.1 states the polynomial
-arithmetic library and invokes the known bounded-arithmetic
-translation; it does not print every bit-level derivation. We import
-this existing library as a theorem. The new counting argument does not
-assume that an arbitrary polynomial-time calculation has a short
-correctness proof.
+\paragraph{Source check.}
+We obtained the complete 148-page STOC submission and inspected its
+Appendix~A.1, Lemma~C.1, Theorem~A.2, and Appendix~J.3. Lemma~C.1
+states the polynomial arithmetic library and invokes the known
+bounded-arithmetic translation; it does not print every bit-level
+derivation. We import this existing library as a theorem. The counting
+argument does not assume that an arbitrary polynomial-time calculation
+has a short correctness proof.
 
 \begin{lemma}[Explicit integer derivations translate to EF]
 \label{lem:integer-derivation-ef}
@@ -255,8 +349,9 @@ range of each leaf, so a Boolean function in place of a Boolean
 leaf has the same one-bit range.
 \end{proof}
 
-\paragraph{A bit-level check.}
-For the negative-descent step, the implication needed is
+\paragraph{Example: one order rule at the bit level.}
+The negative-descent step in the proof of
+Lemma~\ref{lem:ef-negative-descent} needs the implication
 $u+v<0\ \wedge\ u\ge0\Rightarrow v<0$. If $v\ge0$ as well,
 the two inputs have zero sign bits. First align their old signed
 widths. In that old highest column, both input bits are zero, and
@@ -272,22 +367,25 @@ $1000$.
 
 
 
-\section{A direct route to subexponential Extended Frege}
+\section{Port weights, pinning, and negative descent}
 \label{sec:direct-ef}
 
-\paragraph{Scope of the result.}
-This section concerns \emph{Extended Frege}. It does not prove the
-corresponding statement for ordinary Frege. The input to the argument
-is the integral contraction compiler of the supplied manuscript,
-including its local crossing identities and its index bounds. The
-argument below supplies a soundness proof for a restricted, closed
-class of inputs to that compiler, and then uses that proof to establish
-the witness inequality needed for refutations.
+This section proves the main theorem, Theorem~\ref{thm:direct-subexp-ef},
+for \emph{Extended Frege}. It does not prove the corresponding
+statement for ordinary Frege. The input is the integral contraction
+compiler of the supplied manuscript~\cite{cruz-ntime}, including its
+local crossing identities and its index bounds. We prove that the
+compiler is sound on a restricted class of inputs, the edge-factorized
+cliques, which is closed under its recursion. We then use this
+soundness proof to establish the witness inequality
+(Lemma~\ref{lem:ef-negative-descent}) needed for refutations.
 
 All arithmetic identities below are identities over the integers.
 When translated into propositional proofs, integers are written in
-binary, with enough bits to avoid overflow. The quantitative arithmetic
-translation and the bound on those bit lengths are stated separately.
+binary, with enough bits to avoid overflow. The arithmetic translation
+is Lemma~\ref{lem:integer-derivation-ef}, and the bound on bit lengths
+is Lemma~\ref{lem:rankone-derivation-size} in
+Section~\ref{sec:rankone-size-audit}.
 
 \subsection{Weights at every port after subdivision}
 
@@ -311,14 +409,16 @@ Only \emph{after this subdivision}, put an independent pair of weights
  (w_{p,0},w_{p,1})
 \]
 at every port $p$ of the subdivided network. If the original network has
-$M$ edges, there are $N=4M$ such ports. Every port has one owner, namely
+$e_{\rm net}$ edges, there are $N=4e_{\rm net}$ such ports. Every port has one owner, namely
 its incident vertex. Replace the table of a vertex $v$ by
 \[
  f_v(z)\prod_{p\in\operatorname{ports}(v)}w_{p,z_p}.
  \tag{\thesection.1}\label{eq:port-weight-table}
 \]
 No weights are attached to padding requests in the label encoding.
-At all-one weights the value is the original model count.
+At all-one weights the value is the original model count. Write
+$W(\mathbf w)$ for the contraction formula that the supplied compiler
+produces from these weighted tables.
 
 For $a\in\{0,1\}^N$, write
 \[
@@ -413,8 +513,10 @@ an unpinned subdivision equality vertex can correlate distinct clique
 edges. This is why the weights were attached after subdivision.
 \end{proof}
 
-\subsection{A class of tables closed under the signed recursion}
+\subsection{Edge-factorized cliques}
 
+We now isolate a class of cliques that the signed recursion maps to
+itself and on which the compiler's output can be computed exactly.
 Call a clique \emph{edge-factorized} when its tables have the form
 \[
  T_v=c_v\prod_{u\ne v}b_{vu}(\theta_{vu}).
@@ -543,7 +645,8 @@ once as $B_{uv}$.
 
 For a rectangle stream, sum over its split and its allowed message.
 The row-cut identity for $\Pi_{k_R}$ says that the sum of the two
-coefficient factors is $\Pi_{k_R}$ at the four old views. The heavier
+coefficient factors, summed over the split and the message, is
+$\Pi_{k_R}$ at the four old views. The heavier
 messages removed by the weight tests have zero product by the
 compiler's row-cut bound. Multiplying by the four old endpoint factors
 and distributing their finite sums gives $P_R(k_R)$ from
@@ -623,12 +726,26 @@ indicators one, and for disagreeing strings no label does. One-hotness
 of the pin indicators follows by expanding
 $\prod_i(a_i+(1-a_i))=1$; a disagreement makes the corresponding
 factor zero. This uses only the single-edge domain bounded in
-Lemma~\ref{lem:rankone-local-domains}.
+Lemma~\ref{lem:rankone-local-domains} of
+Section~\ref{sec:rankone-size-audit}. That lemma uses only the
+compiler's parameters and bounds (the potential bound, label-code
+lengths, and grade and split ranges) and no result of the present
+section, so this forward reference is not circular.
 The scalar factors are exactly the vertex-predicate factors in
 \eqref{eq:port-predicate}. Their product is $f_{\rm net}(a)$.
 \end{proof}
 
 \subsection{From pinning to the witness inequality}
+
+A formula over weight pairs is \emph{smooth set-multilinear} if it has
+scopes with the properties listed in Lemma~\ref{lem:port-smoothness}:
+every nonzero monomial at a gate contains exactly one weight from each
+pair in that gate's scope and none from the other pairs, the children
+of a sum have the same scope, and the children of a product have
+disjoint scopes whose union is the parent's scope. By
+Lemma~\ref{lem:port-smoothness}, $W$ is such a formula with output
+scope all $N$ pairs. The \emph{witness inequality} is the conclusion
+$W(\mathbf1)\ge f(a)$ of Lemma~\ref{lem:ef-negative-descent} below.
 
 \begin{lemma}[A polynomial equational proof of splitting one pair]
 \label{lem:pair-shannon}
@@ -665,11 +782,10 @@ $b$. Then there are EF proofs of
  W(\mathbf1)\ge f(a)
 \]
 for an arbitrary Boolean vector $a$, with polynomial overhead
-in $S,N$, the input proof lengths, the
+in $S$, $N$, the input proof lengths, the
 size of a Boolean circuit for $f$, and the arithmetic bit length.
 If $W(\mathbf1)=0$ also has an EF proof, this gives refutations of $f(a)$
-with polynomial overhead in $S,N$, the input proof lengths, the
-size of a Boolean circuit for $f$, and the arithmetic bit length.
+with polynomial overhead in the same parameters.
 \end{lemma}
 \begin{proof}
 Assume $W(\mathbf1)<f(a)$ and define
@@ -725,6 +841,8 @@ Lemma~\ref{lem:ef-negative-descent} supplies no subexponential
 ordinary-Frege bound. Establishing such a bound requires an additional
 argument.
 
+\subsection{The refutation}
+
 \begin{theorem}[Relative to the supplied contraction theorem]
 \label{thm:direct-subexp-ef}
 Assume the integral contraction compiler and its index bounds from
@@ -741,9 +859,9 @@ $2^{O(n/\sqrt{\log n})}$.
 Construct the port-weighted network and its compiled formula $W$.
 Lemma~\ref{lem:port-smoothness} gives its scope structure and size.
 Corollary~\ref{cor:port-pinning-identity}, with the quantitative
-derivation bound in Lemma~\ref{lem:rankone-derivation-size}
-and the arithmetic-to-EF translation, gives an EF proof of its pinning identity within
-the stated size. The compiler's all-one evaluation is zero because
+derivation bound in Lemma~\ref{lem:rankone-derivation-size} and the
+arithmetic-to-EF translation of Lemma~\ref{lem:integer-derivation-ef},
+gives an EF proof of its pinning identity within the stated size. The compiler's all-one evaluation is zero because
 the input is unsatisfiable. Its numerical bit computation, with all
 values fixed, has a polynomial-size EF verification in the compiled
 formula size. Thus the two premises of
@@ -759,6 +877,8 @@ obtained from these local identities. Apply
 Lemma~\ref{lem:ef-negative-descent} after substituting $a(x)$.
 The polynomial overhead preserves the displayed exponential bound.
 \end{proof}
+
+\subsection{Small examples}
 
 \paragraph{Hand checks.}
 For one edge and two factorized vertices, the base identity is
@@ -790,17 +910,24 @@ pinning predicate is zero on every port assignment, and the
 all-one count is zero, as required by this instance of the theorem.
 
 
-\section{Size of the rank-one pinning derivation}
+\section{Size and bit width of the pinning derivation}
 \label{sec:rankone-size-audit}
 
-\paragraph{Status and scope.}
 This section proves the quantitative bound for the edge-factorized
-pinning derivation. It assumes the stated contraction compiler and
-the explicit local merge formulas from the supplied manuscript.
-The conclusion concerns an arithmetic equational derivation with
-shared definitions. Converting this derivation to Extended Frege
-uses the separate binary-arithmetic translation lemma. No conversion
-to ordinary Frege is asserted here.
+pinning derivation, Lemma~\ref{lem:rankone-derivation-size}, which
+the proof of Theorem~\ref{thm:direct-subexp-ef} uses. It assumes the
+stated contraction compiler and the explicit local merge formulas
+from the supplied manuscript. The conclusion concerns an arithmetic
+equational derivation with shared definitions. Converting this
+derivation to Extended Frege uses the separate binary-arithmetic
+translation, Lemma~\ref{lem:integer-derivation-ef}. No conversion to
+ordinary Frege is asserted here.
+
+Lemma~\ref{lem:rankone-local-domains} bounds the local label domains
+and the number of histories,
+Lemma~\ref{lem:rankone-factor-formulas} bounds the formulas for the
+auxiliary factors, and Lemma~\ref{lem:rankone-derivation-size}
+assembles the derivation and bounds its bit widths.
 
 Write $s$ for the network parameter, let $h_*$ be the initial
 name length, put $q_*=2^{h_*}$, and set
@@ -895,7 +1022,7 @@ The summation index therefore has length at most
 \[
  O(\sqrt H)
  =O\!\left(L\frac{\sqrt h}{2^h-1}\right).
- \tag{\thesection.1}
+ \tag{\thesection.1}\label{eq:rankone-index-length}
 \]
 Invalid-packing and stream-domain tests are fixed scalar factors.
 On any path through the recursively expanded factor formula,
@@ -909,7 +1036,8 @@ row. There are fewer than $g^3$ such scalar or pair factors, so
 the logarithm of the product fan-in is $O(h)$. A path either
 continues into one old scalar, or enters one edge inner product
 and thereafter follows endpoint-factor recurrences. The latter
-inner product introduces only one label sum, bounded by (1).
+inner product introduces only one label sum, bounded
+by~\eqref{eq:rankone-index-length}.
 Thus a scalar path does not acquire a separate sequence of
 scalar recurrences after it has entered an endpoint factor.
 
@@ -919,17 +1047,20 @@ $\sqrt h/(2^h-1)$ over this sequence is bounded by its sum
 over all positive integers, which converges: for $h\ge2$,
 the summand is at most $2\sqrt h/2^h$, and the latter
 series is dominated eventually by a geometric series.
-Consequently the sum of all index lengths (1) on a path is
+Consequently the sum of all index lengths~\eqref{eq:rankone-index-length}
+on a path is
 $O(L)$, while the product-fan-in contributions sum to
 $O(\log s)=O(L)$.
 
 A path may instead end inside a numerical routing-coefficient
 formula. The compiler's transport bound contributes
-$O(\sqrt W+\log^2s)$ bits, where the message tests ensure
-$W\le3H$. This adds $O(L)$ by (1) and
+$O(\sqrt\tau+\log^2s)$ bits, where $\tau$ is the parameter of that
+bound (written $W$ in the supplied manuscript); the message tests
+ensure $\tau\le3H$. This adds $O(L)$ by~\eqref{eq:rankone-index-length} and
 $\log^2s=o(L)$. It does not lead back into an endpoint-factor
 or scalar recurrence. A local weighted crossing uses four old
-views, so it adds only a constant multiple of (1) before following
+views, so it adds only a constant multiple
+of~\eqref{eq:rankone-index-length} before following
 one of the already bounded paths.
 
 These facts bound by $O(L)$ the sum of the logarithms of the
@@ -1087,15 +1218,16 @@ sum must precede the local piece identity.
 \section{Removing the clause-density restriction}
 \label{sec:ef-sparsification}
 
-\paragraph{Status.}
-This is a proved transfer from the IPZ sparsification tree and the
-fixed-density bound. It is included to justify the variable-only
-statement without choosing a density-dependent rate silently.
+This section transfers the bound of
+Theorem~\ref{thm:direct-subexp-ef} to all normalized 3-CNFs, using the
+IPZ sparsification tree, and proves
+Theorem~\ref{thm:all-3cnf-ef}. Its purpose is to justify the
+variable-only statement without silently choosing a density-dependent
+rate.
 
-The source is Impagliazzo--Paturi--Zane, \emph{Which Problems Have
-Strongly Exponential Complexity?}, JCSS 63 (2001), \S2:
-Theorem 1, printed p.~520; \textsc{Reduce}, p.~521;
-Lemma 7 and Corollary 1, p.~523. For every fixed $\varepsilon>0$,
+The source is Impagliazzo, Paturi, and Zane~\cite{ipz}, \S2:
+Theorem~1, printed p.~520; \textsc{Reduce}, p.~521;
+Lemma~7 and Corollary~1, p.~523. For every fixed $\varepsilon>0$,
 its binary tree represents a width-three CNF $F$ as a disjunction
 of at most $2^{\varepsilon n}$ leaves, each with at most
 $C_\varepsilon n$ clauses. One may use the universe of $2n$
@@ -1160,9 +1292,10 @@ with its split implication using the fixed tautology
 \]
 No previously written proof is copied at this step; its concluding
 line is reused. A full binary tree with $r$ leaves has $r-1$
-internal nodes, as follows by counting its $2(r-1)$ child edges
-and its $2r-2$ nonroot vertices. The preceding lemma therefore
-gives the displayed additive bound.
+internal nodes: if it has $I$ internal nodes, counting child edges
+gives $2I$, and every one of the $I+r-1$ nonroot vertices is the
+lower end of exactly one child edge, so $2I=I+r-1$. The preceding
+lemma therefore gives the displayed additive bound.
 \end{proof}
 
 \paragraph{Converting clause refutations before recombination.}
@@ -1195,7 +1328,9 @@ refutation of size $2^{o(n)}$.
 \end{theorem}
 \begin{proof}
 Let $p(n)$ be the maximum, over such unsatisfiable formulas, of
-their shortest EF refutation sizes, with $p(n)\ge1$. Fix
+their shortest EF refutation sizes, and let $p^{\neg}(n)$ be the
+maximum, over the same formulas $F$, of the size of a shortest EF
+proof of the negated conjunction $\neg F$; both are at least one. Fix
 $\varepsilon>0$ and use its IPZ tree. Every leaf has at most
 $C_\varepsilon n$ clauses and is unsatisfiable: any satisfying
 leaf assignment would satisfy the parent, since the child only
@@ -1205,14 +1340,23 @@ conversion above, gives proofs of the leaf negations of size
 \[
  2^{K_\varepsilon n/\sqrt{\log(n+2)}}
 \]
-for a constant $K_\varepsilon$. The preceding lemma implies
+for a constant $K_\varepsilon$. Lemma~\ref{lem:ef-sparse-combine}
+implies
 \[
- p(n)\le
+ p^{\neg}(n)\le
  2^{\varepsilon n}
  \left(2^{K_\varepsilon n/\sqrt{\log(n+2)}}+n^{O(1)}\right).
 \]
-Divide its base-two logarithm by $n$ and let $n$ tend to
-infinity. For this fixed $\varepsilon$, the limit superior is
+A proof of $\neg F$ gives a refutation from the clauses of $F$:
+conjunction introduction derives $F$ from its clauses in size
+$n^{O(1)}$, and the fixed tautology $F\to(\neg F\to\bot)$ with two
+applications of modus ponens derives $\bot$. Hence
+\[
+ p(n)\le p^{\neg}(n)+n^{O(1)},
+\]
+where the polynomial does not depend on $\varepsilon$. Combine the
+two displayed bounds, divide the base-two logarithm by $n$, and let
+$n$ tend to infinity. For this fixed $\varepsilon$, the limit superior is
 at most $\varepsilon$. This holds for every positive
 $\varepsilon$, while the ratio is nonnegative. Its limit is
 therefore zero, which is exactly $p(n)=2^{o(n)}$.
@@ -1236,15 +1380,20 @@ This checks both the split and the additive recombination.
 \section{Exact counting certificates in CLIP plus Extended Frege}
 \label{sec:clip-counting}
 
-This section is a consequence for an existing counting proof system.
-It does not introduce a new proof format. Chede, Chew and Shukla's
-CLIP framework asks for a circuit computing cumulative model counts
-and a propositional proof of its base, successor, and final-value
-conditions. Their Definition~19 and Lemma~21 show how short EF proofs
-of full restriction and one-variable splitting give the required
-cumulative-count certificate; Theorem~23 states the corresponding
-p-simulation theorem. The locators here refer to revision~1 of
-ECCC TR24-081, PDF pp.~14--15.
+This section applies the pinning identity to an existing counting
+proof system; it introduces no new proof format. The CLIP framework of
+Chede, Chew, and Shukla~\cite{ccs} asks for a circuit computing
+cumulative model counts and a propositional proof of its base,
+successor, and final-value conditions. Their Definition~19 and
+Lemma~21 show how short EF proofs of full restriction and one-variable
+splitting give the required cumulative-count certificate; their
+Theorem~23 states the corresponding p-simulation theorem. These
+locators refer to revision~1 of ECCC TR24-081, PDF pp.~14--15.
+
+Lemma~\ref{lem:ef-pin-equality} lifts equality at all pins to
+equality at all-one weights, Lemma~\ref{lem:original-weight-pinning}
+moves from port weights back to one weight pair per original variable,
+and Theorem~\ref{thm:clip-counting} builds the certificate.
 
 \begin{lemma}[Equality at all pins implies equality at all-one weights]
 \label{lem:ef-pin-equality}
@@ -1423,10 +1572,10 @@ one only at $10$. The transition $01\to10$ is the carry case
 $p$ empty and $r=1$; it adds exactly $F(10)=1$.
 
 
-\section{What this proves for proof systems, and what remains}
+\section{Consequences and the ordinary-Frege problem}
 \label{sec:ef-boundaries}
 
-\paragraph{The positive conclusion.}
+\paragraph{What is proved.}
 Theorems~\ref{thm:direct-subexp-ef} and
 \ref{thm:all-3cnf-ef} give the claimed bounds in a fixed,
 established propositional proof system. The construction does not
@@ -1465,7 +1614,7 @@ The same asymptotic upper bounds hold for Extended Resolution,
 which polynomially simulates EF. One direct way to see the
 simulation is to name every gate in every EF line by a fresh
 extension variable and introduce its Tseitin definition. A fixed
-Frege axiom schema, on the finitely many named inputs, has a
+Frege axiom schema on the finitely many named inputs has a
 fixed resolution proof of its output under these definitions.
 For modus ponens, the named circuits for $A$, $A\to B$, and
 $B$ give a fixed local resolution derivation of the asserted
@@ -1473,14 +1622,13 @@ output of $B$ from the first two asserted outputs. Introducing
 gate definitions and copying these fixed derivations for all
 lines costs polynomially many clauses in the EF proof length.
 For a tautology proof of $\neg F$, assume the clauses of $F$
-and resolve its asserted negation to the empty clause. This is
-also recorded in Kraj\'i\v{c}ek's \emph{Propositional proof
-complexity I}, \S3.3, printed p.~53, item 4 following Theorem
-3.3.3. It adds a proof-system corollary, not an improvement to
-the counting exponent.
+and resolve its asserted negation to the empty clause. The
+simulation is also recorded in Kraj\'i\v{c}ek~\cite{krajicek}, \S3.3,
+printed p.~53, item~4 following Theorem~3.3.3. This gives a further
+proof-system corollary; it does not improve the counting exponent.
 
-\paragraph{The ordinary-Frege claim is still not proved.}
-The original selected statement concerned ordinary Frege and
+\paragraph{Ordinary Frege is not settled.}
+The original target statement concerned ordinary Frege and
 total written proof size. EF may reuse named computations; Frege
 must write formulas instead. The selectors in the negative
 descent depend on earlier selectors. The arithmetic helper
@@ -1488,7 +1636,7 @@ circuits also require care if their names are eliminated.
 A bound on EF proof size is not a bound on the sizes of the
 resulting expanded formulas.
 
-\begin{lemma}[A sufficient extension-depth bound; proved]
+\begin{lemma}[A sufficient extension-depth bound]
 \label{lem:extension-depth-transfer}
 Let an EF proof have written size $P$, and suppose its extension
 definitions have fan-in at most two and total dependency depth
@@ -1527,12 +1675,13 @@ on all implementations. A useful next attack is a proof of the
 witness inequality in ordinary Frege that preserves the
 subexponential size budget, either by controlling all necessary
 formula expansions or by replacing the sequential selector
-argument. The later SOS obstruction explains why replacing the
+argument. The SOS obstruction of
+Appendix~\ref{sec:sos-length-obstruction} explains why replacing the
 signed polynomial by a short explicit squared norm cannot be
 a universal solution.
 
-\paragraph{No new Boolean circuit separation is claimed.}
-The result is an upper bound on refutation size, and a
+\paragraph{What is not claimed.}
+The results are an upper bound on refutation size and a
 certificate-producing version of the counting simulation. It
 does not prove $\mathrm P\ne\mathrm{NC}$, an unrestricted
 Boolean circuit lower bound, or a separation between Frege
@@ -1547,12 +1696,21 @@ and Extended Frege.
 
 \paragraph{Status and scope.}
 This section proves a representation separation, conditional only on the
-integral weighted formula compiler already established in this work.
+integral weighted formula compiler imported in Section~\ref{sec:imported}.
 The lower-bound argument and the coding construction are unconditional.
 The result does not prove a lower bound for Frege or Extended Frege.
 Its examples are satisfiable instances: the obstruction concerns a
 universal conversion of weighted-count formulas into explicitly listed
 sums of polynomial squares.
+
+Theorem~\ref{thm:sos-exact-criterion} characterizes when the
+sum-of-squares length of an assignment polynomial is maximal.
+Lemmas~\ref{lem:sos-minimal-code}--\ref{lem:sos-fast-minimal} supply
+explicit codes meeting the criterion, and
+Theorem~\ref{thm:sos-signed-separation} combines them with the
+compiler. Lemma~\ref{lem:sos-weighted-descent} and
+Corollary~\ref{cor:sos-ef-positivity} show that EF nevertheless proves
+the corresponding positivity statements efficiently.
 
 \paragraph{Definitions.}
 For $a\in\{0,1\}^N$, introduce the assignment monomial
@@ -1576,7 +1734,7 @@ We call $A$ \emph{pair-unique} when
 \]
 where the pairs are unordered and may contain repeated elements.
 
-\begin{lemma}[Forced block degree and support; proved]
+\begin{lemma}[Forced block degree and support]
 \label{lem:sos-forced-support}
 If $P_A=\sum_{\ell=1}^{D}p_\ell^2$ over $\mathbb R$, then
 \[
@@ -1614,7 +1772,7 @@ Consequently $0=P_A=\sum_\ell v_{\ell,a}^2$, forcing all these
 coefficients to be zero.
 \end{proof}
 
-\begin{theorem}[Exact maximal-length criterion; proved]
+\begin{theorem}[Exact maximal-length criterion]
 \label{thm:sos-exact-criterion}
 For every nonempty $A\subseteq\{0,1\}^N$,
 \[
@@ -1659,18 +1817,17 @@ The new expression uses $|A|-2$ squares.
 \end{proof}
 
 \paragraph{Prior work on the argument.}
-The Gram-matrix method is classical: Choi--Lam--Reznick,
-\emph{Sums of Squares of Real Polynomials} (1995), Theorem~2.4 and
-the discussion before Example~2.13, identify SOS length with minimum
-positive semidefinite Gram rank and discuss uniqueness.
-Blomenhofer, \emph{On Uniqueness of Power Sum Decomposition} (2025),
-Proposition~4.8 and its final sentence, gives a related uniqueness
+The Gram-matrix method is classical. Choi, Lam, and
+Reznick~\cite{clr} (Theorem~2.4 and the discussion before
+Example~2.13) identify SOS length with minimum positive semidefinite
+Gram rank and discuss uniqueness. Blomenhofer~\cite{blomenhofer}
+(Proposition~4.8 and its final sentence) gives a related uniqueness
 argument from quadratic independence and forced SOS support.
-We make no claim that the method is new.  We did not locate the exact
+We make no claim that the method is new. We did not locate the exact
 Boolean assignment-polynomial specialization above in the checked
 sources.
 
-\begin{lemma}[Binary minimality and pair uniqueness; proved]
+\begin{lemma}[Binary minimality and pair uniqueness]
 \label{lem:sos-minimal-code}
 For a binary linear code $C\le\mathbb F_2^N$, pair uniqueness is
 equivalent to the following property: if $u,v\in C$, $u\ne0$, and
@@ -1695,7 +1852,7 @@ the unordered pair from $u,u+v$.  Therefore
 $M_0M_v=M_uM_{u+v}$, which violates pair uniqueness.
 \end{proof}
 
-\begin{corollary}[Exact code SOS length; proved]
+\begin{corollary}[Exact code SOS length]
 \label{cor:sos-code-exact}
 For a binary linear code $C$, the equality
 $\operatorname{sos}_{\mathbb R}(P_C)=|C|$ holds if and only if every
@@ -1706,7 +1863,7 @@ Combine Theorem~\ref{thm:sos-exact-criterion} with
 Lemma~\ref{lem:sos-minimal-code}.
 \end{proof}
 
-\begin{lemma}[Weight criterion; proved, classical]
+\begin{lemma}[Weight criterion; classical]
 \label{lem:sos-code-weights}
 If the largest nonzero weight $w_{\max}$ of a binary linear code is
 less than twice its minimum nonzero weight $d$, every nonzero
@@ -1723,11 +1880,11 @@ and $u+v$ are nonzero and have disjoint supports.  Thus
 which is impossible.
 \end{proof}
 
-This is the binary case of the Ashikhmin--Barg condition; see
-\emph{Minimal Vectors in Linear Codes} (1998), Lemma~2.1(3), printed
-p.~2010, and Example~2, printed p.~2011.
+This is the binary case of the Ashikhmin--Barg
+condition~\cite{ab} (Lemma~2.1(3), printed p.~2010, and Example~2,
+printed p.~2011).
 
-\begin{lemma}[Explicit fast minimal codes; proved from a published code theorem]
+\begin{lemma}[Explicit fast minimal codes, from a published code theorem]
 \label{lem:sos-fast-minimal}
 There is a deterministic polynomial-time-uniform family of injective
 linear encoders $E_k:\mathbb F_2^k\to\mathbb F_2^{N_k}$, with
@@ -1738,8 +1895,8 @@ $C_k$ are minimal.  In particular,
 \]
 \end{lemma}
 \begin{proof}
-Use Brehm--Ishai--Resch, ITC 2026, Theorem~19, which restates
-Druk--Ishai, ITCS 2014, Theorem~2.
+Use Brehm, Ishai, and Resch~\cite{bir}, Theorem~19, which restates
+Druk and Ishai~\cite{di14}, Theorem~2.
 With $q=2$ and $\delta=3/4$, it gives constants $\beta\in\mathbb N$
 and $\rho>0$ and codes
 $D_k\le(\mathbb F_2^\beta)^{m_k}$ of dimension $k$, rate
@@ -1778,7 +1935,7 @@ Theorem~19 is deterministic and must not be confused with that paper's
 randomized GV-optimal Theorem~9.  No choice of a good random seed is
 used in Lemma~\ref{lem:sos-fast-minimal}.
 
-\begin{theorem}[Signed formulas versus explicit squares; proved from the compiler]
+\begin{theorem}[Signed formulas versus explicit squares, assuming the compiler]
 \label{thm:sos-signed-separation}
 Assume the integral weighted formula compiler for 3-CNFs of size $s$
 with output formula size $2^{O(s/\sqrt{\log s})}$.
@@ -1832,7 +1989,7 @@ The coefficient is one exactly for the squared assignment monomials
 of codewords, and is zero otherwise.
 \end{proof}
 
-\begin{corollary}[No polynomial-size universal SOS conversion; proved from the compiler]
+\begin{corollary}[No polynomial-size universal SOS conversion, assuming the compiler]
 \label{cor:sos-no-conversion}
 There is no polynomial-overhead conversion that turns every
 constant-free signed formula obtained above into an explicitly listed
@@ -1856,11 +2013,11 @@ The preceding lower bound does not obstruct the direct EF argument.
 The following lemma extends negative descent to nonnegative weights;
 its proof uses no explicit sum-of-squares representation.
 
-\begin{lemma}[Weighted negative descent; proved from the EF arithmetic interface]
+\begin{lemma}[Weighted negative descent, from the EF arithmetic interface]
 \label{lem:sos-weighted-descent}
 Let $W$ be a smooth set-multilinear integer formula of size $S$ on
 $N$ weight pairs.  Let $f$ be a Boolean-valued circuit, and suppose
-an EF proof of length $L$ establishes
+an EF proof of length $T$ establishes
 $W(\operatorname{pin}(b))=f(b)$ for arbitrary Boolean bits $b$.
 For arbitrary unsigned $B$-bit weights $w_{i,0},w_{i,1}$ and
 arbitrary Boolean bits $a$, there are EF proofs of
@@ -1869,7 +2026,7 @@ arbitrary Boolean bits $a$, there are EF proofs of
  \qquad\text{and therefore}\qquad W(w)\ge0,
  \tag{$\dagger$}\label{eq:sos-weighted-inequality}
 \]
-of size polynomial in $S,N,B,L$, and the circuit size of $f$.
+of size polynomial in $S,N,B,T$, and the circuit size of $f$.
 The constants in $W$ are assumed constant-free, or supplied with
 bit lengths included in these parameters.
 \end{lemma}
@@ -1933,7 +2090,7 @@ This gives the first inequality.
 Every factor in $f(a)M_a(w)$ is nonnegative, proving the second.
 \end{proof}
 
-\begin{corollary}[Explicit squares versus EF positivity; proved from pinning]
+\begin{corollary}[Explicit squares versus EF positivity, from the pinning identity]
 \label{cor:sos-ef-positivity}
 For the family $P_k$ in
 Theorem~\ref{thm:sos-signed-separation}, the small signed formulas
@@ -2028,8 +2185,8 @@ In particular, an unsatisfiable formula has zero weighted polynomial,
 which needs no nonzero square summands.
 
 The theorem also does not trigger the arithmetic circuit lower-bound
-implications of Hrube\v{s}--Wigderson--Yehudayoff or
-Rossman--Zhu.  Rossman--Zhu, arXiv:2512.01227, Theorem~1.3, requires
+implications of Hrube\v{s}--Wigderson--Yehudayoff~\cite{hwy} or
+Rossman--Zhu~\cite{rz}. Theorem~1.3 of~\cite{rz} requires
 sum-of-squares lower bounds over algebraically closed or finite fields
 of characteristic different from two.  Its consequence
 $\mathsf{VNC}^1\ne\mathsf{VNP}$ requires $d$ blocks of $n$ variables
@@ -2047,19 +2204,55 @@ are not known over $\mathbb R$.
 
 \paragraph{Status.}
 The statements below are proved, using Theorem~9 of Brehm, Ishai,
-and Resch, \emph{Fast Bounded-Independence Functions and Their
-Duals}, ITC 2026, as a coding-theoretic input. They strengthen the
-prescribed-order obstruction: choosing the normalization order
-adaptively does not repair coefficient-by-coefficient normalization.
-They do not give a lower bound for Frege or for noncommutative IPS.
+and Resch~\cite{bir} as a coding-theoretic input. They concern
+coefficient-by-coefficient normalization, defined below, into the
+sorted form for one variable order. Normalization into an order
+prescribed in advance is the special case of an order that does not
+depend on the input; the statements below show that choosing the
+normalization order adaptively does not repair coefficient-by-coefficient
+normalization. They do not give a lower bound for Frege or for
+noncommutative IPS.
 The unsatisfiable formulas in the construction contain the two unit
 clauses $u$ and $\neg u$. Novelty relative to the circuit and branching
 program literature has not been established.
 
+Lemma~\ref{lem:code-rank-unique-witnesses} gives a rank lower bound
+for code indicators, Lemma~\ref{lem:evaluation-rank-free-formula}
+converts rank into a noncommutative formula lower bound, and
+Theorem~\ref{thm:uniform-all-orders-coefficient} embeds the result in
+an explicit unsatisfiable CNF. The first-failed-clause coefficient
+used there is displayed in its proof.
+
+\paragraph{Terminology.}
+The Ideal Proof System (IPS) of Grochow and Pitassi~\cite{gp} refutes
+a system of polynomial equations $F_1=\cdots=F_r=0$, which includes
+the Boolean axioms $X_a^2-X_a$, by an \emph{IPS certificate}: a
+polynomial $C(X,Y_1,\ldots,Y_r)$ with $C(X,0,\ldots,0)=0$ and
+$C(X,F_1,\ldots,F_r)=1$, measured by its circuit or formula size. In
+\emph{noncommutative IPS} the certificate is a noncommutative (free)
+formula, and the commutators $X_aX_b-X_bX_a$ are added as axioms.
+The commutator and Boolean-axiom placeholders in
+Corollary~\ref{cor:adaptive-normalization-barrier} stand for these
+axioms.
+For a CNF whose clauses are listed in a fixed order, every falsifying
+assignment has a first falsified clause. The
+\emph{first-failed-clause coefficient} of a clause $\sigma$ is the
+multilinear indicator, over $\mathbb F_2$ and in the variables that do
+not occur in $\sigma$, of the assignments to those variables that
+satisfy every clause listed before $\sigma$ when the variables of
+$\sigma$ take the unique values falsifying $\sigma$. The
+\emph{contribution} $\Gamma_\sigma$ of $\sigma$ is this coefficient
+multiplied by the indicator that $\sigma$ is falsified.
+\emph{Coefficient-by-coefficient normalization} starts from a free
+formula for each coefficient and rewrites it separately into
+$\operatorname{sort}_\pi$ of that coefficient, in the sense defined
+next, for some order $\pi$ that may differ between coefficients,
+before the contributions are added.
+
 All polynomials and matrix ranks in this section are over $\mathbb
-F_2$. For a set $B\subseteq\{0,1\}^M$, put
+F_2$. For a set $B\subseteq\{0,1\}^n$, put
 \[
- I_B(X)=\sum_{b\in B}\prod_{j=1}^M\eta_{X_j}(b_j),
+ I_B(X)=\sum_{b\in B}\prod_{j=1}^n\eta_{X_j}(b_j),
  \qquad \eta_X(0)=1+X,\quad \eta_X(1)=X.
 \]
 This is a multilinear polynomial. On a Boolean input $a$, every
@@ -2077,12 +2270,12 @@ $d$ whose dual has minimum distance $d^\perp$. Let
 $g:C\longrightarrow\{0,1\}^w$ be any function, with no linearity
 assumption, and let
 \[
- B=\{(c,g(c)):c\in C\}\subseteq\{0,1\}^{M},\qquad M=N+w.
+ B=\{(c,g(c)):c\in C\}\subseteq\{0,1\}^{n},\qquad n=N+w.
 \]
 Fix an integer $1\le k<\min\{d,d^\perp\}$ and any order $\pi$ of
-the $M$ coordinates. End a prefix $P$ of $\pi$ immediately after
+the $n$ coordinates. End a prefix $P$ of $\pi$ immediately after
 the $k$th code coordinate; the prefix may also contain witness
-coordinates. Put $Q=[M]\setminus P$. The evaluation matrix
+coordinates. Put $Q=[n]\setminus P$. The evaluation matrix
 \[
  E_{a,b}=I_B(a,b),\qquad
  a\in\{0,1\}^{P},\ b\in\{0,1\}^{Q},
@@ -2121,13 +2314,13 @@ coefficient zero. These rows are linearly independent.
 
 \begin{lemma}[From evaluation rank to a free-formula lower bound]
 \label{lem:evaluation-rank-free-formula}
-Let $f$ be a multilinear polynomial in $M$ variables. Let $P,Q$
+Let $f$ be a multilinear polynomial in $n$ variables. Let $P,Q$
 partition its variables, with all variables in $P$ before those in
 $Q$ in an order $\pi$. If the Boolean evaluation matrix of $f$
 across this partition has rank $R$, then every noncommutative
 formula for $\operatorname{sort}_{\pi}(f)$ has size at least
 \[
- \frac{R}{(|P|+1)(|Q|+1)}\ge\frac{R}{(M+1)^2}.
+ \frac{R}{(|P|+1)(|Q|+1)}\ge\frac{R}{(n+1)^2}.
 \]
 The formula is not required to be homogeneous or syntactically
 ordered, and cancellations inside it are allowed.
@@ -2194,11 +2387,11 @@ order $\pi$ satisfies
 \[
  \operatorname{FormulaSize}_{\rm nc}
        (\operatorname{sort}_{\pi}(I_B))
- \ \ge\ \frac{2^k}{(M+1)^2}
+ \ \ge\ \frac{2^k}{(n+1)^2}
  \qquad (1\le k<\min\{d,d^\perp\}).
 \]
 In particular, if $d,d^\perp\ge\delta N$ for a fixed
-$\delta>0$ and $w=O(N)$, the bound is $2^{\Omega(M)}$,
+$\delta>0$ and $w=O(N)$, the bound is $2^{\Omega(n)}$,
 simultaneously for every variable order.
 \end{theorem}
 \begin{proof}
@@ -2207,23 +2400,23 @@ coordinate. The first lemma gives evaluation rank at least $2^k$
 for this prefix. The second lemma gives the displayed formula-size
 bound. In the final assertion choose
 $k=\lfloor\delta N/2\rfloor$ for all sufficiently large $N$.
-Then $k<d,d^\perp$, and $M=O(N)$ makes the denominator polynomial
-and $k=\Omega(M)$.
+Then $k<d,d^\perp$, and $n=O(N)$ makes the denominator polynomial
+and $k=\Omega(n)$.
 \end{proof}
 
 \begin{theorem}[A uniform sparse contradiction with an all-orders-hard coefficient]
 \label{thm:uniform-all-orders-coefficient}
 There is a polynomial-time constructible sequence of unsatisfiable
-CNFs $U_i$ of width at most three, with $M_i$ variables and $O(M_i)$
+CNFs $U_i$ of width at most three, with $n_i$ variables and $O(n_i)$
 clauses, and a specified first-failed-clause coefficient $Q_i$,
 such that every noncommutative formula for
-$\operatorname{sort}_{\pi}(Q_i)$ has size $2^{\Omega(M_i)}$ for
+$\operatorname{sort}_{\pi}(Q_i)$ has size $2^{\Omega(n_i)}$ for
 every variable order $\pi$. Each $U_i$ contains the two contradictory
 unit clauses $u$ and $\neg u$ and consequently has an immediate
 Frege refutation.
 \end{theorem}
 \begin{proof}
-Use Brehm--Ishai--Resch, Theorem~9, with $q=2$, $R=1/2$,
+Use~\cite[Theorem~9]{bir} with $q=2$, $R=1/2$,
 and $\epsilon=1/8$. Its computational model, defined in
 \S2.2, uses binary arithmetic gates, measures size in wires,
 and defines uniformity by polynomial-time generation of the
@@ -2306,7 +2499,7 @@ $\operatorname{sort}_{\pi}(Q_i)$ restricts, without increasing
 size, to a formula for
 $\operatorname{sort}_{\pi'}(I_{B_i})$, where $\pi'$ is the
 induced order after deleting the seed variables. The previous
-theorem gives size $2^{\Omega(N_i)}=2^{\Omega(M_i)}$.
+theorem gives size $2^{\Omega(N_i)}=2^{\Omega(n_i)}$.
 
 Finally, the unit clauses $u$ and $\neg u$ derive a contradiction
 by one application of the fixed propositional contradiction rule
@@ -2318,7 +2511,7 @@ without using any property of $G_i$.
 \label{cor:adaptive-normalization-barrier}
 For the coefficients $Q_i$ above, let $A_i$ be any free formula
 whose commutative image is $Q_i$ and whose size is
-$2^{o(M_i)}$. Select an arbitrary order $\pi_i$, even depending
+$2^{o(n_i)}$. Select an arbitrary order $\pi_i$, even depending
 on the entire input and on $A_i$. Suppose a free formula $R_i$
 with commutator placeholders $Z_{ab}$ and Boolean-axiom
 placeholders $B_a$ satisfies the exact free-algebra identity
@@ -2326,7 +2519,7 @@ placeholders $B_a$ satisfies the exact free-algebra identity
  A_i+R_i(X,(X_aX_b-X_bX_a)_{a,b},(X_a^2-X_a)_a)
    =\operatorname{sort}_{\pi_i}(Q_i).
 \]
-Then $R_i$ has size $2^{\Omega(M_i)}$.
+Then $R_i$ has size $2^{\Omega(n_i)}$.
 \end{corollary}
 \begin{proof}
 Every placeholder is replaced by a formula of constant size.
@@ -2334,10 +2527,10 @@ As a formula is a tree, replacing all its placeholder leaves
 increases size by at most a fixed multiplicative constant.
 The left-hand side therefore has formula size
 $O(|A_i|+|R_i|)$. The preceding theorem lower-bounds this by
-$2^{cM_i}$ for some $c>0$ and all sufficiently large $i$.
-Because $|A_i|=2^{o(M_i)}$, it is at most $2^{cM_i}/2$ for all
+$2^{cn_i}$ for some $c>0$ and all sufficiently large $i$.
+Because $|A_i|=2^{o(n_i)}$, it is at most $2^{cn_i}/2$ for all
 sufficiently large $i$, after absorbing fixed constants. The
-remaining contribution forces $|R_i|=2^{\Omega(M_i)}$.
+remaining contribution forces $|R_i|=2^{\Omega(n_i)}$.
 \end{proof}
 
 \paragraph{Hand check with a witness preceding a code coordinate.}
@@ -2365,7 +2558,8 @@ This result rules out converting each first-failed coefficient to
 one order before adding the clause contributions, even if the
 orders are chosen separately and adaptively. It does not rule out
 correcting the global residual
-$H=\sum_\sigma G_\sigma-1$. In the displayed CNFs, a global
+$H=\sum_\sigma\Gamma_\sigma-1$, the sum of all clause contributions
+minus one. In the displayed CNFs, a global
 certificate can discard the entire $G_i$ prefix and use the
 contradictory unit clauses. A valid construction for the global
 residual may therefore exploit cancellation between coefficients
@@ -2374,7 +2568,8 @@ bound against either option.
 
 
 
-\section{Sources and verification record}
+\section{Verification record}
+\label{sec:verification}
 
 \paragraph{Proof checks.}
 The pinning, merge reconstruction, and size accounting were
@@ -2389,22 +2584,22 @@ the proofs; they are not substitutes for them. The new proof
 has not been machine-verified.
 
 \paragraph{Primary sources.}
-The following list gives the versions and locators actually used.
+The references below give the versions and locators actually used.
 The supplied manuscript and Szeider version 2 were read locally.
 The Krapivin--Li--Shi manuscript was downloaded from its STOC
 submission link after the ePrint body was inaccessible. The
 original Druk--Ishai paper was not obtained; its exact coding
 theorem was checked in the stated Brehm--Ishai--Resch restatement.
 
-\begin{enumerate}
-\item Charlie Cruz. \emph{Separating Nondeterministic Time from
+\begin{thebibliography}{99}
+\bibitem{cruz-ntime} Charlie Cruz. \emph{Separating Nondeterministic Time from
 Deterministic Space}. Supplied
 \texttt{separating-ntime-from-space.tex}.
 Locators: \texttt{lem:codes}, \texttt{lem:top},
 \texttt{lem:atone}, \texttt{cor:cuts}, \texttt{lem:transport},
 \texttt{sec:merge}, \texttt{sec:formula}, and \texttt{lem:paths}.
 
-\item Stefan Szeider. Supplied note on consequences of the ETH
+\bibitem{szeider} Stefan Szeider. Supplied note on consequences of the ETH
 refutations, version 2 of November 16, 2026. \S7, Open Problems
 1 and 3, printed p.~10; paragraph on the soundness invariant,
 p.~11. The public announcement still states the EF consequence
@@ -2413,7 +2608,7 @@ with the IPS simulation hypothesis.
 and the supplied Zenodo identifier
 \url{https://doi.org/10.5281/zenodo.24299623}.
 
-\item Andrew Krapivin, Jiatu Li, Elaine Shi.
+\bibitem{kls} Andrew Krapivin, Jiatu Li, Elaine Shi.
 \emph{Fine-Grained Proof Complexity for Elementary Arithmetic in
 Extended Frege}. STOC 2027 submission 1284; ePrint 2026/2758.
 Appendix A.1, pp.~43--44; Lemma C.1, pp.~63--65, equations
@@ -2423,35 +2618,35 @@ pp.~138--140. Submission status is not acceptance.
 and
 \url{https://github.com/sigact-stoc/stoc2027/releases/download/papers-2/1284.pdf}.
 
-\item Noel Arteche, Albert Atserias, Susanna F. de Rezende,
+\bibitem{aadk} Noel Arteche, Albert Atserias, Susanna F. de Rezende,
 Erfan Khaniki. \emph{The Proof Analysis Problem}, June 19, 2025
 version. \S2.3.4, Theorem 2.3, printed p.~18 (PDF p.~20),
 states Cook's correspondence theorem; it points to
 Kraj\'i\v{c}ek's 2019 book, Theorem 12.4.2, for the proof.
 \url{https://narteche.github.io/files/papers/PAP_june2025.pdf}.
 
-\item Russell Impagliazzo, Ramamohan Paturi, Francis Zane.
+\bibitem{ipz} Russell Impagliazzo, Ramamohan Paturi, Francis Zane.
 \emph{Which Problems Have Strongly Exponential Complexity?}
 Journal of Computer and System Sciences 63 (2001), 512--530.
 \S2, Theorem 1 and \textsc{Reduce}, pp.~520--521;
 Lemma 7 and Corollary 1, p.~523.
 \url{https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturiZane_2001_jcss.pdf}.
 
-\item Sravanthi Chede, Leroy Chew, Anil Shukla.
+\bibitem{ccs} Sravanthi Chede, Leroy Chew, Anil Shukla.
 \emph{Circuits, Proofs and Propositional Model Counting}.
 ECCC TR24-081, revision 1, August 2, 2024; FSTTCS 2024.
 Definition 19, Lemma 21 and Theorem 23, PDF pp.~14--15
 of the ECCC revision.
 \url{https://eccc.weizmann.ac.il/report/2024/081/revision/1/download/}.
 
-\item Jan Kraj\'i\v{c}ek. \emph{Propositional proof
+\bibitem{krajicek} Jan Kraj\'i\v{c}ek. \emph{Propositional proof
 complexity I}, lecture-note draft. \S3.3, Definition 3.3.1,
 Lemma 3.3.2, Theorem 3.3.3 and its following discussion,
 printed pp.~52--54, for extension variables and circuit-style
 proofs.
 \url{https://msekce.karlin.mff.cuni.cz/~krajicek/ds1.pdf}.
 
-\item Martijn Brehm, Yuval Ishai, Nicolas Resch.
+\bibitem{bir} Martijn Brehm, Yuval Ishai, Nicolas Resch.
 \emph{Fast Bounded-Independence Functions and Their Duals}.
 ITC 2026, DOI 10.4230/LIPIcs.ITC.2026.8.
 \S2.2 specifies uniformity and wire count.
@@ -2461,33 +2656,53 @@ the coefficient appendix. Theorem 19 restates Druk--Ishai
 constant-block encoder used in the SOS appendix.
 \url{https://drops.dagstuhl.de/storage/00lipics/lipics-vol385-itc2026/html/LIPIcs.ITC.2026.8/LIPIcs.ITC.2026.8.html}.
 
-\item Alexei Ashikhmin, Alexander Barg.
+\bibitem{ab} Alexei Ashikhmin, Alexander Barg.
 \emph{Minimal Vectors in Linear Codes}. IEEE Transactions on
 Information Theory 44(5) (1998), 2010--2017.
 Lemma 2.1(3),(5), p.~2010; Example 2, p.~2011.
 \url{https://user.eng.umd.edu/~abarg/reprints/MinimalVectors98.pdf}.
 
-\item Man-Duen Choi, T. Y. Lam, Bruce Reznick.
+\bibitem{clr} Man-Duen Choi, T. Y. Lam, Bruce Reznick.
 \emph{Sums of Squares of Real Polynomials}. Proceedings of
 Symposia in Pure Mathematics 58.2 (1995).
 Theorem 2.4 and the discussion before Example 2.13,
 printed pp.~108--110, for the classical Gram-matrix viewpoint.
 \url{https://www.math.ucdavis.edu/~deloera/MISC/LA-BIBLIO/trunk/ReznickBruce/choilamreznicksosrealgrammatrix.pdf}.
 
-\item Alexander Taveira Blomenhofer.
+\bibitem{blomenhofer} Alexander Taveira Blomenhofer.
 \emph{On Uniqueness of Power Sum Decomposition}.
 SIAM Journal on Applied Algebra and Geometry 9(1) (2025),
 211--234. Proposition 4.8 and its concluding observation,
 p.~225, give related Gram uniqueness criteria.
 \url{https://ir.cwi.nl/pub/35868/35868.pdf}.
 
-\item Benjamin Rossman, Davidson Zhu.
+\bibitem{rz} Benjamin Rossman, Davidson Zhu.
 \emph{Multiquadratic Sum-of-Squares Lower Bounds Imply
 VNC$^1\ne$VNP}. arXiv:2512.01227, consulted HTML version.
 \S1.1, the qualification following Theorem 1.2;
 \S1.2, Theorem 1.3; \S2.1, field conventions.
 \url{https://arxiv.org/html/2512.01227v1}.
-\end{enumerate}
+
+\bibitem{cook75} Stephen A. Cook.
+\emph{Feasibly Constructive Proofs and the Propositional Calculus}.
+Proceedings of the 7th Annual ACM Symposium on Theory of Computing
+(STOC 1975), 83--97.
+
+\bibitem{di14} Erez Druk, Yuval Ishai.
+\emph{Linear-Time Encodable Codes Meeting the Gilbert--Varshamov
+Bound and Their Cryptographic Applications}. Proceedings of the 5th
+Innovations in Theoretical Computer Science Conference (ITCS 2014),
+169--182. Not obtained; see the note on primary sources above.
+
+\bibitem{hwy} Pavel Hrube\v{s}, Avi Wigderson, Amir Yehudayoff.
+\emph{Non-Commutative Circuits and the Sum-of-Squares Problem}.
+Journal of the American Mathematical Society 24(3) (2011), 871--898.
+
+\bibitem{gp} Joshua A. Grochow, Toniann Pitassi.
+\emph{Circuit Complexity, Proof Complexity, and Polynomial Identity
+Testing: The Ideal Proof System}. Journal of the ACM 65(6) (2018),
+Article 37.
+\end{thebibliography}
 
 \end{document}
 

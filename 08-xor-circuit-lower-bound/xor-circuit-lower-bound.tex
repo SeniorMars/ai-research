@@ -1,0 +1,458 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{xurl}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Cx}{C_{\oplus}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\rk}{\operatorname{rank}}
+\hypersetup{pdftitle={Superlinear XOR circuit lower bounds and superlinear rigidity for an explicit matrix over F2},
+  pdfauthor={Charlie Cruz},
+  pdfkeywords={superlinear lower bounds, XOR circuits, linear circuits, matrix rigidity, F2, GF(2), explicit matrix, Fourier transform, circuit complexity, trace descent}}
+\title{Superlinear XOR Circuit Lower Bounds and\\Superlinear Rigidity for an Explicit Matrix over $\F_2$}
+\author{Charlie Cruz}
+\date{November 24, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+An \emph{XOR circuit} computes a linear map $x\mapsto Ax$ over $\F_2$ using
+only fan-in-two XOR gates. The \emph{rigidity} of $A$ at rank $r$ is the
+least number of entries of $A$ that must be changed to bring its rank down
+to $r$. We give an explicit $0/1$ matrix $H_N\in\F_2^{N\times N}$ for which
+both quantities are superlinear. Every XOR circuit computing $H_N$ has
+$\Omega(N\sqrt{\log N})$ gates, while $N(\log N)^{1/2+o(1)}$ gates suffice.
+Lowering the rank of $H_N$ over $\F_2$ to $\gamma N$ requires changing more
+than $N2^{\Omega(\sqrt{\log N})}$ entries. Both bounds hold simultaneously, so
+$H_N$ is not a small XOR circuit plus a low-rank matrix plus a sparse matrix.
+They also hold for direct sums of many copies and for XOR circuits with
+feedback. The matrix $H_N$ is the Fourier transform of $(\Z/3\Z)^d$ over
+$\F_4$, written in binary. It is equally hard over every field of
+characteristic two, and the Walsh--Hadamard matrix plays the same role
+over every other field. The proofs reduce to the recent theorem that
+Fourier transforms over fields with enough roots of unity need
+$\Omega(N\sqrt{\log N})$ linear gates. That theorem never applies over
+$\F_2$, and its proof has been formally verified in Lean. Two elementary
+tools carry it down to $\F_2$. One is a trace descent for circuits. The
+other is a projection onto $\F_4$-linear maps, which controls rank and
+sparsity. To our knowledge these are the first superlinear lower bounds
+for an explicit $\F_2$-linear map against XOR circuits of unbounded depth.
+The rigidity bound is also the first explicit bound over $\F_2$ that is
+superlinear at linear rank.
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Background}
+An \emph{XOR circuit} computes a linear map $\F_2^N\to\F_2^N$. Each gate
+adds two previously computed bits, and each output is an input or a gate.
+Write $\Cx(A)$ for the least number of gates computing $x\mapsto Ax$.
+Lupanov showed that $\Cx(A)=O(N^2/\log N)$ for every $A$ \cite{Lup}, and
+counting shows this is tight for almost all $A$. For explicit matrices,
+however, no superlinear lower bound against XOR circuits of unbounded
+depth has been known. Superlinear bounds are known only for restricted
+models, such as bounded depth.
+
+Valiant proposed matrix rigidity as a route to such bounds for circuits
+of logarithmic depth \cite{Val77}. The rigidity $R_A(r)$ is the least
+number of entries of $A$ that must be changed to bring its rank down to at
+most $r$. Valiant showed that $R_A(\varepsilon N)\ge N^{1+\delta}$ implies
+superlinear lower bounds for log-depth linear circuits computing $A$.
+Over finite fields, the best rigidity lower bound for an explicit matrix
+is $\Omega((N^2/r)\log(N/r))$ \cite{Fri93,SSS97}, which is only linear at
+rank $r=\Theta(N)$. Natural candidates also fall short of Valiant's
+threshold. For example, Hadamard matrices are not rigid enough
+\cite{AW17}.
+
+\subsection{The Fourier exponent theorem}
+Recently, linear circuit lower bounds for an explicit family were proved
+over a large class of fields \cite{FFT}. For a field $K$, a \emph{linear
+circuit} over $K$ has gates computing $au+bv$, with $a,b\in K$ arbitrary
+and $u,v$ previously computed. An output may select a single input or gate
+and multiply it by a scalar. A \emph{feedback system} with $s$ states is a
+system of equations $v=Cv+Ax$ in which each state is a weighted sum of at
+most two inputs or states. The matrix $I-C$ must be invertible, and the
+outputs are read as in a circuit. Every circuit with $s$ gates is such a
+system. Write $C_K(T)$ for the least number of gates in a linear circuit
+over $K$ computing $T$, and $F_G$ for the character table (Fourier
+transform) of a finite abelian group $G$.
+
+\begin{theorem}[{\cite[Theorems~1.1 and~1.2]{FFT}}]\label{thm:fft}
+There are absolute constants $c,\beta,\eta>0$ such that the following
+holds. Let $G$ be a finite abelian group of order $n\ge2$, and let $K$ be
+a field in which $n$ is invertible and which contains a primitive root of
+unity of order $\exp(G)$. Let $T=F_G^{\oplus J}$ for some $J\ge1$, and put
+$h=Jn$.
+\begin{enumerate}
+\item $c\,h\sqrt{\log n}\le C_K(T)\le O_\varepsilon\bigl(h(1+\log n)^{1/2+\varepsilon}\bigr)$
+for every $\varepsilon>0$.
+\item Suppose $T=M+B+Z$ over $K$. Here $M$ is computed by a feedback
+system with $s$ states, $\rk B\le\beta h$, and
+$|\supp Z|\le\eta h\,2^{\sqrt{\log n}/8}$. Then $s\ge c\,h\sqrt{\log n}$.
+\end{enumerate}
+\end{theorem}
+
+In \cite{FFT}, part~2 is proved even for $T$ in the Zariski closure of
+such sums. Taking $M=0$ in part~2 gives a rigidity bound for $F_G$. The
+hypotheses never hold over $\F_2$, because the only root of unity there is
+$1$. The natural candidate, the Walsh--Hadamard matrix, has entries
+$\pm1$, which all reduce to $1$ modulo two.
+
+\subsection{Results}
+Let $\omega\in\F_4$ be a root of $\omega^2=\omega+1$, and identify $\F_4$
+with $\F_2^2$ through the basis $\{1,\omega\}$. Multiplication by $\omega$
+then acts by
+\[
+W=\begin{pmatrix}0&1\\1&1\end{pmatrix},\qquad W^3=I.
+\]
+
+\begin{definition}\label{def:H}
+For $d\ge1$, let $n=3^d$ and $N=2n$. Let $H_N\in\F_2^{N\times N}$ be the
+$n\times n$ block matrix with $2\times2$ blocks
+\[
+(H_N)_{a,g}=W^{\langle a,g\rangle\bmod3},\qquad a,g\in(\Z/3\Z)^d.
+\]
+For other $N\ge6$, let $d$ be maximal with $2\cdot3^d\le N$, and define
+$H_N=H_{2\cdot3^d}\oplus I_{N-2\cdot3^d}$.
+\end{definition}
+
+For example,
+\[
+H_6=\begin{pmatrix}I&I&I\\I&W&W^2\\I&W^2&W\end{pmatrix}.
+\]
+For $N=2\cdot3^d$, the matrix $H_N$ is the Fourier transform of
+$(\Z/3\Z)^d$ over $\F_4$, written over $\F_2$. Its entries can be computed
+in polynomial time.
+
+Our main result is a robust lower bound over $\F_2$.
+
+\begin{theorem}\label{thm:main}
+There are absolute constants $c',\gamma,\eta'>0$ such that the following
+holds for all sufficiently large $N=2\cdot3^d$ and all $J\ge1$. Suppose
+that over $\F_2$,
+\[
+H_N^{\oplus J}=M+B+Z,
+\]
+where $M$ is computed by an XOR feedback system with $s$ states,
+$\rk B\le\gamma JN$, and $|\supp Z|\le\eta'JN\,2^{\sqrt{\log N}/8}$. Then
+$s\ge c'JN\sqrt{\log N}$.
+\end{theorem}
+
+The two extreme cases are worth stating on their own.
+
+\begin{corollary}[XOR circuits]\label{cor:xor}
+For all $N\ge6$, we have $\Cx(H_N)=N(\log N)^{1/2+o(1)}$, and
+$\Cx(H_N)\ge c'N\sqrt{\log N}$ for all sufficiently large $N$. Moreover,
+$\Cx(H_N^{\oplus J})\ge c'JN\sqrt{\log N}$, even though the circuit may mix
+the copies.
+\end{corollary}
+
+\begin{corollary}[Rigidity over $\F_2$]\label{cor:rigid}
+For all sufficiently large $N=2\cdot3^d$,
+\[
+R_{H_N}(\gamma N)>\eta'N\,2^{\sqrt{\log N}/8}.
+\]
+\end{corollary}
+
+The rigidity bound is superlinear at linear rank. It is below Valiant's
+threshold $N^{1+\delta}$, since $2^{\sqrt{\log N}}=N^{o(1)}$, so it does not
+yield lower bounds for log-depth circuits.
+
+The same tools give explicit hard matrices over every field.
+
+\begin{theorem}\label{thm:every}
+Let $K$ be a field.
+\begin{enumerate}
+\item If $\operatorname{char}K\ne2$, the Walsh--Hadamard matrix of order
+$N=2^d$ satisfies $C_K=N(\log N)^{1/2+o(1)}$ and $C_K\ge c''N\sqrt{\log N}$.
+\item If $\operatorname{char}K=2$, the $0/1$ matrix $H_N$ satisfies
+$C_K(H_N)=N(\log N)^{1/2+o(1)}$ and $C_K(H_N)\ge c''N\sqrt{\log N}$.
+\end{enumerate}
+Here $c''>0$ is absolute.
+\end{theorem}
+
+Part~1 is Theorem~\ref{thm:fft} with $G=(\Z/2\Z)^d$, since $2^d$ is
+invertible and $-1$ is a primitive square root of unity. Part~2 shows that
+a single $0/1$ matrix is hard uniformly over all fields of characteristic
+two.
+
+\subsection{Techniques}
+Two elementary observations carry Theorem~\ref{thm:fft} from $\F_4$ down
+to $\F_2$.
+
+\emph{Descent for circuits} (Lemma~\ref{lem:descent}). Every
+$\F_2$-linear functional on $\F_4^n$ is the trace of a unique
+$\F_4$-linear form, and this correspondence is $\F_2$-linear. Replacing
+every wire of an XOR circuit by the corresponding form therefore turns an
+XOR circuit for the binary form of an $\F_4$-linear map into an
+$\F_4$-linear circuit for the map. The only cost is one scaling gate per
+input bit.
+
+\emph{Projection for matrices} (Lemma~\ref{lem:proj}). In characteristic
+two, $3$ is invertible. So averaging over conjugation by multiplication by
+$\omega$ projects every $\F_2$-linear map onto its $\F_4$-linear part. The
+projection fixes $H_N$ and at most triples rank. It never spreads a
+nonzero entry outside its own $2\times2$ block, and it maps small XOR
+systems to small XOR systems. Applying it to a decomposition
+$H_N=M+B+Z$ gives a decomposition of the Fourier transform over $\F_4$
+with comparable budgets. Theorem~\ref{thm:fft} forbids such a
+decomposition.
+
+\subsection{Status of the imported theorem}
+Everything beyond Theorem~\ref{thm:fft} is proved in full below. The full
+statement of Theorem~\ref{thm:fft} appears as the Lean theorem
+\texttt{batchedFourierComplexity} in the challenge file
+\texttt{ExactFourier.lean} of the accompanying formalization \cite{Lean}.
+That statement covers batches, feedback systems, and rank and support
+budgets $\beta h$ and $\eta h2^{\sqrt{\log_2n}/8}$, and its comparator
+configuration certifies a proof in \texttt{OAI.LinearAlgebra.FiniteFourier.Main}
+using only the standard axioms \texttt{propext}, \texttt{Quot.sound} and
+\texttt{Classical.choice}. We have checked that the Lean statement matches
+Theorem~\ref{thm:fft}, but we have not rerun the comparator.
+
+We have also read the paper proof of the lower bound (Sections~2--3 of
+\cite{FFT}) line by line, and found it correct given the properties of
+planar spectral prices from \cite[Theorem~1.1]{Geom}. In \cite{Geom},
+those properties rest on the existence of spectral flats. That proof is
+long and we have not verified it, but the formalization constructs the
+prices directly \cite{Lean}.
+
+\section{Preliminaries}
+All circuits have fan-in two. An XOR circuit is a linear circuit over
+$\F_2$, and an XOR feedback system is a feedback system over $\F_2$. For a
+matrix $X$, $\supp X$ is the set of its nonzero entries. We write
+$\Phi_n=I_n\otimes W$ for multiplication by $\omega$ on
+$\F_4^n\cong\F_2^{2n}$. An $\F_2$-linear map $X$ on $\F_2^{2n}$ is
+\emph{$\F_4$-linear} if it commutes with $\Phi_n$. We then also regard
+$X$ as an $n\times n$ matrix over $\F_4$, whose $(i,j)$ entry corresponds
+to the $(i,j)$ block of $X$.
+
+For a finite separable extension $E/K$ of degree $k$, fix a $K$-basis of
+$E$. The \emph{$K$-form} $T_K\in K^{kn\times kn}$ of an $E$-linear map
+$T:E^n\to E^n$ is $T$ written in coordinates over that basis.
+
+\section{Descent}
+\begin{lemma}\label{lem:descent}
+Let $E/K$ be a finite separable extension of degree $k$, and let
+$T:E^n\to E^n$ be $E$-linear. If $T_K$ is computed by a linear circuit (or
+feedback system) over $K$ with $s$ gates (or states), then $T$ is computed
+by one over $E$ with at most $s+kn$. Conversely,
+$C_K(T_K)\le O_E(C_E(T)+n)$.
+\end{lemma}
+
+\begin{proof}
+Since $E/K$ is separable, the trace form $(c,x)\mapsto\Tr_{E/K}(cx)$ is
+nondegenerate. Hence every $K$-linear functional $\phi:E^n\to K$ has the
+form $\phi(x)=\Tr(\sum_ic_ix_i)$ for a unique $c\in E^n$. Let
+$\hat\phi(x)=\sum_ic_ix_i$ be its \emph{lift}. Lifting is $K$-linear:
+$\widehat{a\phi+b\psi}=a\hat\phi+b\hat\psi$ for $a,b\in K$.
+
+Let $\theta_1^*,\dots,\theta_k^*$ be the basis dual to the fixed basis
+under the trace form. Then the input coordinates of $T_K$ are the
+functionals $\Tr(\theta_j^*x_i)$, whose lifts are $\theta_j^*x_i$. Given a
+circuit for $T_K$, replace every wire $\phi$ by $\hat\phi$:
+\begin{itemize}
+\item each input becomes $\theta_j^*x_i$, at the cost of one scaling gate,
+for $kn$ gates in all;
+\item each gate $a\phi+b\psi$ becomes the gate $a\hat\phi+b\hat\psi$;
+\item an output computing the coordinate $\Tr(\theta_j^*T(x)_i)$ becomes
+$\theta_j^*T(x)_i$, and the readout rescales it to $T(x)_i$ at no cost.
+\end{itemize}
+For a feedback system $v=Cv+Ax$, the lifted system has the same matrix
+$C$ with entries in $K$. Since $I-C$ is invertible over $K$, it is
+invertible over $E$, so the lifted system is uniquely solvable and its
+solution consists of the lifts.
+
+For the converse, each gate over $E$ is a fixed $K$-linear map on $2k$
+coordinates, which costs $O_E(1)$ gates over $K$.
+\end{proof}
+
+\section{Projection}
+\begin{lemma}\label{lem:proj}
+For $X\in\F_2^{2n\times2n}$ put
+\[
+\Pi(X)=\sum_{k=0}^{2}\Phi_n^{-k}X\,\Phi_n^{k}.
+\]
+Then:
+\begin{enumerate}
+\item $\Pi(X)$ is $\F_4$-linear, and $\Pi(X)=X$ whenever $X$ is
+$\F_4$-linear;
+\item $\rk_{\F_4}\Pi(X)\le\tfrac32\rk_{\F_2}X$;
+\item as a matrix over $\F_4$, $\Pi(X)$ has at most $|\supp X|$ nonzero
+entries;
+\item if $X$ is computed by an XOR feedback system with $s$ states, then
+$\Pi(X)$ is computed by one with at most $3s+O(n)$ states.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(1) Conjugation by $\Phi_n$ permutes the three summands cyclically, so
+$\Pi(X)$ commutes with $\Phi_n$. If $X$ commutes with $\Phi_n$, all
+three summands equal $X$, and $3X=X$ over $\F_2$.
+
+(2) Each summand has $\F_2$-rank $\rk X$, so
+$\rk_{\F_2}\Pi(X)\le3\rk X$. An $\F_4$-linear map of $\F_2$-rank $\rho$ has
+$\F_4$-rank $\rho/2$.
+
+(3) Since $\Phi_n$ is block diagonal with $2\times2$ blocks, each summand
+is supported on the blocks that meet $\supp X$. There are at most
+$|\supp X|$ such blocks, and each nonzero block of $\Pi(X)$ is a single
+nonzero entry over $\F_4$.
+
+(4) Multiplying a $2$-bit block by $W$ or by $W^{-1}=W^2$ costs one XOR
+gate. Run three copies of the system, the $k$-th with $\Phi_n^k$ applied
+at its inputs and $\Phi_n^{-k}$ at its outputs, and add the three
+outputs with $2\cdot2n$ further gates.
+\end{proof}
+
+\section{Proofs}
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Let $n=3^d$, $h=Jn$, and let $T$ be the direct sum of $J$ copies of the
+Fourier transform of $(\Z/3\Z)^d$ over $\F_4$. The order $3^d$ is odd and
+$\omega$ is a primitive cube root of unity, so Theorem~\ref{thm:fft}
+applies. The $\F_2$-form of $T$ is $H_N^{\oplus J}$, which is $\F_4$-linear.
+
+Suppose $H_N^{\oplus J}=M+B+Z$ as in the statement. By
+Lemma~\ref{lem:proj}(1),
+\[
+T=\Pi(M)+\Pi(B)+\Pi(Z),
+\]
+with all three terms $\F_4$-linear. The three terms satisfy the following
+bounds.
+\begin{itemize}
+\item By Lemma~\ref{lem:proj}(4) and Lemma~\ref{lem:descent}, $\Pi(M)$ is
+computed over $\F_4$ by a feedback system with at most $3s+O(JN)$ states.
+\item By Lemma~\ref{lem:proj}(2),
+$\rk_{\F_4}\Pi(B)\le\tfrac32\gamma JN=3\gamma h$.
+\item By Lemma~\ref{lem:proj}(3), $\Pi(Z)$ has at most
+$\eta'JN\,2^{\sqrt{\log N}/8}$ nonzero entries.
+\end{itemize}
+Set $\gamma=\beta/3$ and $\eta'=\eta/4$. Since $\log N=\log n+1$, we have
+$2^{\sqrt{\log N}/8}\le2\cdot2^{\sqrt{\log n}/8}$. So $\Pi(Z)$ has at most
+$\eta h\,2^{\sqrt{\log n}/8}$ nonzero entries. Theorem~\ref{thm:fft}(2) now
+gives $3s+O(JN)\ge c\,h\sqrt{\log n}$, hence $s\ge c'JN\sqrt{\log N}$ for
+all sufficiently large $N$.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:xor}]
+For $N=2\cdot3^d$, the lower bound is Theorem~\ref{thm:main} with $B=Z=0$.
+The upper bound follows from Theorem~\ref{thm:fft}(1) and the converse in
+Lemma~\ref{lem:descent}. For general $N$, an XOR circuit for $H_N$ with
+the last $N-2\cdot3^d$ inputs set to zero computes $H_{2\cdot3^d}$ on the
+first $2\cdot3^d$ outputs, without more gates. The upper bound for $H_N$
+adds $O(N)$ gates. Since $2\cdot3^d>N/3$, both bounds carry over with
+modified constants.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:rigid}]
+If $H_N=B+Z$ with $\rk B\le\gamma N$ and
+$|\supp Z|\le\eta'N\,2^{\sqrt{\log N}/8}$, then Theorem~\ref{thm:main} with
+$J=1$ and $M=0$ (so $s=0$) gives $0\ge c'N\sqrt{\log N}$, a contradiction.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:every}]
+Part~1 was explained after the statement. For part~2, let
+$\operatorname{char}K=2$, $n=3^d$, and let $T$ be the Fourier transform of
+$(\Z/3\Z)^d$.
+
+\emph{Case $\omega\notin K$.} Then $E=K(\omega)$ has degree two over $K$,
+and it is separable since $x^2+x+1$ has derivative $1$. In the basis
+$\{1,\omega\}$, multiplication by $\omega$ again acts by $W$, so the
+$K$-form of $T$ is $H_N$. Lemma~\ref{lem:descent} and
+Theorem~\ref{thm:fft}(1) over $E$ give both bounds.
+
+\emph{Case $\omega\in K$.} Then $W$ has distinct eigenvalues $\omega$ and
+$\omega^2$ in $K$, so $W=P\operatorname{diag}(\omega,\omega^2)P^{-1}$ for
+some $P\in GL_2(K)$. Conjugating each block by $P$ and permuting
+coordinates turns $H_N$ into $F\oplus\overline F$. Here $F$ is the Fourier
+transform and $\overline F$ is the transform with $\omega$ replaced by
+$\omega^2$, which is also a character table of $(\Z/3\Z)^d$. These changes
+of basis cost $O(N)$ gates, so Theorem~\ref{thm:fft}(1) with $J=2$ gives
+both bounds.
+\end{proof}
+
+\section{Discussion}
+\paragraph{Circuits with AND gates.}
+Our lower bounds are for XOR circuits. They do not exclude smaller
+circuits for $H_N$ that also use AND gates. Whether nonlinear gates can
+help compute linear maps is a well-known open problem. For bilinear maps,
+the analogous descent to Boolean circuits fails. On bits $x^2=x$, so an
+AND gate can create bilinear terms whose rank is not controlled by the
+number of gates.
+
+\paragraph{A consistency check.}
+Alman and Williams bound the rigidity of the Walsh--Hadamard matrix from
+above \cite{AW17}. Extrapolated heuristically to linear rank, their bound
+allows about $N2^{O(\sqrt{\log N\log\log N})}$ changes, which is consistent
+with lower bounds of the form $N2^{\Omega(\sqrt{\log N})}$.
+
+\paragraph{Open problems.}
+\begin{itemize}
+\item Is $\Cx(H_N)=\Theta(N\sqrt{\log N})$? The upper bound in
+Theorem~\ref{thm:fft} leaves the case $\varepsilon=0$ open.
+\item The descent costs $kn$ gates for an extension of degree $k$, so it
+only handles extensions of bounded degree. Do cyclic or Toeplitz maps over
+$\F_2$, which arise from transforms over $\F_{2^k}$ with $k$ growing,
+inherit superlinear bounds?
+\item Is there an explicit matrix $A$ over $\F_2$ with
+$R_A(\gamma N)\ge N^{1+\delta}$? This would meet Valiant's threshold.
+\end{itemize}
+
+\paragraph{Acknowledgments.}
+The Fourier exponent theorem and its formalization are due to the
+authors of \cite{FFT,Lean}.
+
+\begin{thebibliography}{99}
+\bibitem{AW17}
+J.~Alman and R.~Williams. Probabilistic rank and matrix rigidity.
+In \emph{Proceedings of STOC 2017}, pages 641--652, 2017.
+\href{https://doi.org/10.1145/3055399.3055484}{doi:10.1145/3055399.3055484}.
+
+\bibitem{Fri93}
+J.~Friedman. A note on matrix rigidity. \emph{Combinatorica},
+13(2):235--239, 1993.
+\href{https://doi.org/10.1007/BF01303207}{doi:10.1007/BF01303207}.
+
+\bibitem{Geom}
+OpenAI. Euclidean geometry in the asymptotic spectrum of tensors.
+Preprint, November 24, 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/Euclidean-geometry-in-the-asymptotic-spectrum-of-tensors-November-24-2026/paper.pdf}{Manuscript}.
+
+\bibitem{FFT}
+OpenAI. The logarithmic exponent of finite Fourier transforms.
+Preprint, November 24, 2026.
+\href{https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/preprints/The-logarithmic-exponent-of-finite-Fourier-transforms-November-24-2026/paper.pdf}{Manuscript}.
+
+\bibitem{Lean}
+OpenAI. Lean formalization: \texttt{lean/ComparatorChallenges/ExactFourier.lean},
+\texttt{ExactFourier.json}, and scope document \texttt{lean/docs/379.md}.
+November 24, 2026.
+\href{https://github.com/openai/math/tree/3344da59991ed94f9ba711217b29c1d760badfa6/lean}{Repository}.
+
+\bibitem{Lup}
+O.~B. Lupanov. On rectifier and switching-and-rectifier schemes.
+\emph{Doklady Akademii Nauk SSSR}, 111:1171--1174, 1956.
+
+\bibitem{SSS97}
+M.~A. Shokrollahi, D.~A. Spielman, and V.~Stemann. A remark on matrix
+rigidity. \emph{Information Processing Letters}, 64(6):283--285, 1997.
+\href{https://doi.org/10.1016/S0020-0190(97)00190-7}{doi:10.1016/S0020-0190(97)00190-7}.
+
+\bibitem{Val77}
+L.~G. Valiant. Graph-theoretic arguments in low-level complexity.
+In \emph{Mathematical Foundations of Computer Science 1977}, LNCS 53,
+pages 162--176, 1977.
+\href{https://doi.org/10.1007/3-540-08353-7_135}{doi:10.1007/3-540-08353-7\_135}.
+\end{thebibliography}
+\end{document}
